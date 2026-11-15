@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import re
 from html.parser import HTMLParser
-from typing import Any
-from starlette.testclient import TestClient
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from starlette.testclient import TestClient
 
 from radui.core.app import App
 from radui.core.registry import ComponentRegistry
@@ -47,10 +49,17 @@ class TestHarness:
         self.renderer = HTMLRenderer(ComponentRegistry.builtins())
 
     @property
-    def client(self) -> TestClient:
+    def client(self) -> Any:
         if self.app is None:
             raise ValueError("TestHarness requires an App instance to create a test client")
         if self._client is None:
+            try:
+                from starlette.testclient import TestClient
+            except (ImportError, RuntimeError) as exc:
+                raise RuntimeError(
+                    "TestHarness.client requires the 'httpx' package. "
+                    "Install it with: pip install httpx"
+                ) from exc
             self._client = TestClient(self.app.asgi())
         return self._client
 
