@@ -1044,6 +1044,58 @@ STATIC_JS = r"""(() => {
     surface.style.setProperty("--gx-pointer-y", `${event.clientY - rect.top}px`);
   }, { passive: true });
 
+  let currentCompName = "button";
+
+  const updateLivePreview = (name) => {
+    if (name) currentCompName = name;
+    const previewContainer = document.getElementById("component-preview");
+    if (!previewContainer) return;
+
+    const labelInput = document.querySelector('input[name="prop.label"]') || document.querySelector('.gx-card input[type="text"]');
+    const variantSelect = document.querySelector('select[name="prop.variant"]') || document.querySelector('.gx-card select');
+    const disabledSwitch = document.querySelector('input[name="prop.disabled"]') || document.querySelector('.gx-card input[type="checkbox"]');
+
+    const label = (labelInput && labelInput.value.trim()) ? labelInput.value.trim() : (
+      currentCompName === "button" ? "Launch Cluster" :
+      currentCompName === "badge" ? "v1.0.0 Verified" :
+      currentCompName === "callout" ? "Production AST pipeline verified." :
+      currentCompName.includes("metric") ? "0.039 ms" : "Task Pipeline"
+    );
+    const variant = variantSelect ? variantSelect.value : "primary";
+    const disabled = disabledSwitch ? disabledSwitch.checked : false;
+
+    let widgetHtml = "";
+    let snippet = "";
+    const disabledAttr = disabled ? " disabled" : "";
+    const disabledCode = disabled ? ", disabled=True" : "";
+
+    if (currentCompName === "button") {
+      widgetHtml = `<button class="gx-button gx-button-${variant}" type="button"${disabledAttr} style="min-width:180px">${label}</button>`;
+      snippet = `import radui as ui\\n\\nwidget = ui.button("${label}", variant="${variant}"${disabledCode})`;
+    } else if (currentCompName === "badge") {
+      widgetHtml = `<span class="gx-badge gx-badge-${variant}" style="font-size:0.95rem;padding:6px 14px">${label}</span>`;
+      snippet = `import radui as ui\\n\\nwidget = ui.badge("${label}", variant="${variant}")`;
+    } else if (currentCompName === "callout") {
+      widgetHtml = `<div class="gx-callout gx-callout-${variant}" style="width:100%"><h4 style="margin:0 0 6px">Inspection Callout</h4><p class="gx-text" style="margin:0">${label}</p></div>`;
+      snippet = `import radui as ui\\n\\nwidget = ui.callout("${label}", title="Inspection Callout", variant="${variant}")`;
+    } else if (currentCompName === "metric" || currentCompName === "metric_card") {
+      widgetHtml = `<div class="gx-metric" style="width:100%"><span class="gx-metric-label">Real-Time KPI</span><span class="gx-metric-value" style="display:block;margin:6px 0">${label}</span><span class="gx-metric-delta" style="color:var(--gx-primary)">+12% vs target</span></div>`;
+      snippet = `import radui as ui\\n\\nwidget = ui.metric_card("Real-Time KPI", "${label}", delta="+12% vs target")`;
+    } else if (currentCompName === "progress" || currentCompName === "progress_bar") {
+      widgetHtml = `<div style="width:100%"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="gx-text">Task Progress (${label})</span><span class="gx-text" style="font-weight:700">75%</span></div><div class="gx-progress" style="background:var(--gx-surface-alt);border-radius:999px;height:12px;overflow:hidden"><div class="gx-progress-bar gx-progress-${variant}" style="width:75%;height:100%;border-radius:999px;background:var(--gx-primary);transition:width .3s ease"></div></div></div>`;
+      snippet = `import radui as ui\\n\\nwidget = ui.progress_bar(value=75.0, variant="${variant}")`;
+    }
+
+    previewContainer.innerHTML = widgetHtml;
+
+    const pre = previewContainer.parentElement.querySelector('.gx-code-container code') || document.querySelector('#docs-content .gx-code-container code');
+    if (pre) {
+      pre.textContent = snippet;
+      const copy = pre.closest('.gx-code-container')?.querySelector('[data-gx-copy]');
+      if (copy) copy.dataset.gxRawCode = snippet;
+    }
+  };
+
   const runDemoCommand = (command, source) => {
     const card = source.closest(".gx-card");
     const metrics = card ? [...card.querySelectorAll(".gx-metric-value")] : [];
@@ -1069,19 +1121,38 @@ STATIC_JS = r"""(() => {
       if (bar) bar.style.width = command === "job.start" ? "45%" : "0%";
       announce(command === "job.start" ? "Demo job started" : "Demo job cancelled");
     } else if (command.startsWith("comp.select_")) {
+      const name = command.replace("comp.select_", "");
       document.querySelectorAll('[data-gx-command^="comp.select_"]').forEach(button => {
-        const selected = button === source;
-        button.classList.toggle("is-selected", selected);
-        button.setAttribute("aria-pressed", String(selected));
+        const isCurrent = button === source;
+        button.classList.toggle("is-selected", isCurrent);
+        button.classList.toggle("gx-button-primary", isCurrent);
+        button.classList.toggle("gx-btn-primary", isCurrent);
+        button.classList.toggle("gx-button-outline", !isCurrent);
+        button.classList.toggle("gx-btn-outline", !isCurrent);
+        button.setAttribute("aria-pressed", String(isCurrent));
       });
       const selection = document.getElementById("component-selection");
-      const name = command.replace("comp.select_", "");
-      if (selection) selection.textContent = `Selected live preview: ${name.replaceAll("_", " ")}`;
+      if (selection) selection.textContent = `Selected live preview: ui.${name.replaceAll("_", " ")}`;
+      updateLivePreview(name);
       announce(`${name.replaceAll("_", " ")} preview selected`);
+    } else if (command === "comp.apply_props" || command === "comp.test_trigger") {
+      updateLivePreview();
+      announce("Applied inspector parameters to live component");
     } else {
       announce("Example interaction received");
     }
   };
+
+  document.addEventListener("input", (e) => {
+    if (e.target.closest('form[data-gx-command="comp.apply_props"]') || e.target.closest('#docs-content')) {
+      if (e.target.matches('input, select')) updateLivePreview();
+    }
+  });
+  document.addEventListener("change", (e) => {
+    if (e.target.closest('form[data-gx-command="comp.apply_props"]') || e.target.closest('#docs-content')) {
+      updateLivePreview();
+    }
+  });
 
   document.addEventListener("submit", (event) => {
     const form = event.target.closest("form[data-gx-command]");
