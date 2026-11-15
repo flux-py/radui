@@ -405,6 +405,16 @@ def components_ai_page():
                     ui.chat_message("Can you execute the partition maintenance job?", role="user"),
                     ui.chat_message("I have prepared the job payload. Authorize execution below:", role="assistant"),
                 ),
+                flippable=True,
+                code=(
+                    'import radui as ui\n\n'
+                    'chat = ui.chat_view(\n'
+                    '    ui.chat_message("Connected to Model Context Protocol server: postgres-analytics", role="assistant"),\n'
+                    '    ui.chat_message("Can you execute the partition maintenance job?", role="user"),\n'
+                    '    ui.chat_message("I have prepared the job payload. Authorize execution below:", role="assistant"),\n'
+                    ')'
+                ),
+                id="showcase-chat-view",
             ),
             ui.card(
                 ui.heading("3. Human-in-the-Loop Action Card", level=3),
@@ -415,6 +425,17 @@ def components_ai_page():
                     approve_command="agent.approve_demo",
                     reject_command="agent.reject_demo",
                 ),
+                flippable=True,
+                code=(
+                    'import radui as ui\n\n'
+                    'action = ui.action_card(\n'
+                    '    title="Authorize DB Partition Rotation?",\n'
+                    '    description="Target: \'ALTER TABLE daily_logs ROTATE PARTITION 2026_11;\'",\n'
+                    '    approve_command="agent.approve_demo",\n'
+                    '    reject_command="agent.reject_demo",\n'
+                    ')'
+                ),
+                id="showcase-action-card",
             ),
             columns={"sm": 1, "md": 2, "lg": 2},
             gap=16,

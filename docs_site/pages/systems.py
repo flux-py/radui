@@ -218,6 +218,7 @@ def components_page():
             ui.spacer(size=10),
             preview_widget,
             id="component-preview",
+            flippable=True,
             title="Live Rendered Component Preview (Click to Flip 3D)",
             subtitle="Click card or flip button to rotate 180° in 3D and reveal implementation code",
             hover=ui.motion.hover(scale=1.015, translate_y=-2.0),

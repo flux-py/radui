@@ -121,6 +121,8 @@ class Row(Component):
 class Card(Component):
     kind: Literal["card"] = "card"
     children: tuple[Element, ...] = ()
+    flippable: bool = False
+    code: str | None = None
 
 
 class Grid(Component):
@@ -913,10 +915,12 @@ def row(*children: Element, gap: int = 12, id: str | None = None, **kwargs: Any)
     )
 
 
-def card(*children: Element, id: str | None = None, **kwargs: Any) -> Card:
+def card(*children: Element, id: str | None = None, flippable: bool = False, code: str | None = None, **kwargs: Any) -> Card:
     return Card(
         children=tuple(children),
         id=id,
+        flippable=flippable,
+        code=code,
         motion=kwargs.get("motion"),
         hover=kwargs.get("hover"),
         tap=kwargs.get("tap"),

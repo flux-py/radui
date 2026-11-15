@@ -553,20 +553,23 @@ body {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
-/* 3D Flip Card Architecture */
+/* 3D Flip Card Architecture & Dual-Theme Polish */
 .gx-flip-scene {
   perspective: 1200px;
   width: 100%;
-  margin-bottom: 8px;
+  position: relative;
+  display: block;
 }
 .gx-flip-card {
   position: relative;
   width: 100%;
-  min-height: 280px;
   transform-style: preserve-3d;
   transition: transform 0.65s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.3s ease;
   border-radius: var(--gx-radius);
   cursor: pointer;
+}
+.gx-flip-card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 .gx-flip-card.is-flipped {
   transform: rotateY(180deg);
@@ -593,58 +596,138 @@ body {
   bottom: 0;
   transform: rotateY(180deg);
   background: var(--gx-surface);
-  border: 1px solid var(--gx-primary);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
-  padding: 24px;
+  border: 1px solid var(--gx-border);
+  box-shadow: var(--gx-shadow);
+  border-radius: var(--gx-radius);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
   z-index: 1;
 }
-.gx-flip-badge-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.76rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--gx-surface-alt);
-  color: var(--gx-text);
-  border: 1px solid var(--gx-border);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
+
+/* Backside Code Card matching reference design (media_1794759107652_b737195c.png) */
+.gx-code-card-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--gx-surface);
+  border-radius: var(--gx-radius);
+  overflow: hidden;
 }
-.gx-flip-badge-pill:hover {
-  background: var(--gx-primary);
-  color: #ffffff;
-  border-color: var(--gx-primary);
-  transform: scale(1.04);
-}
-.gx-flip-back-header {
+.gx-code-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  padding: 10px 16px;
+  background: var(--gx-surface-alt, #f3f2ed);
   border-bottom: 1px solid var(--gx-border);
-  padding-bottom: 8px;
+  font-family: var(--gx-font-mono, monospace);
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  color: var(--gx-text-muted);
 }
-.gx-btn-copy-code {
-  padding: 4px 12px;
+[data-theme="dark"] .gx-code-card-header {
+  background: #1a1d22;
+  border-color: #2a2e36;
+}
+.gx-code-card-header .gx-code-lang {
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--gx-text-muted);
+}
+.gx-code-card-header .gx-code-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: 6px;
+  border: 1px solid var(--gx-border);
+  background: var(--gx-surface);
+  color: var(--gx-text);
   font-size: 0.78rem;
   font-weight: 600;
-  border: 1px solid var(--gx-border);
-  background: var(--gx-surface-alt);
-  color: var(--gx-text);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
-.gx-btn-copy-code:hover {
+.gx-code-card-header .gx-code-copy-btn:hover {
   background: var(--gx-primary);
   color: #ffffff;
   border-color: var(--gx-primary);
+}
+.gx-code-card-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--gx-surface);
+}
+[data-theme="dark"] .gx-code-card-body {
+  background: #111317;
+}
+.gx-code-lines {
+  margin: 0;
+  padding: 0;
+  font-family: var(--gx-font-mono, ui-monospace, Menlo, Monaco, Consolas, monospace);
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--gx-text);
+  white-space: pre;
+}
+.gx-code-line {
+  display: flex;
+  align-items: flex-start;
+}
+.gx-code-line-num {
+  width: 32px;
+  text-align: right;
+  margin-right: 16px;
+  color: var(--gx-text-muted);
+  user-select: none;
+  font-size: 0.84rem;
+  opacity: 0.7;
+}
+.gx-code-line-text {
+  flex: 1;
+}
+.gx-code-card-footer {
+  padding: 6px 14px;
+  background: var(--gx-surface-alt);
+  border-top: 1px solid var(--gx-border);
+  display: flex;
+  justify-content: flex-end;
+}
+.gx-flip-return-hint {
+  font-size: 0.72rem;
+  color: var(--gx-text-muted);
+  font-style: italic;
+}
+
+/* Subtle, Humorous Hover Tooltip: "Click to reveal the code 👀" */
+.gx-flip-tooltip {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  background: var(--gx-text);
+  color: var(--gx-surface);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  z-index: 25;
+  white-space: nowrap;
+}
+.gx-flip-scene:hover .gx-flip-tooltip {
+  opacity: 0.95;
+  transform: translateX(-50%) translateY(0);
+}
+.gx-flip-card.is-flipped ~ .gx-flip-tooltip,
+.gx-flip-card.is-flipped .gx-flip-tooltip {
+  opacity: 0 !important;
+  visibility: hidden;
 }
 
 /* Continuous Reading Navigation */
@@ -1374,9 +1457,9 @@ STATIC_JS = r"""(() => {
     }
 
     // Update backside of 3D flip card
-    const flipCard = previewContainer.closest('.gx-flip-card') || previewContainer;
-    const backCode = flipCard.querySelector('.gx-flip-back code');
-    if (backCode) backCode.textContent = snippet;
+    if (previewContainer._updateBackCode) {
+      previewContainer._updateBackCode(snippet);
+    }
   };
 
   const runDemoCommand = (command, source) => {
@@ -1443,145 +1526,115 @@ STATIC_JS = r"""(() => {
     }
   };
 
-  // 3D Flip Card System: seamlessly equips component cards with 3D flip animation & code
+  // 3D Flip Card System: Selective & Component-Specific Code Previews
   const initFlipCards = (root = document) => {
-    const cards = root.querySelectorAll('.gx-card, section.gx-card, [data-gx-flippable]');
-    cards.forEach(card => {
+    // SELECTIVE FLIPPING: Only flip cards explicitly marked with data-gx-flippable or #component-preview
+    const flippableCards = root.querySelectorAll('[data-gx-flippable="true"], #component-preview');
+    flippableCards.forEach(card => {
       if (card._gxFlipInited) return;
-      if (card.querySelector('form[data-gx-command="comp.apply_props"]') || card.querySelector('#comp-search-bar') || card.id === "docs-sidebar") {
-        return;
-      }
       card._gxFlipInited = true;
 
+      // Extract exact component-specific code
       let compCode = "";
       if (card.dataset.gxCode) {
         compCode = card.dataset.gxCode;
       } else if (card.id === "component-preview") {
         const meta = RADUI_COMPONENTS[currentCompName] || {};
         compCode = meta.example || `import radui as ui\n\nwidget = ui.${currentCompName}()`;
-      } else {
-        const parentGrid = card.closest('.gx-grid');
-        const siblingCode = parentGrid ? parentGrid.querySelector('.gx-code-container code') : null;
-        if (siblingCode) {
-          compCode = siblingCode.textContent.trim();
-        } else {
-          const heading = card.querySelector('h1, h2, h3, h4, .gx-heading');
-          const hText = (heading ? heading.textContent : "").toLowerCase();
-          for (const [k, v] of Object.entries(RADUI_COMPONENTS)) {
-            if (hText.includes(k.replace('_', ' ')) || hText.includes(k)) {
-              compCode = v.example;
-              break;
-            }
-          }
-          if (!compCode) {
-            if (card.querySelector('.gx-chat')) compCode = RADUI_COMPONENTS['chat_view']?.example || "";
-            else if (card.querySelector('.gx-action-card')) compCode = RADUI_COMPONENTS['action_card']?.example || "";
-            else if (card.querySelector('.gx-streaming')) compCode = RADUI_COMPONENTS['streaming_text']?.example || "";
-            else if (card.querySelector('.gx-diagram')) compCode = RADUI_COMPONENTS['diagram']?.example || "";
-            else if (card.querySelector('.gx-tree')) compCode = RADUI_COMPONENTS['tree_view']?.example || "";
-            else if (card.querySelector('.gx-metric')) compCode = RADUI_COMPONENTS['metric_card']?.example || "";
-            else if (card.querySelector('.gx-progress')) compCode = RADUI_COMPONENTS['progress_bar']?.example || "";
-            else if (card.querySelector('.gx-accordion')) compCode = RADUI_COMPONENTS['accordion']?.example || "";
-            else if (card.querySelector('.gx-tabs')) compCode = RADUI_COMPONENTS['tabs']?.example || "";
-            else if (card.querySelector('.gx-slider')) compCode = RADUI_COMPONENTS['slider']?.example || "";
-          }
-        }
       }
 
       if (!compCode) return;
 
       const scene = document.createElement("div");
       scene.className = "gx-flip-scene";
-      
+
       const flipCard = document.createElement("div");
       flipCard.className = "gx-flip-card";
-      
+
       const front = document.createElement("div");
       front.className = "gx-flip-front";
-      
-      const frontBadge = document.createElement("button");
-      frontBadge.type = "button";
-      frontBadge.className = "gx-flip-badge-pill gx-flip-trigger";
-      frontBadge.innerHTML = "⟳ Code";
-      frontBadge.title = "Click to flip card and view RadUI implementation code";
+
+      // Humorous, subtle hover tooltip
+      const tooltip = document.createElement("div");
+      tooltip.className = "gx-flip-tooltip";
+      tooltip.textContent = "Click to reveal the code 👀";
 
       const back = document.createElement("div");
       back.className = "gx-flip-back";
-      
-      const backHeader = document.createElement("div");
-      backHeader.className = "gx-flip-back-header";
-      backHeader.innerHTML = `
-        <span style="font-weight:700;font-size:0.88rem;color:var(--gx-text);display:flex;align-items:center;gap:6px;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gx-primary);"></span>
-          RadUI Implementation Code
-        </span>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <button type="button" class="gx-btn-copy-code" data-copy-flip>Copy Code</button>
-          <button type="button" class="gx-flip-badge-pill gx-flip-back-btn" title="Flip back to interactive preview">⟲ Preview</button>
-        </div>
-      `;
 
-      const codeWrap = document.createElement("div");
-      codeWrap.className = "gx-code-container";
-      codeWrap.style.flex = "1";
-      codeWrap.style.overflow = "auto";
-      const codePre = document.createElement("pre");
-      codePre.className = "gx-code-block";
-      codePre.style.height = "100%";
-      codePre.style.margin = "0";
-      const codeElem = document.createElement("code");
-      codeElem.className = "language-python";
-      codeElem.textContent = compCode;
-      codePre.appendChild(codeElem);
-      codeWrap.appendChild(codePre);
+      // Render code block formatted exactly like reference design (media_1794759107652_b737195c.png)
+      const renderCodeBlockHtml = (rawCode) => {
+        const lines = rawCode.split("\n");
+        const linesHtml = lines.map((line, idx) => {
+          const num = idx + 1;
+          const escaped = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          return `<div class="gx-code-line"><span class="gx-code-line-num">${num}</span><span class="gx-code-line-text">${escaped || "&nbsp;"}</span></div>`;
+        }).join("");
 
-      back.appendChild(backHeader);
-      back.appendChild(codeWrap);
+        return `
+          <div class="gx-code-card-inner">
+            <div class="gx-code-card-header">
+              <span class="gx-code-lang">PYTHON</span>
+              <button type="button" class="gx-code-copy-btn" data-copy-flip>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+            <div class="gx-code-card-body">
+              <pre class="gx-code-lines">${linesHtml}</pre>
+            </div>
+            <div class="gx-code-card-footer">
+              <span class="gx-flip-return-hint">⟲ Click card to return to preview</span>
+            </div>
+          </div>
+        `;
+      };
+
+      back.innerHTML = renderCodeBlockHtml(compCode);
 
       card.parentNode.insertBefore(scene, card);
       scene.appendChild(flipCard);
       flipCard.appendChild(front);
       flipCard.appendChild(back);
       front.appendChild(card);
-
-      const cardHeader = card.querySelector('h1, h2, h3, h4, .gx-heading, .gx-card-header');
-      if (cardHeader && cardHeader.parentElement) {
-        const headerRow = cardHeader.closest('.gx-row') || cardHeader.parentElement;
-        headerRow.style.display = "flex";
-        headerRow.style.alignItems = "center";
-        headerRow.style.justifyContent = "space-between";
-        headerRow.appendChild(frontBadge);
-      } else {
-        front.appendChild(frontBadge);
-        frontBadge.style.position = "absolute";
-        frontBadge.style.top = "16px";
-        frontBadge.style.right = "16px";
-        frontBadge.style.zIndex = "10";
-      }
+      scene.appendChild(tooltip);
 
       flipCard.addEventListener("click", (e) => {
-        if (e && e.target.closest("button:not(.gx-flip-trigger):not(.gx-flip-back-btn), input, select, textarea, a, .gx-grid-pagination, [data-gx-copy]")) {
+        if (e && e.target.closest("button:not(.gx-flip-trigger), input, select, textarea, a, .gx-grid-pagination, [data-gx-copy]")) {
           return;
         }
         flipCard.classList.toggle("is-flipped");
-        announce(flipCard.classList.contains("is-flipped") ? "Flipped to RadUI code" : "Flipped to live preview");
+        announce(flipCard.classList.contains("is-flipped") ? "Revealed implementation code" : "Returned to live preview");
       });
 
-      const copyBtn = back.querySelector('[data-copy-flip]');
-      if (copyBtn) {
+      const wireCopyBtn = () => {
+        const copyBtn = back.querySelector('[data-copy-flip]');
+        if (!copyBtn) return;
         copyBtn.addEventListener("click", async (e) => {
           e.stopPropagation();
           try {
-            await navigator.clipboard.writeText(codeElem.textContent);
-            const old = copyBtn.textContent;
-            copyBtn.textContent = "Copied! ✓";
-            setTimeout(() => { copyBtn.textContent = old; }, 1600);
-            announce("Implementation code copied to clipboard");
+            const raw = card._latestCode || compCode;
+            await navigator.clipboard.writeText(raw);
+            const span = copyBtn.querySelector("span") || copyBtn;
+            const old = span.textContent;
+            span.textContent = "Copied!";
+            setTimeout(() => { span.textContent = old; }, 1600);
+            announce("Code copied to clipboard");
           } catch (err) {
-            announce("Clipboard copy failed");
+            announce("Clipboard access failed");
           }
         });
-      }
+      };
+      wireCopyBtn();
+
+      card._updateBackCode = (newCode) => {
+        card._latestCode = newCode;
+        back.innerHTML = renderCodeBlockHtml(newCode);
+        wireCopyBtn();
+      };
     });
   };
 
@@ -3273,6 +3326,14 @@ def _attrs(component: Component) -> str:
     optimistic = getattr(component, "optimistic", False)
     if optimistic:
         parts.append('data-gx-optimistic="true"')
+
+    flippable = getattr(component, "flippable", False)
+    if flippable:
+        parts.append('data-gx-flippable="true"')
+
+    code = getattr(component, "code", None)
+    if code:
+        parts.append(f'data-gx-code="{escape(str(code), quote=True)}"')
 
     if not parts:
         return ""

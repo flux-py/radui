@@ -239,15 +239,11 @@ def home_page():
                     ui.form(ui.button("Increase", variant="primary"), command="demo.inc"),
                     gap=10,
                 ),
-                ui.code_block(
-                    'count = ui.state("count", default=0, scope="session")\n\n'
-                    'ui.metric_card("Counter", count)\n'
-                    'ctx.write(count, ctx.read(count) + 1)',
-                    language="python",
-                    copyable=True,
-                ),
                 gap=14,
                 motion=ui.motion.fade_in(delay=0.12),
+                flippable=True,
+                code='count = ui.state("count", default=0, scope="session")\n\nui.metric_card("Counter", count)\nctx.write(count, ctx.read(count) + 1)',
+                id="demo-counter-card",
             ),
             ui.card(
                 ui.badge("THE RADUI MODEL", variant="primary"),
