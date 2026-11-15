@@ -17,10 +17,8 @@ def build():
     env = dict(os.environ)
     env["PYTHONPATH"] = str(root) + (os.pathsep + env["PYTHONPATH"] if "PYTHONPATH" in env else "")
     cmd = [sys.executable, "-m", "radui", "export", "docs_site/app.py", "--static", "--output", str(dist)]
-    res = subprocess.run(cmd, cwd=root, env=env, capture_output=True, text=True)
-    print(res.stdout)
+    res = subprocess.run(cmd, cwd=root, env=env)
     if res.returncode != 0:
-        print(res.stderr, file=sys.stderr)
         sys.exit(res.returncode)
 
     # 2. Mirror each route as a directory with index.html for clean URLs
