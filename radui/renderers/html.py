@@ -552,6 +552,198 @@ body {
 .gx-card {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
+
+/* 3D Flip Card Architecture */
+.gx-flip-scene {
+  perspective: 1200px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.gx-flip-card {
+  position: relative;
+  width: 100%;
+  min-height: 280px;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.3s ease;
+  border-radius: var(--gx-radius);
+  cursor: pointer;
+}
+.gx-flip-card.is-flipped {
+  transform: rotateY(180deg);
+}
+.gx-flip-front,
+.gx-flip-back {
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--gx-radius);
+  box-sizing: border-box;
+}
+.gx-flip-front {
+  position: relative;
+  transform: rotateY(0deg);
+  z-index: 2;
+}
+.gx-flip-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: rotateY(180deg);
+  background: var(--gx-surface);
+  border: 1px solid var(--gx-primary);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 1;
+}
+.gx-flip-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--gx-surface-alt);
+  color: var(--gx-text);
+  border: 1px solid var(--gx-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.gx-flip-badge-pill:hover {
+  background: var(--gx-primary);
+  color: #ffffff;
+  border-color: var(--gx-primary);
+  transform: scale(1.04);
+}
+.gx-flip-back-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--gx-border);
+  padding-bottom: 8px;
+}
+.gx-btn-copy-code {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--gx-border);
+  background: var(--gx-surface-alt);
+  color: var(--gx-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.gx-btn-copy-code:hover {
+  background: var(--gx-primary);
+  color: #ffffff;
+  border-color: var(--gx-primary);
+}
+
+/* Continuous Reading Navigation */
+.gx-continuous-chapter {
+  margin-top: 48px;
+  padding-top: 36px;
+  border-top: 2px dashed var(--gx-border);
+  position: relative;
+  animation: gx-fade-in 0.4s ease forwards;
+}
+@keyframes gx-fade-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.gx-chapter-divider {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 32px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, var(--gx-surface-alt) 0%, var(--gx-surface) 100%);
+  border-left: 4px solid var(--gx-primary);
+  border-radius: var(--gx-radius);
+  box-shadow: var(--gx-shadow);
+}
+.gx-chapter-tag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gx-primary);
+}
+.gx-chapter-divider-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--gx-text);
+}
+.gx-chapter-divider-sub {
+  font-size: 0.88rem;
+  margin: 0;
+  color: var(--gx-text-muted);
+}
+.gx-chapter-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  margin: 32px 0;
+  background: var(--gx-surface-alt);
+  border: 1px dashed var(--gx-primary);
+  border-radius: var(--gx-radius);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--gx-text);
+}
+.gx-reading-pill {
+  position: fixed;
+  bottom: 24px;
+  right: 28px;
+  background: var(--gx-surface);
+  color: var(--gx-text);
+  border: 1px solid var(--gx-border);
+  border-radius: 999px;
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 999;
+  backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+}
+.gx-reading-pill:hover {
+  border-color: var(--gx-primary);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+}
+.gx-reading-pill-top {
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--gx-surface-alt);
+  border: 1px solid var(--gx-border);
+  font-weight: 700;
+  font-size: 0.74rem;
+}
+.gx-reading-pill-top:hover {
+  background: var(--gx-primary);
+  color: #fff;
+}
+#component-chips-grid {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
 [data-gx-hover]:hover {
   cursor: pointer;
 }
@@ -1035,6 +1227,8 @@ STATIC_JS = r"""(() => {
     if (live) live.textContent = message;
   };
 
+  const RADUI_COMPONENTS = {"column": {"example": "ui.column(\n    ui.heading(\"User Profile\", level=2),\n    ui.text(\"Manage account security and permissions.\"),\n    ui.button(\"Save Changes\", variant=\"primary\"),\n    gap=16,\n)", "domain": "Layout & Disclosure", "desc": "Vertical flexbox container arranging child components top-to-bottom."}, "row": {"example": "ui.row(\n    ui.button(\"Cancel\", variant=\"secondary\"),\n    ui.button(\"Submit\", variant=\"primary\"),\n    gap=12,\n)", "domain": "Layout & Disclosure", "desc": "Horizontal flexbox container with alignment, spacing, and wrapping controls."}, "grid": {"example": "ui.grid(\n    ui.card(ui.text(\"Metric A\")),\n    ui.card(ui.text(\"Metric B\")),\n    ui.card(ui.text(\"Metric C\")),\n    columns=3,\n    gap=16,\n)", "domain": "Layout & Disclosure", "desc": "Responsive CSS Grid container with column counts and responsive breakpoints."}, "container": {"example": "ui.container(\n    ui.heading(\"Dashboard Overview\", level=1),\n    ui.text(\"Welcome to RADUI portal.\"),\n    max_width=\"1200px\",\n)", "domain": "Layout & Disclosure", "desc": "Centered structural page wrapper with max-width and horizontal margins."}, "stack": {"example": "ui.stack(\n    ui.badge(\"Python\"),\n    ui.badge(\"ASGI\"),\n    ui.badge(\"SSE\"),\n    gap=8,\n)", "domain": "Layout & Disclosure", "desc": "Flexible wrapping layout for button strips, tag clouds, and badge rows."}, "split_panel": {"example": "ui.split_panel(\n    left=ui.card(ui.text(\"Navigation List\")),\n    right=ui.card(ui.text(\"Detail View\")),\n    initial_ratio=0.35,\n)", "domain": "Layout & Disclosure", "desc": "Resizable two-pane layout with draggable divider for master-detail views."}, "card": {"example": "ui.card(\n    ui.metric_card(\"Throughput\", \"1,420 rps\"),\n    title=\"API Cluster Status\",\n    subtitle=\"Updated 1s ago\",\n)", "domain": "Layout & Disclosure", "desc": "Structured visual container panel with optional title, description, and footer."}, "dynamic_card": {"example": "ui.dynamic_card(\"Live State Viewer\", bind=s_count,\n    ui.text(\"Content dynamically re-evaluates on state mutation.\")\n)", "domain": "Layout & Disclosure", "desc": "Reactive card container observing a StateRef and re-rendering on mutations."}, "accordion": {"example": "ui.accordion(\n    ui.accordion_item(\"Section 1\", ui.text(\"Content 1\"), open=True),\n    ui.accordion_item(\"Section 2\", ui.text(\"Content 2\")),\n)", "domain": "Layout & Disclosure", "desc": "Collapsible disclosure container organizing vertically stacked expandable panels."}, "accordion_item": {"example": "ui.accordion_item(\"How does SSR work?\",\n    ui.text(\"Initial requests render complete HTML in under 3.1ms.\"),\n    open=True\n)", "domain": "Layout & Disclosure", "desc": "Individual collapsible section with interactive header toggle and body."}, "spacer": {"example": "ui.spacer(size=24)", "domain": "Layout & Disclosure", "desc": "Explicit layout spacing element creating vertical or horizontal margin."}, "divider": {"example": "ui.divider(direction=\"horizontal\")", "domain": "Layout & Disclosure", "desc": "Structural visual separator rule segmenting sections within columns or rows."}, "heading": {"example": "ui.heading(\"Reactive Execution Lifecycle\", level=2)", "domain": "Typography & Code", "desc": "Semantic typography element rendering h1 through h6 with hierarchy validation."}, "text": {"example": "ui.text(\"Sub-DOM diffing completes in 0.168 ms.\", variant=\"lead\")", "domain": "Typography & Code", "desc": "Text display component supporting variants: body, caption, code, lead, muted."}, "callout": {"example": "ui.callout(\"Production Ready\", \"All 6 benchmark tiers verified.\", variant=\"success\")", "domain": "Typography & Code", "desc": "Highlighted informational callout banner with status semantics."}, "code_block": {"example": "ui.code_block(\"pip install radui\", language=\"bash\", copyable=True)", "domain": "Typography & Code", "desc": "Syntax-formatted monospace code block featuring line numbers and copy button."}, "kbd": {"example": "ui.row(ui.text(\"Press\"), ui.kbd(\"Ctrl\", \"K\"), ui.text(\"for Command Palette\"), gap=6)", "domain": "Typography & Code", "desc": "Keyboard shortcut indicator styled as hardware keycaps."}, "button": {"example": "ui.button(\"Deploy Cluster\", command=\"cluster.deploy\", variant=\"primary\")", "domain": "Action & Trigger", "desc": "Interactive trigger button dispatching a registered RADUI server command."}, "link": {"example": "ui.link(\"GitHub Repository\", \"https://github.com/flux-py/radui\", external=True)", "domain": "Action & Trigger", "desc": "Hyperlink strictly validated against secure http/https schemes to prevent XSS."}, "dropdown_menu": {"example": "ui.dropdown_menu(\"Export Options\", [\n    ui.dropdown_menu_item(\"CSV Export\", command=\"export.csv\"),\n    ui.dropdown_menu_item(\"JSON Export\", command=\"export.json\"),\n])", "domain": "Action & Trigger", "desc": "Floating contextual menu revealing actions on trigger click."}, "dropdown_menu_item": {"example": "ui.dropdown_menu_item(\"Purge Cache\", command=\"cache.purge\", danger=True)", "domain": "Action & Trigger", "desc": "Action item within a dropdown menu supporting command dispatch or navigation."}, "theme_toggle": {"example": "ui.theme_toggle(\"Toggle Theme\")", "domain": "Action & Trigger", "desc": "Interactive theme switcher with dark/light mode transitions and localStorage persistence."}, "form": {"example": "ui.form(\n    ui.input(\"Workspace Name\", bind=s_name),\n    ui.button(\"Create\", variant=\"primary\"),\n    command=\"workspace.create\",\n)", "domain": "Form & Data Input", "desc": "Declarative form container automatically injecting CSRF tokens and binding child inputs."}, "input": {"example": "ui.input(\"Email Address\", bind=s_email, type=\"email\", placeholder=\"developer@flux.py\")", "domain": "Form & Data Input", "desc": "Single-line text input bound to a reactive StateRef. Supports text, email, number, url."}, "textarea": {"example": "ui.textarea(\"Prompt Instructions\", bind=s_prompt, rows=5)", "domain": "Form & Data Input", "desc": "Multi-line text entry field bound to a reactive StateRef."}, "checkbox": {"example": "ui.checkbox(\"Enable Telemetry Tracing\", bind=s_telemetry)", "domain": "Form & Data Input", "desc": "Boolean toggle checkbox bound directly to a boolean StateRef."}, "switch": {"example": "ui.switch(\"Maintenance Mode\", bind=s_maintenance)", "domain": "Form & Data Input", "desc": "Hardware-styled toggle switch component bound to boolean reactive state."}, "radio_group": {"example": "ui.radio_group(\"Database Backend\", bind=s_db, options=[\"sqlite\", \"postgres\", \"redis\"])", "domain": "Form & Data Input", "desc": "Mutually-exclusive radio selection list bound to a string StateRef."}, "select": {"example": "ui.select(\"Cluster Region\", bind=s_region, options=[(\"us-east-1\", \"US East\"), (\"eu-west-1\", \"EU West\")])", "domain": "Form & Data Input", "desc": "Single-choice dropdown select control supporting label-value option tuples."}, "slider": {"example": "ui.slider(\"Concurrent Jobs\", bind=s_concurrency, min_value=1, max_value=64, step=1)", "domain": "Form & Data Input", "desc": "Continuous or stepped numeric range input with live value readouts."}, "date_picker": {"example": "ui.date_picker(\"Deployment Date\", bind=s_date)", "domain": "Form & Data Input", "desc": "Accessible calendar date picker input formatted to ISO-8601 (YYYY-MM-DD)."}, "time_picker": {"example": "ui.time_picker(\"Daily Backup Time\", bind=s_time)", "domain": "Form & Data Input", "desc": "Accessible time selection control formatted to 24-hour time (HH:MM)."}, "file_upload": {"example": "ui.file_upload(command=\"dataset.upload\", accept=\".csv,.json\", max_size_mb=25)", "domain": "Form & Data Input", "desc": "Drag-and-drop file upload zone with client-side size validation and file listing."}, "modal": {"example": "ui.modal(\"Restart Server\", ui.text(\"Are you sure you want to restart?\"), trigger_label=\"Restart\")", "domain": "Feedback & Overlays", "desc": "Accessible dialog overlay featuring focus-trapping, Escape key dismissal, and backdrop handling."}, "drawer": {"example": "ui.drawer(\"Node Inspector\", ui.text(\"Detailed trace records\"), trigger_label=\"Inspect\")", "domain": "Feedback & Overlays", "desc": "Off-canvas sliding drawer panel supporting placements: left, right, top, bottom."}, "popover": {"example": "ui.popover(\"Lease Fencing\", \"Guarantees split-brain prevention under partitions.\")", "domain": "Feedback & Overlays", "desc": "Contextual floating popover bubble anchored to a trigger button."}, "tooltip": {"example": "ui.tooltip(\"Copy command\", ui.button(\"Copy\"))", "domain": "Feedback & Overlays", "desc": "Lightweight hover/focus indicator providing descriptive text for buttons and icons."}, "toast": {"example": "ui.toast(\"State synchronized successfully\", variant=\"success\")", "domain": "Feedback & Overlays", "desc": "Individual transient toast alert message. Variants: info, success, warning, danger."}, "toast_container": {"example": "ui.toast_container(ui.toast(\"Cache purged\", variant=\"info\"))", "domain": "Feedback & Overlays", "desc": "Fixed viewport overlay positioning toast notifications."}, "error_boundary": {"example": "ui.error_boundary(failing_widget(), fallback_message=\"Live widget temporarily unavailable.\")", "domain": "Feedback & Overlays", "desc": "Catches unhandled rendering exceptions in isolated subtrees without breaking surrounding page."}, "breadcrumb": {"example": "ui.breadcrumb(\n    ui.breadcrumb_item(\"Home\", href=\"/\"),\n    ui.breadcrumb_item(\"Components\", href=\"/components\"),\n    ui.breadcrumb_item(\"Button\", active=True),\n)", "domain": "Navigation", "desc": "Breadcrumb navigation bar indicating hierarchical path position."}, "breadcrumb_item": {"example": "ui.breadcrumb_item(\"Architecture\", href=\"/architecture\")", "domain": "Navigation", "desc": "Individual breadcrumb entry supporting hyperlinked routes or active leaf nodes."}, "pagination": {"example": "ui.pagination(current_page=2, total_pages=8, command=\"records.page\")", "domain": "Navigation", "desc": "Page selector control with Previous, Next, and numeric page buttons dispatching commands."}, "tabs": {"example": "ui.tabs(\n    ui.tab_item(\"Python API\", ui.code_block(\"import radui as ui\")),\n    ui.tab_item(\"CLI\", ui.code_block(\"radui run\")),\n)", "domain": "Navigation", "desc": "Tabbed container switching visible child panels based on active tab selection."}, "tab_item": {"example": "ui.tab_item(\"Benchmarks\", ui.text(\"AST Construction: 0.039 ms\"))", "domain": "Navigation", "desc": "Single tab section holding child components associated with a tab header."}, "table": {"example": "ui.table(\n    headers=[\"Worker\", \"Status\", \"Latency\"],\n    rows=[[\"worker-1\", \"ACTIVE\", \"0.039ms\"], [\"worker-2\", \"ACTIVE\", \"0.042ms\"]],\n)", "domain": "Data Display & Tables", "desc": "Responsive data table with striped alternating rows and hover highlighting."}, "data_grid": {"example": "ui.data_grid(\n    headers=[\"Component\", \"Category\", \"AST Overhead\"],\n    rows=[[\"button\", \"Action\", \"0.015ms\"], [\"data_grid\", \"Data\", \"0.082ms\"]],\n    searchable=True,\n)", "domain": "Data Display & Tables", "desc": "Interactive data grid featuring instant search filtering, column sorting, and pagination."}, "virtual_list": {"example": "ui.virtual_list(items=[f\"Log Entry #{i}\" for i in range(10000)], item_height=36, viewport_height=300)", "domain": "Data Display & Tables", "desc": "Windowed virtualization list rendering massive datasets via CSS translateY spacers."}, "metric_card": {"example": "ui.metric_card(\"Reconciliation Time\", \"0.168 ms\", delta=\"-42% latency\")", "domain": "Data Display & Tables", "desc": "KPI metric card with formatted values, comparison deltas, and trend status indicators."}, "plot": {"example": "ui.plot(data=[{\"x\": \"T1\", \"y\": 0.039}, {\"x\": \"T2\", \"y\": 0.038}, {\"x\": \"T3\", \"y\": 3.037}], plot_type=\"bar\")", "domain": "Data Display & Tables", "desc": "Zero-dependency pure SVG chart generator rendering bar, line, and scatter series with zero JS."}, "badge": {"example": "ui.badge(\"v1.0.0 Production\", variant=\"primary\")", "domain": "Indicators & Avatars", "desc": "Compact status pill badge. Variants: primary, secondary, success, warning, danger."}, "tag": {"example": "ui.tag(\"Python 3.12\", variant=\"secondary\")", "domain": "Indicators & Avatars", "desc": "Categorization tag element with optional dismiss button dispatching a command."}, "progress_bar": {"example": "ui.progress_bar(value=85.0, variant=\"success\")", "domain": "Indicators & Avatars", "desc": "Horizontal progress bar indicator with optional striping and animations."}, "progress_circle": {"example": "ui.progress_circle(value=98.5, size=72, variant=\"primary\")", "domain": "Indicators & Avatars", "desc": "Radial SVG progress ring with centered percentage readout."}, "avatar": {"example": "ui.avatar(name=\"Core Maintainer\", size=\"md\", status=\"online\")", "domain": "Indicators & Avatars", "desc": "User profile avatar displaying image source or automatically derived initials."}, "avatar_group": {"example": "ui.avatar_group(\n    ui.avatar(name=\"Ada Lovelace\"),\n    ui.avatar(name=\"Alan Turing\"),\n    ui.avatar(name=\"Grace Hopper\"),\n    ui.avatar(name=\"Linus Torvalds\"),\n    max_visible=3,\n)", "domain": "Indicators & Avatars", "desc": "Overlapping avatar cluster automatically truncating excess users into an +N overflow badge."}, "skeleton": {"example": "ui.skeleton(shape=\"rect\", width=\"100%\", height=\"48px\")", "domain": "Indicators & Avatars", "desc": "Shimmering placeholder loader matching content shape (rect, circle, text)."}, "empty_state": {"example": "ui.empty_state(\"No Telemetry Found\", \"Trigger command to populate event logs.\", action=ui.button(\"Start Telemetry\"))", "domain": "Indicators & Avatars", "desc": "Zero-state presentation screen with heading, explanation, and action button."}, "diagram": {"example": "ui.diagram(\n    nodes=[\n        ui.diagram_node(\"n1\", \"Client DOM\", 50, 100),\n        ui.diagram_node(\"n2\", \"ASGI Engine\", 250, 100),\n    ],\n    edges=[ui.diagram_edge(\"n1\", \"n2\", label=\"POST /command\")],\n)", "domain": "Diagrams & Trees", "desc": "Pure SVG architecture diagram and flowchart canvas supporting interactive click commands."}, "tree_view": {"example": "ui.tree_view([\n    ui.tree_node(\"radui\", \"radui/\", children=[\n        ui.tree_node(\"core\", \"core/\"),\n        ui.tree_node(\"state\", \"state/\"),\n    ], expanded=True),\n])", "domain": "Diagrams & Trees", "desc": "Hierarchical tree explorer with collapsible branches, expandable carets, and selection listeners."}, "chat_view": {"example": "ui.chat_view(\n    ui.chat_message(\"Hello from RADUI AI agent!\", sender=\"assistant\"),\n    height=\"400px\",\n)", "domain": "AI Agent & Workflow", "desc": "Conversation message scrollbox featuring auto-scroll, message bubbles, and typing indicators."}, "chat_message": {"example": "ui.chat_message(\"Can you explain transactional outboxes?\", sender=\"user\")", "domain": "AI Agent & Workflow", "desc": "Individual chat message bubble supporting markdown, code formatting, and metadata."}, "chat_input": {"example": "ui.chat_input(command=\"agent.chat\", placeholder=\"Ask RADUI agent...\")", "domain": "AI Agent & Workflow", "desc": "Conversational input box supporting Enter-to-submit and file attachments."}, "streaming_text": {"example": "ui.streaming_text(\"Tokens arriving in 0.007ms chunks...\", is_streaming=True)", "domain": "AI Agent & Workflow", "desc": "Real-time token stream text box with animated blinking cursor."}, "action_card": {"example": "ui.action_card(\n    title=\"Authorize Tool Dispatch?\",\n    description=\"Execute query on production DB.\",\n    confirm_command=\"agent.approve\",\n    cancel_command=\"agent.reject\",\n)", "domain": "AI Agent & Workflow", "desc": "Human-in-the-loop (HITL) card enabling users to authorize or reject agent tool executions."}, "step_timeline": {"example": "ui.step_timeline([\n    {\"title\": \"Request Validated\", \"status\": \"completed\", \"latency\": \"0.12ms\"},\n    {\"title\": \"State Invalidation\", \"status\": \"completed\", \"latency\": \"0.168ms\"},\n    {\"title\": \"SSE Patch Emitted\", \"status\": \"active\", \"latency\": \"0.007ms\"},\n])", "domain": "AI Agent & Workflow", "desc": "Multi-step execution audit timeline displaying tool invocations, progress state, and latency."}, "generative_slot": {"example": "ui.generative_slot(id=\"dynamic_ai_slot\", component=ui.card(ui.text(\"Agent generated view\")))", "domain": "AI Agent & Workflow", "desc": "Dynamic DOM container allowing backend AI agents to swap or generate UI component trees."}, "job_panel": {"example": "ui.job_panel(job_id=\"export-daily-kpis\")", "domain": "AI Agent & Workflow", "desc": "Real-time background job monitor with progress bar, state badge, and cancellation trigger."}};
+
   document.addEventListener("pointermove", (event) => {
     if (event.pointerType === "touch") return;
     const surface = event.target.closest(".gx-card, .gx-metric, .gx-code-block");
@@ -1059,41 +1253,96 @@ STATIC_JS = r"""(() => {
       currentCompName === "button" ? "Launch Cluster" :
       currentCompName === "badge" ? "v1.0.0 Verified" :
       currentCompName === "callout" ? "Production AST pipeline verified." :
-      currentCompName.includes("metric") ? "0.039 ms" : "Task Pipeline"
+      currentCompName === "slider" ? "Real-Time Value" :
+      currentCompName.includes("metric") ? "0.039 ms" : `Demo ${currentCompName.replace('_', ' ')}`
     );
     const variant = variantSelect ? variantSelect.value : "primary";
     const disabled = disabledSwitch ? disabledSwitch.checked : false;
-
-    let widgetHtml = "";
-    let snippet = "";
     const disabledAttr = disabled ? " disabled" : "";
     const disabledCode = disabled ? ", disabled=True" : "";
 
+    let widgetHtml = "";
+    let snippet = "";
+    const compMeta = RADUI_COMPONENTS[currentCompName] || {};
+
     if (currentCompName === "button") {
       widgetHtml = `<button class="gx-button gx-button-${variant}" type="button"${disabledAttr} style="min-width:180px">${label}</button>`;
-      snippet = `import radui as ui\\n\\nwidget = ui.button("${label}", variant="${variant}"${disabledCode})`;
+      snippet = `import radui as ui\n\nwidget = ui.button("${label}", variant="${variant}"${disabledCode})`;
     } else if (currentCompName === "badge") {
       widgetHtml = `<span class="gx-badge gx-badge-${variant}" style="font-size:0.95rem;padding:6px 14px">${label}</span>`;
-      snippet = `import radui as ui\\n\\nwidget = ui.badge("${label}", variant="${variant}")`;
+      snippet = `import radui as ui\n\nwidget = ui.badge("${label}", variant="${variant}")`;
     } else if (currentCompName === "callout") {
       widgetHtml = `<div class="gx-callout gx-callout-${variant}" style="width:100%"><h4 style="margin:0 0 6px">Inspection Callout</h4><p class="gx-text" style="margin:0">${label}</p></div>`;
-      snippet = `import radui as ui\\n\\nwidget = ui.callout("${label}", title="Inspection Callout", variant="${variant}")`;
-    } else if (currentCompName === "metric" || currentCompName === "metric_card") {
+      snippet = `import radui as ui\n\nwidget = ui.callout("${label}", title="Inspection Callout", variant="${variant}")`;
+    } else if (currentCompName === "metric_card" || currentCompName === "metric") {
       widgetHtml = `<div class="gx-metric" style="width:100%"><span class="gx-metric-label">Real-Time KPI</span><span class="gx-metric-value" style="display:block;margin:6px 0">${label}</span><span class="gx-metric-delta" style="color:var(--gx-primary)">+12% vs target</span></div>`;
-      snippet = `import radui as ui\\n\\nwidget = ui.metric_card("Real-Time KPI", "${label}", delta="+12% vs target")`;
-    } else if (currentCompName === "progress" || currentCompName === "progress_bar") {
+      snippet = `import radui as ui\n\nwidget = ui.metric_card("Real-Time KPI", "${label}", delta="+12% vs target")`;
+    } else if (currentCompName === "progress_bar" || currentCompName === "progress") {
       widgetHtml = `<div style="width:100%"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="gx-text">Task Progress (${label})</span><span class="gx-text" style="font-weight:700">75%</span></div><div class="gx-progress" style="background:var(--gx-surface-alt);border-radius:999px;height:12px;overflow:hidden"><div class="gx-progress-bar gx-progress-${variant}" style="width:75%;height:100%;border-radius:999px;background:var(--gx-primary);transition:width .3s ease"></div></div></div>`;
-      snippet = `import radui as ui\\n\\nwidget = ui.progress_bar(value=75.0, variant="${variant}")`;
+      snippet = `import radui as ui\n\nwidget = ui.progress_bar(value=75.0, variant="${variant}")`;
+    } else if (currentCompName === "slider") {
+      widgetHtml = `<div style="width:100%"><label class="gx-label" style="display:block;margin-bottom:8px">${label}: <span id="comp-slider-val" style="font-weight:700">65</span>%</label><input type="range" min="0" max="100" value="65" class="gx-slider" style="width:100%" oninput="document.getElementById('comp-slider-val').textContent=this.value"></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.slider("${label}", min=0, max=100, step=1, value=65)`;
+    } else if (currentCompName === "switch") {
+      widgetHtml = `<label class="gx-switch-label" style="display:flex;align-items:center;gap:12px;cursor:pointer"><input type="checkbox" checked class="gx-switch"><span class="gx-text" style="font-weight:600">${label}</span></label>`;
+      snippet = `import radui as ui\n\nwidget = ui.switch("${label}", checked=True)`;
+    } else if (currentCompName === "checkbox") {
+      widgetHtml = `<label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" checked class="gx-checkbox"><span class="gx-text">${label}</span></label>`;
+      snippet = `import radui as ui\n\nwidget = ui.checkbox("${label}", checked=True)`;
+    } else if (currentCompName === "input") {
+      widgetHtml = `<div style="width:100%"><label class="gx-label" style="display:block;margin-bottom:6px">${label}</label><input type="text" class="gx-input" value="user@domain.com" style="width:100%"></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.input("${label}", placeholder="Enter text...")`;
+    } else if (currentCompName === "textarea") {
+      widgetHtml = `<div style="width:100%"><label class="gx-label" style="display:block;margin-bottom:6px">${label}</label><textarea class="gx-textarea" rows="3" style="width:100%">System instructions and reactive prompt template...</textarea></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.textarea("${label}", rows=3)`;
+    } else if (currentCompName === "modal") {
+      widgetHtml = `<div><button class="gx-button gx-button-primary" type="button" onclick="const m=document.getElementById('demo-modal-dialog');m.style.display=m.style.display==='none'?'block':'none'">Open Interactive Modal</button><div id="demo-modal-dialog" style="display:none;margin-top:16px;padding:20px;background:var(--gx-surface);border:1px solid var(--gx-border);border-radius:var(--gx-radius);box-shadow:var(--gx-shadow)"><h4 style="margin:0 0 8px">${label}</h4><p class="gx-text">This modal overlay isolates focus and provides confirm/cancel actions.</p><button class="gx-button gx-button-secondary" type="button" onclick="document.getElementById('demo-modal-dialog').style.display='none'">Close</button></div></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.modal(ui.heading("${label}"), ui.text("Modal content"), title="${label}")`;
+    } else if (currentCompName === "chat_view" || currentCompName === "chat_message") {
+      widgetHtml = `<div class="gx-chat" style="width:100%;border:1px solid var(--gx-border);border-radius:var(--gx-radius);padding:14px;background:var(--gx-surface-alt)"><div class="gx-chat-msg gx-chat-assistant" style="background:var(--gx-surface);padding:8px 12px;border-radius:8px;margin-bottom:8px"><strong>Assistant:</strong> Connected to Model Context Protocol server.</div><div class="gx-chat-msg gx-chat-user" style="background:var(--gx-primary);color:#fff;padding:8px 12px;border-radius:8px;margin-bottom:8px;margin-left:auto;max-width:80%"><strong>User:</strong> ${label}</div><div class="gx-chat-msg gx-chat-assistant" style="background:var(--gx-surface);padding:8px 12px;border-radius:8px"><strong>Assistant:</strong> Executing reactive stream derivation...</div></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.chat_view(\n    ui.chat_message("Connected to agent", role="assistant"),\n    ui.chat_message("${label}", role="user"),\n)`;
+    } else if (currentCompName === "action_card") {
+      widgetHtml = `<div class="gx-action-card" style="width:100%;padding:16px;border:1px solid var(--gx-primary);border-radius:var(--gx-radius);background:var(--gx-surface)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h4 style="margin:0">${label}</h4><span class="gx-badge gx-badge-warning">PENDING</span></div><p class="gx-text" style="margin:0 0 12px">Privileged gate for autonomous tool execution</p><div style="display:flex;gap:8px"><button class="gx-button gx-button-success" type="button" onclick="this.textContent='Approved ✓'">Approve</button><button class="gx-button gx-button-danger" type="button" onclick="this.textContent='Rejected ✕'">Reject</button></div></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.action_card(title="${label}", approve_command="agent.approve")`;
+    } else if (currentCompName === "tabs" || currentCompName === "tab_item") {
+      widgetHtml = `<div class="gx-tabs" style="width:100%"><div class="gx-tabs-list" style="display:flex;gap:8px;border-bottom:1px solid var(--gx-border);padding-bottom:8px"><button class="gx-tab is-active" type="button" style="font-weight:700;color:var(--gx-primary);border-bottom:2px solid var(--gx-primary);padding:4px 12px;background:none;border-top:none;border-left:none;border-right:none">Overview</button><button class="gx-tab" type="button" style="padding:4px 12px;background:none;border:none;color:var(--gx-text-muted)">Analytics</button><button class="gx-tab" type="button" style="padding:4px 12px;background:none;border:none;color:var(--gx-text-muted)">Logs</button></div><div style="padding:14px 0"><p class="gx-text">${label}: Active Tab Workspace</p></div></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.tabs(ui.tab_item("Overview", ui.text("${label}")))`;
+    } else if (currentCompName === "avatar" || currentCompName === "avatar_group") {
+      widgetHtml = `<div style="display:flex;align-items:center;gap:12px"><div class="gx-avatar" style="width:48px;height:48px;border-radius:50%;background:var(--gx-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;position:relative">RX<span style="position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#10b981;border:2px solid var(--gx-surface)"></span></div><div><strong style="display:block">${label}</strong><span style="color:var(--gx-text-muted);font-size:0.85rem">Active Session Contributor</span></div></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.avatar(name="${label}", status="online")`;
+    } else {
+      widgetHtml = `<div style="width:100%;padding:18px;background:var(--gx-surface-alt);border:1px solid var(--gx-border);border-radius:var(--gx-radius)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong style="font-size:1.05rem;color:var(--gx-text)">ui.${currentCompName}()</strong><span class="gx-badge gx-badge-primary">${compMeta.domain || "Primitive"}</span></div><p class="gx-text" style="margin:0 0 10px">${compMeta.desc || label}</p><div style="display:flex;gap:8px"><button class="gx-button gx-button-sm gx-button-${variant}" type="button"${disabledAttr}>Interactive Test</button><span class="gx-badge gx-badge-neutral">AST Verified</span></div></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.${currentCompName}()`;
     }
 
-    previewContainer.innerHTML = widgetHtml;
+    // Target the front face or preview card
+    const target = previewContainer.querySelector('.gx-flip-front .gx-card') || previewContainer.querySelector('.gx-flip-front') || previewContainer;
+    const existingHeader = target.querySelector('#comp-preview-heading')?.parentElement;
+    if (existingHeader) {
+      const heading = target.querySelector('#comp-preview-heading');
+      if (heading) heading.textContent = `Live Preview: ui.${currentCompName}`;
+      const rest = [...target.children].filter(c => c !== existingHeader && !c.classList?.contains('gx-flip-badge-pill'));
+      rest.forEach(r => r.remove());
+      const wrap = document.createElement("div");
+      wrap.style.marginTop = "12px";
+      wrap.innerHTML = widgetHtml;
+      target.appendChild(wrap);
+    } else {
+      target.innerHTML = widgetHtml;
+    }
 
-    const pre = previewContainer.parentElement.querySelector('.gx-code-container code') || document.querySelector('#docs-content .gx-code-container code');
+    // Update code block below
+    const pre = document.querySelector('#comp-code-block code') || document.querySelector('#docs-content .gx-code-container code');
     if (pre) {
       pre.textContent = snippet;
       const copy = pre.closest('.gx-code-container')?.querySelector('[data-gx-copy]');
       if (copy) copy.dataset.gxRawCode = snippet;
     }
+
+    // Update backside of 3D flip card
+    const flipCard = previewContainer.closest('.gx-flip-card') || previewContainer;
+    const backCode = flipCard.querySelector('.gx-flip-back code');
+    if (backCode) backCode.textContent = snippet;
   };
 
   const runDemoCommand = (command, source) => {
@@ -1147,15 +1396,385 @@ STATIC_JS = r"""(() => {
         button.setAttribute("aria-pressed", String(isCurrent));
       });
       const selection = document.getElementById("component-selection");
-      if (selection) selection.textContent = `Selected live preview: ui.${name.replaceAll("_", " ")}`;
+      if (selection) selection.textContent = `Selected: ui.${name}`;
+      const descElem = document.getElementById("component-description-text");
+      if (descElem && RADUI_COMPONENTS[name]) descElem.textContent = RADUI_COMPONENTS[name].desc;
       updateLivePreview(name);
-      announce(`${name.replaceAll("_", " ")} preview selected`);
+      announce(`${name} primitive selected`);
     } else if (command === "comp.apply_props" || command === "comp.test_trigger") {
       updateLivePreview();
       announce("Applied inspector parameters to live component");
     } else {
       announce("Example interaction received");
     }
+  };
+
+  // 3D Flip Card System: seamlessly equips component cards with 3D flip animation & code
+  const initFlipCards = (root = document) => {
+    const cards = root.querySelectorAll('.gx-card, section.gx-card, [data-gx-flippable]');
+    cards.forEach(card => {
+      if (card._gxFlipInited) return;
+      if (card.querySelector('form[data-gx-command="comp.apply_props"]') || card.querySelector('#comp-search-bar') || card.id === "docs-sidebar") {
+        return;
+      }
+      card._gxFlipInited = true;
+
+      let compCode = "";
+      if (card.dataset.gxCode) {
+        compCode = card.dataset.gxCode;
+      } else if (card.id === "component-preview") {
+        const meta = RADUI_COMPONENTS[currentCompName] || {};
+        compCode = meta.example || `import radui as ui\n\nwidget = ui.${currentCompName}()`;
+      } else {
+        const parentGrid = card.closest('.gx-grid');
+        const siblingCode = parentGrid ? parentGrid.querySelector('.gx-code-container code') : null;
+        if (siblingCode) {
+          compCode = siblingCode.textContent.trim();
+        } else {
+          const heading = card.querySelector('h1, h2, h3, h4, .gx-heading');
+          const hText = (heading ? heading.textContent : "").toLowerCase();
+          for (const [k, v] of Object.entries(RADUI_COMPONENTS)) {
+            if (hText.includes(k.replace('_', ' ')) || hText.includes(k)) {
+              compCode = v.example;
+              break;
+            }
+          }
+          if (!compCode) {
+            if (card.querySelector('.gx-chat')) compCode = RADUI_COMPONENTS['chat_view']?.example || "";
+            else if (card.querySelector('.gx-action-card')) compCode = RADUI_COMPONENTS['action_card']?.example || "";
+            else if (card.querySelector('.gx-streaming')) compCode = RADUI_COMPONENTS['streaming_text']?.example || "";
+            else if (card.querySelector('.gx-diagram')) compCode = RADUI_COMPONENTS['diagram']?.example || "";
+            else if (card.querySelector('.gx-tree')) compCode = RADUI_COMPONENTS['tree_view']?.example || "";
+            else if (card.querySelector('.gx-metric')) compCode = RADUI_COMPONENTS['metric_card']?.example || "";
+            else if (card.querySelector('.gx-progress')) compCode = RADUI_COMPONENTS['progress_bar']?.example || "";
+            else if (card.querySelector('.gx-accordion')) compCode = RADUI_COMPONENTS['accordion']?.example || "";
+            else if (card.querySelector('.gx-tabs')) compCode = RADUI_COMPONENTS['tabs']?.example || "";
+            else if (card.querySelector('.gx-slider')) compCode = RADUI_COMPONENTS['slider']?.example || "";
+          }
+        }
+      }
+
+      if (!compCode) return;
+
+      const scene = document.createElement("div");
+      scene.className = "gx-flip-scene";
+      
+      const flipCard = document.createElement("div");
+      flipCard.className = "gx-flip-card";
+      
+      const front = document.createElement("div");
+      front.className = "gx-flip-front";
+      
+      const frontBadge = document.createElement("button");
+      frontBadge.type = "button";
+      frontBadge.className = "gx-flip-badge-pill gx-flip-trigger";
+      frontBadge.innerHTML = "⟳ Code";
+      frontBadge.title = "Click to flip card and view RadUI implementation code";
+
+      const back = document.createElement("div");
+      back.className = "gx-flip-back";
+      
+      const backHeader = document.createElement("div");
+      backHeader.className = "gx-flip-back-header";
+      backHeader.innerHTML = `
+        <span style="font-weight:700;font-size:0.88rem;color:var(--gx-text);display:flex;align-items:center;gap:6px;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gx-primary);"></span>
+          RadUI Implementation Code
+        </span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" class="gx-btn-copy-code" data-copy-flip>Copy Code</button>
+          <button type="button" class="gx-flip-badge-pill gx-flip-back-btn" title="Flip back to interactive preview">⟲ Preview</button>
+        </div>
+      `;
+
+      const codeWrap = document.createElement("div");
+      codeWrap.className = "gx-code-container";
+      codeWrap.style.flex = "1";
+      codeWrap.style.overflow = "auto";
+      const codePre = document.createElement("pre");
+      codePre.className = "gx-code-block";
+      codePre.style.height = "100%";
+      codePre.style.margin = "0";
+      const codeElem = document.createElement("code");
+      codeElem.className = "language-python";
+      codeElem.textContent = compCode;
+      codePre.appendChild(codeElem);
+      codeWrap.appendChild(codePre);
+
+      back.appendChild(backHeader);
+      back.appendChild(codeWrap);
+
+      card.parentNode.insertBefore(scene, card);
+      scene.appendChild(flipCard);
+      flipCard.appendChild(front);
+      flipCard.appendChild(back);
+      front.appendChild(card);
+
+      const cardHeader = card.querySelector('h1, h2, h3, h4, .gx-heading, .gx-card-header');
+      if (cardHeader && cardHeader.parentElement) {
+        const headerRow = cardHeader.closest('.gx-row') || cardHeader.parentElement;
+        headerRow.style.display = "flex";
+        headerRow.style.alignItems = "center";
+        headerRow.style.justifyContent = "space-between";
+        headerRow.appendChild(frontBadge);
+      } else {
+        front.appendChild(frontBadge);
+        frontBadge.style.position = "absolute";
+        frontBadge.style.top = "16px";
+        frontBadge.style.right = "16px";
+        frontBadge.style.zIndex = "10";
+      }
+
+      flipCard.addEventListener("click", (e) => {
+        if (e && e.target.closest("button:not(.gx-flip-trigger):not(.gx-flip-back-btn), input, select, textarea, a, .gx-grid-pagination, [data-gx-copy]")) {
+          return;
+        }
+        flipCard.classList.toggle("is-flipped");
+        announce(flipCard.classList.contains("is-flipped") ? "Flipped to RadUI code" : "Flipped to live preview");
+      });
+
+      const copyBtn = back.querySelector('[data-copy-flip]');
+      if (copyBtn) {
+        copyBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          try {
+            await navigator.clipboard.writeText(codeElem.textContent);
+            const old = copyBtn.textContent;
+            copyBtn.textContent = "Copied! ✓";
+            setTimeout(() => { copyBtn.textContent = old; }, 1600);
+            announce("Implementation code copied to clipboard");
+          } catch (err) {
+            announce("Clipboard copy failed");
+          }
+        });
+      }
+    });
+  };
+
+  // 68-Primitive Search & Domain Filter Toolbar
+  const initComponentSearch = () => {
+    const searchInput = document.getElementById("comp-search-bar");
+    const countBadge = document.getElementById("comp-results-count");
+    const chipsGrid = document.getElementById("component-chips-grid");
+    const domainPills = document.getElementById("comp-domain-pills");
+    if (!searchInput || !chipsGrid) return;
+
+    let activeDomain = "all";
+
+    const filterChips = () => {
+      const query = (searchInput.value || "").trim().toLowerCase();
+      const chips = [...chipsGrid.querySelectorAll('button')];
+      let matched = 0;
+
+      chips.forEach(chip => {
+        const name = (chip.dataset.gxComp || chip.textContent).trim().toLowerCase();
+        const meta = RADUI_COMPONENTS[name] || {};
+        const domain = (meta.domain || chip.dataset.domain || "").toLowerCase();
+        const desc = (meta.desc || chip.dataset.desc || "").toLowerCase();
+
+        const matchesQuery = !query || name.includes(query) || domain.includes(query) || desc.includes(query);
+        const matchesDomain = activeDomain === "all" || domain.includes(activeDomain);
+
+        const visible = matchesQuery && matchesDomain;
+        chip.style.display = visible ? "inline-flex" : "none";
+        if (visible) matched++;
+      });
+
+      if (countBadge) {
+        countBadge.textContent = `Showing ${matched} of 68 primitives`;
+        countBadge.className = matched === 0 ? "gx-badge gx-badge-danger" : (matched < 68 ? "gx-badge gx-badge-warning" : "gx-badge gx-badge-primary");
+      }
+    };
+
+    searchInput.addEventListener("input", filterChips);
+
+    if (domainPills) {
+      domainPills.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        e.preventDefault();
+        const text = btn.textContent.toLowerCase();
+        if (text.includes("all")) activeDomain = "all";
+        else if (text.includes("layout")) activeDomain = "layout";
+        else if (text.includes("form")) activeDomain = "form";
+        else if (text.includes("action")) activeDomain = "action";
+        else if (text.includes("data")) activeDomain = "data";
+        else if (text.includes("feedback")) activeDomain = "feedback";
+        else if (text.includes("navigation") || text.includes("nav")) activeDomain = "navigation";
+        else if (text.includes("indicator")) activeDomain = "indicator";
+        else if (text.includes("ai")) activeDomain = "ai";
+
+        domainPills.querySelectorAll("button").forEach(b => {
+          const isCurrent = b === btn;
+          b.className = isCurrent ? "gx-button gx-button-primary" : "gx-button gx-button-outline";
+        });
+        filterChips();
+      });
+    }
+
+    const flipToggleBtn = document.getElementById("comp-flip-toggle-btn");
+    if (flipToggleBtn) {
+      flipToggleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const flipCard = flipToggleBtn.closest(".gx-flip-card") || document.getElementById("component-preview")?.closest(".gx-flip-card");
+        if (flipCard) flipCard.classList.toggle("is-flipped");
+      });
+    }
+  };
+
+  // Seamless Continuous Reading & Scroll Navigation
+  const DOCS_NAV_SEQUENCE = [
+    { path: "index.html", title: "Overview", url: "index.html" },
+    { path: "getting-started.html", title: "Getting Started with RADUI", url: "getting-started.html" },
+    { path: "api-reference.html", title: "Python API Reference", url: "api-reference.html" },
+    { path: "architecture.html", title: "RADUI System Architecture & Execution Lifecycle", url: "architecture.html" },
+    { path: "components.html", title: "Interactive Component Explorer (68 Built-in Primitives)", url: "components.html" },
+    { path: "components-layout.html", title: "Layout & Grid Architecture", url: "components-layout.html" },
+    { path: "components-forms.html", title: "Forms, Form Validation & Reactive Input Controls", url: "components-forms.html" },
+    { path: "components-data.html", title: "Data Display, DataGrids, Virtualized Lists & Vector Topology", url: "components-data.html" },
+    { path: "components-feedback.html", title: "Feedback Overlays, Modals, Drawers & System Toasts", url: "components-feedback.html" },
+    { path: "components-ai.html", title: "AI Agents, Streaming LLM Interfaces & Human-in-the-Loop Controls", url: "components-ai.html" },
+    { path: "cli.html", title: "CLI & Toolchain Reference (45 Subcommands)", url: "cli.html" },
+    { path: "cli-workflows.html", title: "Developer CLI Workflows, Scaffolding & CI/CD Pipelines", url: "cli-workflows.html" },
+    { path: "state.html", title: "5-Tier Reactive State & Computed Signals", url: "state.html" },
+    { path: "transport.html", title: "SSE Streaming & Sub-DOM Morphing Transport", url: "transport.html" },
+    { path: "jobs.html", title: "Distributed Background Jobs & Lease Fencing", url: "jobs.html" },
+    { path: "ai.html", title: "Autonomous AI Agents & Human-in-the-Loop Approvals", url: "ai.html" },
+    { path: "adrs.html", title: "Architecture Decision Records (ADRs)", url: "adrs.html" }
+  ];
+
+  const initContinuousScroll = () => {
+    const content = document.getElementById("docs-content");
+    if (!content) return;
+
+    const currentPath = window.location.pathname.split("/").filter(Boolean).pop() || "index.html";
+    const normalizedCurrent = currentPath.endsWith(".html") ? currentPath : `${currentPath}.html`;
+    
+    let currentIdx = DOCS_NAV_SEQUENCE.findIndex(item => item.path === normalizedCurrent || item.path.replace(".html", "") === currentPath);
+    if (currentIdx === -1) currentIdx = 0;
+
+    const loadedChapters = new Set([DOCS_NAV_SEQUENCE[currentIdx].path]);
+    let nextIdx = currentIdx + 1;
+    let isLoading = false;
+
+    let pill = document.querySelector(".gx-reading-pill");
+    if (!pill) {
+      pill = document.createElement("div");
+      pill.className = "gx-reading-pill";
+      pill.innerHTML = `
+        <span style="font-size:1.05rem">📖</span>
+        <span class="gx-reading-pill-text">Reading: <strong>${DOCS_NAV_SEQUENCE[currentIdx].title}</strong></span>
+        <button type="button" class="gx-reading-pill-top" title="Scroll back to top">↑ Top</button>
+      `;
+      document.body.appendChild(pill);
+      pill.querySelector(".gx-reading-pill-top").addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+
+    const updatePill = (title) => {
+      const text = pill.querySelector(".gx-reading-pill-text strong");
+      if (text) text.textContent = title;
+    };
+
+    const loadNextChapter = async () => {
+      if (isLoading || nextIdx >= DOCS_NAV_SEQUENCE.length) return;
+      const nextChapter = DOCS_NAV_SEQUENCE[nextIdx];
+      if (loadedChapters.has(nextChapter.path)) {
+        nextIdx++;
+        return;
+      }
+
+      isLoading = true;
+      const loadingElem = document.createElement("div");
+      loadingElem.className = "gx-chapter-loading";
+      loadingElem.innerHTML = `<span class="gx-spinner" style="display:inline-block;width:16px;height:16px;border:2px solid var(--gx-primary);border-top-color:transparent;border-radius:50%;animation:gx-spin .6s linear infinite"></span> Loading next chapter: <strong>${nextChapter.title}</strong>...`;
+      content.appendChild(loadingElem);
+
+      try {
+        const res = await fetch(nextChapter.url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const htmlText = await res.text();
+        const doc = new DOMParser().parseFromString(htmlText, "text/html");
+        const fetchedContent = doc.getElementById("docs-content");
+
+        if (fetchedContent) {
+          loadedChapters.add(nextChapter.path);
+          
+          const section = document.createElement("article");
+          section.className = "gx-continuous-chapter";
+          section.id = `chapter-${nextChapter.path.replace(".html", "")}`;
+          section.dataset.chapterUrl = nextChapter.url;
+          section.dataset.chapterTitle = nextChapter.title;
+
+          section.innerHTML = `
+            <div class="gx-chapter-divider">
+              <span class="gx-chapter-tag">Next Chapter (${nextIdx + 1}/${DOCS_NAV_SEQUENCE.length})</span>
+              <h2 class="gx-chapter-divider-title">${nextChapter.title}</h2>
+              <p class="gx-chapter-divider-sub">Seamless continuous reading • Scroll down or inspect primitives</p>
+            </div>
+            <div class="gx-chapter-body">
+              ${fetchedContent.innerHTML}
+            </div>
+          `;
+
+          loadingElem.remove();
+          content.appendChild(section);
+          nextIdx++;
+
+          initGrids();
+          initFlipCards(section);
+          announce(`Loaded next chapter: ${nextChapter.title}`);
+        } else {
+          loadingElem.remove();
+        }
+      } catch (err) {
+        loadingElem.innerHTML = `<span>Could not load next chapter automatically.</span> <a href="${nextChapter.url}" style="color:var(--gx-primary);text-decoration:underline">Click here to open ${nextChapter.title} →</a>`;
+      } finally {
+        isLoading = false;
+      }
+    };
+
+    window.addEventListener("scroll", () => {
+      const scrollPos = window.innerHeight + window.scrollY;
+      const threshold = document.documentElement.scrollHeight - 600;
+      if (scrollPos >= threshold) {
+        loadNextChapter();
+      }
+
+      const chapters = [
+        { elem: content.firstElementChild, url: DOCS_NAV_SEQUENCE[currentIdx].url, title: DOCS_NAV_SEQUENCE[currentIdx].title },
+        ...[...document.querySelectorAll(".gx-continuous-chapter")].map(sec => ({
+          elem: sec,
+          url: sec.dataset.chapterUrl,
+          title: sec.dataset.chapterTitle
+        }))
+      ];
+
+      for (let i = chapters.length - 1; i >= 0; i--) {
+        const ch = chapters[i];
+        if (!ch.elem) continue;
+        const rect = ch.elem.getBoundingClientRect();
+        if (rect.top <= 200) {
+          if (window.location.pathname.split("/").pop() !== ch.url) {
+            try {
+              history.replaceState(null, "", ch.url);
+              document.title = `${ch.title} — RADUI Documentation`;
+              updatePill(ch.title);
+
+              document.querySelectorAll("#docs-sidebar a").forEach(a => {
+                const href = a.getAttribute("href") || "";
+                const matches = href === ch.url || href.endsWith("/" + ch.url);
+                a.style.color = matches ? "var(--gx-primary)" : "";
+                a.style.fontWeight = matches ? "700" : "";
+              });
+            } catch(e) {}
+          }
+          break;
+        }
+      }
+    }, { passive: true });
   };
 
   document.addEventListener("input", (e) => {
@@ -1270,8 +1889,15 @@ STATIC_JS = r"""(() => {
     update();
   });
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initGrids);
-  else initGrids();
+  const initAll = () => {
+    initGrids();
+    initFlipCards();
+    initComponentSearch();
+    initContinuousScroll();
+  };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initAll);
+  else initAll();
 })();""".strip()
 
 

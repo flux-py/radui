@@ -78,11 +78,28 @@ def components_page():
         preview_widget = ui.metric_card("Real-Time KPI", s_prop_label.value, delta="+12% vs target")
     elif meta["name"] == "progress_bar":
         preview_widget = ui.progress_bar(value=75.0, variant=s_prop_variant.value)
+    elif meta["name"] == "slider":
+        preview_widget = ui.slider("Interactive Value Slider", min=0, max=100, step=1, value=65)
+    elif meta["name"] == "switch":
+        preview_widget = ui.switch("Enable Real-Time Signals", checked=True)
+    elif meta["name"] == "chat_view":
+        preview_widget = ui.chat_view(
+            ui.chat_message("Connected to Model Context Protocol server: postgres-analytics", role="assistant"),
+            ui.chat_message("Can you execute the partition maintenance job?", role="user"),
+            ui.chat_message("I have prepared the job payload. Authorize execution below:", role="assistant"),
+        )
+    elif meta["name"] == "action_card":
+        preview_widget = ui.action_card(
+            title="Authorize DB Partition Rotation?",
+            description="Target: 'ALTER TABLE daily_logs ROTATE PARTITION 2026_11;'",
+            approve_command="agent.approve_demo",
+            reject_command="agent.reject_demo",
+        )
     else:
         preview_widget = ui.card(
-            ui.text(f"Live preview for component: ui.{meta['name']}"),
-            title=f"Component: {meta['name']}",
-            subtitle=meta["domain"],
+            ui.text(f"Live interactive preview for component: ui.{meta['name']}()"),
+            ui.badge(f"Domain: {meta['domain']}", variant="primary"),
+            ui.text(meta["description"]),
         )
 
     # The catalog example is the canonical, copyable usage for this component.
@@ -101,27 +118,72 @@ def components_page():
             component.get("example", "See the API signature"),
         ))
 
+    # Build all 68 component chip buttons for instant discovery
+    component_chips = [
+        ui.button(
+            c["name"],
+            command=f"comp.select_{c['name']}",
+            variant="primary" if active_name == c["name"] else "outline",
+            id=f"comp-chip-{c['name']}",
+        )
+        for c in COMPONENTS
+    ]
+
     return ui.column(
         ui.heading("Interactive Component Explorer (68 Built-in Primitives)", level=1),
-        ui.text("Try five live previews, then search the complete reference for every component, its parameters, and a Python example."),
-        ui.grid(
-            # Left Column: Component Catalog Selector
-            ui.card(
-                ui.heading("Component Catalog", level=4),
+        ui.text("Instant real-time discovery, interactive live previews, property inspection, and 3D flippable implementation code for all 68 RadUI primitives."),
+        
+        # Real-time search bar & Domain filter toolbar
+        ui.card(
+            ui.form(
                 ui.row(
-                    ui.button("Button", command="comp.select_button", variant="primary" if active_name == "button" else "outline"),
-                    ui.button("Badge", command="comp.select_badge", variant="primary" if active_name == "badge" else "outline"),
-                    ui.button("Callout", command="comp.select_callout", variant="primary" if active_name == "callout" else "outline"),
-                    ui.button("Metric Card", command="comp.select_metric", variant="primary" if active_name == "metric_card" else "outline"),
-                    ui.button("Progress Bar", command="comp.select_progress", variant="primary" if active_name == "progress_bar" else "outline"),
-                    gap=8,
+                    ui.input("Search 68 primitives (e.g. slider, chat, modal, grid, avatar, plot)...", id="comp-search-bar"),
+                    ui.badge("Showing 68 of 68 primitives", variant="primary", id="comp-results-count"),
+                    justify="between",
+                    align="center",
+                ),
+                command="comp.test_trigger",
+            ),
+            ui.spacer(size=8),
+            ui.row(
+                ui.button("All (68)", command="comp.test_trigger", variant="primary", id="domain-filter-all"),
+                ui.button("Layout (12)", command="comp.test_trigger", variant="outline", id="domain-filter-layout"),
+                ui.button("Forms (11)", command="comp.test_trigger", variant="outline", id="domain-filter-forms"),
+                ui.button("Action (5)", command="comp.test_trigger", variant="outline", id="domain-filter-action"),
+                ui.button("Data (5)", command="comp.test_trigger", variant="outline", id="domain-filter-data"),
+                ui.button("Feedback (7)", command="comp.test_trigger", variant="outline", id="domain-filter-feedback"),
+                ui.button("Navigation (5)", command="comp.test_trigger", variant="outline", id="domain-filter-nav"),
+                ui.button("Indicators (8)", command="comp.test_trigger", variant="outline", id="domain-filter-indicators"),
+                ui.button("AI & Agent (8)", command="comp.test_trigger", variant="outline", id="domain-filter-ai"),
+                gap=6,
+                wrap=True,
+                id="comp-domain-pills",
+            ),
+            title="Instant Component Discovery & Search",
+            hover=ui.motion.hover(scale=1.01, translate_y=-1.0),
+        ),
+        ui.spacer(size=8),
+
+        ui.grid(
+            # Left Column: Component Catalog Grid (all 68 primitives)
+            ui.card(
+                ui.row(
+                    ui.heading("Primitive Catalog", level=4),
+                    ui.text(f"Selected: ui.{meta['name']}", variant="code", id="component-selection"),
+                    justify="between",
+                    align="center",
+                ),
+                ui.spacer(size=8),
+                ui.row(
+                    *component_chips,
+                    gap=6,
                     wrap=True,
+                    id="component-chips-grid",
                 ),
                 ui.spacer(size=12),
-                ui.text(f"Selected: ui.{meta['name']}", variant="code", id="component-selection"),
-                ui.text(meta["description"]),
-                title="Catalog Index (68 Total)",
-                hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
+                ui.text(meta["description"], id="component-description-text"),
+                title="Primitive Catalog (68 Total)",
+                hover=ui.motion.hover(scale=1.01, translate_y=-1.0),
             ),
             # Right Column: Property Inspector
             ui.card(
@@ -131,32 +193,41 @@ def components_page():
                     ui.select(
                         "Style Variant",
                         bind=s_prop_variant,
-                        options=[("primary", "primary"), ("secondary", "secondary"), ("success", "success"), ("warning", "warning"), ("danger", "danger")],
+                        options=[("primary", "primary"), ("secondary", "secondary"), ("success", "success"), ("warning", "warning"), ("danger", "danger"), ("neutral", "neutral"), ("outline", "outline")],
                     ),
                     ui.switch("Disabled State", bind=s_prop_disabled),
                     ui.button("Apply Parameters", variant="secondary"),
                     command="comp.apply_props",
                 ),
                 title="Live Property Controls",
-                hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
+                hover=ui.motion.hover(scale=1.01, translate_y=-1.0),
             ),
             columns=2,
             gap=16,
         ),
         ui.spacer(size=12),
-        # Live Rendered Sandbox Preview
+        
+        # Live Rendered Sandbox Preview with 3D Flip capability
         ui.card(
+            ui.row(
+                ui.heading(f"Live Preview: ui.{active_name}", level=3, id="comp-preview-heading"),
+                ui.button("⟳ Flip for RadUI Code", variant="outline", command="comp.test_trigger", id="comp-flip-toggle-btn"),
+                justify="between",
+                align="center",
+            ),
+            ui.spacer(size=10),
             preview_widget,
             id="component-preview",
-            title="Live Rendered Component Preview",
-            subtitle="Mutations update through server-side surgical SSE sub-DOM morphing",
+            title="Live Rendered Component Preview (Click to Flip 3D)",
+            subtitle="Click card or flip button to rotate 180° in 3D and reveal implementation code",
             hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
         ),
         ui.spacer(size=12),
+        
         # Synchronized Python Implementation Code
         ui.heading("Synchronized Python Implementation", level=3),
-        ui.code_block(gen_code, language="python", copyable=True),
-        ui.heading("Complete component reference", level=2),
+        ui.code_block(gen_code, language="python", copyable=True, id="comp-code-block"),
+        ui.heading("Complete component reference (68 Primitives)", level=2),
         ui.data_grid(
             headers=["Component", "Category", "Description", "Parameters", "Example"],
             rows=component_rows,

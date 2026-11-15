@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import radui as ui
 from docs_site.core import app, s_counter, s_active_comp, s_prop_label, s_job_status, s_job_progress
+from docs_site.data import COMPONENTS
 
 @app.command("comp.apply_props")
 def on_apply_props(ctx: ui.CommandContext):
@@ -71,3 +72,16 @@ def on_agent_approve(ctx: ui.CommandContext):
 @app.command("agent.reject_demo")
 def on_agent_reject(ctx: ui.CommandContext):
     ui.notify("Agent action declined by operator.", variant="danger")
+
+# Register dynamic component selector commands for all 68 primitives
+for _comp in COMPONENTS:
+    _name = _comp["name"]
+    _cmd_key = f"comp.select_{_name}"
+    if _cmd_key not in app._commands:
+        def _factory(name: str):
+            def _select_handler(ctx: ui.CommandContext):
+                ctx.write(s_active_comp, name)
+                ctx.write(s_prop_label, f"Demo {name.replace('_', ' ').title()}")
+            return _select_handler
+        app.command(_cmd_key)(_factory(_name))
+
