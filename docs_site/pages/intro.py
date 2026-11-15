@@ -391,15 +391,24 @@ def api_reference_page():
         ui.spacer(size=14),
         ui.card(
             ui.heading("3. Motion & Animation Tokens (`ui.motion`)", level=3),
-            ui.text("Hardware-accelerated CSS animations and spring physics:"),
+            ui.text(
+                "Hardware-accelerated CSS animations, micro-interactions, analytical spring physics, and motion presets:"
+            ),
             ui.code_block(
-                "# Hover elevation and scale\n"
-                "hover_fx = ui.motion.hover(scale=1.02, translate_y=-3.0)\n\n"
-                "# Active press/tap scale down\n"
+                "# 1. Analytical Spring Physics\n"
+                "spring_cfg = ui.motion.spring(stiffness=120, damping=14, mass=1.0)\n\n"
+                "# 2. Micro-interactions\n"
+                "hover_fx = ui.motion.hover(scale=1.02, translate_y=-3.0)\n"
                 "tap_fx = ui.motion.tap(scale=0.96)\n\n"
-                "# Entrance slide animation\n"
-                "enter_fx = ui.motion.slide_up(delay=0.1, duration=0.4)\n\n"
-                "btn = ui.button('Launch', hover=hover_fx, tap=tap_fx, motion=enter_fx)",
+                "# 3. Motion Presets\n"
+                "fade = ui.motion.fade_in(duration=0.3)\n"
+                "slide = ui.motion.slide_up(distance=16, use_spring=True)\n"
+                "slide_down = ui.motion.slide_down(distance=16)\n"
+                "scale = ui.motion.scale_up(initial_scale=0.92)\n"
+                "pop_fx = ui.motion.pop(duration=0.35)\n"
+                "pulse_fx = ui.motion.pulse()\n"
+                "stagger_delay = ui.motion.stagger(index=2, base=0.04)\n\n"
+                "btn = ui.button('Launch', hover=hover_fx, tap=tap_fx, motion=slide)",
                 language="python",
                 copyable=True,
             ),
@@ -764,19 +773,25 @@ def api_reference_page():
             ui.heading("16. Plugin Architecture (`ui.Plugin` & `PluginManager`)", level=3),
             ui.text(
                 "Extensible modular architecture for packaging third-party components, state middleware, "
-                "command handlers, and static assets into reusable RADUI plugins."
+                "command handlers, and static assets into reusable RADUI plugins with entry-point auto-discovery:"
             ),
             ui.code_block(
                 "from radui import Plugin, PluginManager\n\n"
-                "class GeoIPPlugin(Plugin):\n"
-                "    name = 'radui-geoip'\n"
+                "class AnalyticsPlugin(Plugin):\n"
+                "    name = 'analytics'\n"
                 "    version = '1.0.0'\n\n"
-                "    def setup(self, app):\n"
-                "        # Register custom middleware and command hooks\n"
-                "        app.add_middleware(self.resolve_visitor_country)\n\n"
+                "    def on_load(self, app):\n"
+                "        # Initialize plugin lifecycle\n"
+                "        app.add_middleware(self.track_request)\n\n"
+                "    def on_unload(self, app):\n"
+                "        # Teardown database pools and collectors\n"
+                "        pass\n\n"
+                "    def register_components(self, registry):\n"
+                "        # Expose custom AST nodes\n"
+                "        pass\n\n"
                 "# Register and initialize plugin with manager\n"
                 "manager = PluginManager(app)\n"
-                "manager.load(GeoIPPlugin())",
+                "manager.load(AnalyticsPlugin())",
                 language="python",
                 copyable=True,
             ),

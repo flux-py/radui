@@ -110,12 +110,14 @@ def auth_page():
         ui.card(
             ui.heading("3. Multi-Tenancy & Rate Limiting", level=3),
             ui.text(
-                "Configure tenant resolution, authorization membership validators, and token-bucket sliding-window rate limiters:"
+                "Configure tenant resolution, authorization membership validators, and token-bucket sliding-window rate limiters. "
+                "RADUI raises `TenantRequiredError` and `UserRequiredError` to fail-closed under network partitions:"
             ),
             ui.code_block(
                 "import radui as ui\n"
+                "from radui import TenantRequiredError, UserRequiredError\n"
                 "from radui.core.security import RateLimiter, RateLimitMiddleware\n\n"
-                "# Custom resolvers\n"
+                "# 1. Custom identity and tenant resolvers\n"
                 "def resolve_user(request):\n"
                 "    return request.headers.get('X-User-ID')\n\n"
                 "def resolve_tenant(request):\n"
@@ -127,7 +129,15 @@ def auth_page():
                 "    tenant_id_resolver=resolve_tenant,\n"
                 "    tenant_membership_validator=validate_membership,\n"
                 ")\n\n"
-                "# Enforce 120 requests/minute per client IP with burst tolerance\n"
+                "# 2. Fail-closed partition exceptions\n"
+                "try:\n"
+                "    ctx.get_state('tenant.config')\n"
+                "except TenantRequiredError:\n"
+                "    # Thrown when accessing tenant-scoped state without tenant context\n"
+                "    return ui.toast('Missing tenant context', variant='error')\n\n"
+                "# 3. Enforce 120 requests/minute per client IP with burst tolerance\n"
+                "limiter = RateLimiter(requests_per_minute=120, burst=30)\n"
+                "allowed, retry_after = limiter.check('192.168.1.1')\n"
                 "app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=30)",
                 language="python",
                 copyable=True,
