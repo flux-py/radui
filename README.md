@@ -19,66 +19,66 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-22c55e.svg?style=for-the-badge&logo=apache&logoColor=white)](LICENSE)
 [![Tests Passing](https://img.shields.io/badge/tests-223%2F223%20passed-10b981.svg?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![AST Latency](https://img.shields.io/badge/AST%20latency-0.039ms-8b5cf6.svg?style=for-the-badge&logo=speedtest&logoColor=white)](benchmarks/)
-[![Zero JS Toolchain](https://img.shields.io/badge/npm%20dependencies-0-f59e0b.svg?style=for-the-badge&logo=javascript&logoColor=white)](#-architectural-principles)
-[![Production Ready](https://img.shields.io/badge/production-v1.0.0%20stable-06b6d4.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](#-installation--packaging-extras)
+[![Zero JS Toolchain](https://img.shields.io/badge/npm%20dependencies-0-f59e0b.svg?style=for-the-badge&logo=javascript&logoColor=white)](#why-radui)
+[![Production Ready](https://img.shields.io/badge/production-v1.0.0%20stable-06b6d4.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](#installation--packaging-extras)
 
-[🚀 60-Second Quickstart](#-quickstart-in-60-seconds) •
-[✨ Interactive Showcase](#-interactive-feature-tours) •
-[📊 Benchmarks](#-verified-performance-latency-6-tier-benchmark-suite) •
-[🧩 Component Reference (68)](#-interactive-component-explorer-68-built-in-primitives) •
-[🛠️ CLI Reference (45)](#-developer-cli-toolkit-45-commands) •
-[🏛️ Architecture & ADRs](#-architectural-decision-records-adrs) •
-[💡 Interactive FAQ](#-interactive-developer-faq)
+[60-Second Quickstart](#quickstart-in-60-seconds) •
+[Interactive Showcase](#interactive-feature-tours) •
+[Benchmarks](#verified-performance-latency-6-tier-benchmark-suite) •
+[Component Reference (68)](#interactive-component-explorer-68-built-in-primitives) •
+[CLI Reference (45)](#developer-cli-toolkit-45-commands) •
+[Architecture & ADRs](#architectural-decision-records-adrs) •
+[Developer FAQ](#interactive-developer-faq)
 
 </div>
 
 ---
 
-## ⚡ Live Terminal Preview
+## Live Terminal Preview
 
 ```ansi
-[1;34m[radui][0m [1;32mStarting RADUI v1.0.0 Server[0m 🚀
-[1;34m[radui][0m Environment: Production | ASGI 3.0 Engine | Python 3.12.10
-[1;34m[radui][0m Registered 68 AST Components | 12 Route Handlers | 45 CLI Commands
-[1;34m[radui][0m ⚡ In-Memory AST Compilation:   [1;32m0.039 ms[0m (Median)
-[1;34m[radui][0m ⚡ HTML Stream Serialization:   [1;32m0.038 ms[0m (Median)
-[1;34m[radui][0m ⚡ Sub-DOM Reconciliation Diff: [1;32m0.168 ms[0m (Median)
-[1;34m[radui][0m ⚡ SSE Wire Patch Delivery:     [1;32m0.007 ms[0m (Median)
-[1;34m[radui][0m 🛡️ Zero JavaScript Build Step | Zero npm dependencies | 9.6 KB Gzip Runtime
-[1;34m[radui][0m 🌐 Serving live dashboard at: [1;36mhttp://localhost:3000[0m
-[1;34m[radui][0m 🔍 Inspector Control Plane:    [1;35mhttp://localhost:3000/_gx/inspect[0m (Ctrl+Shift+I)
+ [1;34m[radui] [0m  [1;32mStarting RADUI v1.0.0 Server [0m
+ [1;34m[radui] [0m Environment: Production | ASGI 3.0 Engine | Python 3.12.10
+ [1;34m[radui] [0m Registered 68 AST Components | 12 Route Handlers | 45 CLI Commands
+ [1;34m[radui] [0m In-Memory AST Compilation:   [1;32m0.039 ms [0m (Median)
+ [1;34m[radui] [0m HTML Stream Serialization:   [1;32m0.038 ms [0m (Median)
+ [1;34m[radui] [0m Sub-DOM Reconciliation Diff: [1;32m0.168 ms [0m (Median)
+ [1;34m[radui] [0m SSE Wire Patch Delivery:     [1;32m0.007 ms [0m (Median)
+ [1;34m[radui] [0m Zero JavaScript Build Step | Zero npm dependencies | 9.6 KB Gzip Runtime
+ [1;34m[radui] [0m Serving live dashboard at:  [1;36mhttp://localhost:3000 [0m
+ [1;34m[radui] [0m Inspector Control Plane:     [1;35mhttp://localhost:3000/_gx/inspect [0m (Ctrl+Shift+I)
 ```
 
 ---
 
-## 🌟 Why RADUI?
+## Why RADUI?
 
 **RADUI** (**R**eactive **A**pplication **D**evelopment **U**ser **I**nterface) unites the unmatched developer velocity of classic **Rapid Application Development (RAD)** with a hyper-optimized **Server-Driven Reactive Engine**.
 
 ```mermaid
 flowchart LR
-    A["🐍 Pure Python AST<br>(Type-Safe Declarative)"] --> B["⚡ High-Speed SSR Engine<br>(< 3.1ms Initial Load)"]
-    B --> C["🌐 Interactive Browser DOM<br>(Zero npm / 9.6KB Runtime)"]
-    C -- "User Action / Form / Event" --> D["🔄 Command Dispatch & Idempotency<br>(Fencing Tokens & Deduplication)"]
-    D --> E["🧠 Reactive DAG Runtime<br>(5-Tier Scoped State & SWR)"]
+    A["Pure Python AST<br>(Type-Safe Declarative)"] --> B["High-Speed SSR Engine<br>(< 3.1ms Initial Load)"]
+    B --> C["Interactive Browser DOM<br>(Zero npm / 9.6KB Runtime)"]
+    C -- "User Action / Form / Event" --> D["Command Dispatch & Idempotency<br>(Fencing Tokens & Deduplication)"]
+    D --> E["Reactive DAG Runtime<br>(5-Tier Scoped State & SWR)"]
     E -- "Surgical SSE Sub-DOM Patch" --> C
 ```
 
 <details open>
-<summary><b>🔥 Click to View Key Differentiators</b></summary>
+<summary><b>Click to View Key Differentiators</b></summary>
 
-- **🐍 100% Pure Python**: Author layouts, reactivity graphs, async jobs, and tool calls in clean, type-safe Python. No JSX, no TypeScript, no context switching.
-- **⚡ Zero JavaScript Build Pipeline**: Eliminate Node.js, npm, Webpack, Vite, and hydration mismatches. The Python server renders and mutates views directly.
-- **🎯 Surgical SSE Sub-DOM Morphing**: Initial requests receive server-side rendered HTML in under 3.1ms; user interactions stream targeted Server-Sent Event (SSE) patches that morph only mutated DOM elements.
-- **🔒 Deterministic 5-Tier State Isolation**: Clear separation between `ephemeral`, `view`, `session`, `user`, and `app` state with fail-closed tenant fencing.
-- **🤖 Native Streaming AI & MCP Protocol**: Out-of-the-box streaming generative UI, Model Context Protocol (MCP) tool integration, and human-in-the-loop approval cards.
-- **🛡️ Distributed Enterprise Hardening**: Monotonic fencing tokens, transactional outbox pattern, ACID WAL SQLite & Redis clustering, and OpenTelemetry OTLP tracing.
+- **100% Pure Python**: Author layouts, reactivity graphs, async jobs, and tool calls in clean, type-safe Python. No JSX, no TypeScript, no context switching.
+- **Zero JavaScript Build Pipeline**: Eliminate Node.js, npm, Webpack, Vite, and hydration mismatches. The Python server renders and mutates views directly.
+- **Surgical SSE Sub-DOM Morphing**: Initial requests receive server-side rendered HTML in under 3.1ms; user interactions stream targeted Server-Sent Event (SSE) patches that morph only mutated DOM elements.
+- **Deterministic 5-Tier State Isolation**: Clear separation between `ephemeral`, `view`, `session`, `user`, and `app` state with fail-closed tenant fencing.
+- **Native Streaming AI & MCP Protocol**: Out-of-the-box streaming generative UI, Model Context Protocol (MCP) tool integration, and human-in-the-loop approval cards.
+- **Distributed Enterprise Hardening**: Monotonic fencing tokens, transactional outbox pattern, ACID WAL SQLite & Redis clustering, and OpenTelemetry OTLP tracing.
 
 </details>
 
 ---
 
-## 🚀 Quickstart in 60 Seconds
+## Quickstart in 60 Seconds
 
 Create an interactive reactive web app in a single file:
 
@@ -96,13 +96,13 @@ s_counter = ui.state("counter", default=0, scope="session")
 def counter_view():
     return ui.container(
         ui.card(
-            ui.heading("⚡ Reactive State Counter", level=2),
+            ui.heading("Reactive State Counter", level=2),
             ui.text("Click the buttons below to trigger surgical SSE sub-DOM updates with zero page reloads:"),
             ui.metric_card(title="Current Counter Value", value=s_counter, delta="+1 on click"),
             ui.row(
-                ui.button("➕ Increment", command="counter.inc", variant="primary"),
-                ui.button("➖ Decrement", command="counter.dec", variant="secondary"),
-                ui.button("🔄 Reset", command="counter.reset", variant="danger"),
+                ui.button("Increment", command="counter.inc", variant="primary"),
+                ui.button("Decrement", command="counter.dec", variant="secondary"),
+                ui.button("Reset", command="counter.reset", variant="danger"),
                 gap=12,
             ),
             footer=ui.text("Rendered with RADUI v1.0.0 — Pure Python Reactive Runtime", variant="muted"),
@@ -135,7 +135,7 @@ radui dev app.py --port 3000 --open
 
 ---
 
-## 📦 Installation & Packaging Extras
+## Installation & Packaging Extras
 
 ```bash
 # Core framework runtime
@@ -146,7 +146,7 @@ pip install "radui[all]"
 ```
 
 <details>
-<summary><b>📦 View Modular Installation Extras</b></summary>
+<summary><b>View Modular Installation Extras</b></summary>
 
 | Extra Package | Command | Included Capabilities |
 | :--- | :--- | :--- |
@@ -169,27 +169,27 @@ import genesis as gx
 
 ---
 
-## 📊 Verified Performance Latency (6-Tier Benchmark Suite)
+## Verified Performance Latency (6-Tier Benchmark Suite)
 
 Every release of RADUI is validated against a rigorous 6-tier latency harness (`python benchmarks/run.py`):
 
 | Benchmark Tier | Latency (Median) | Latency (P95) | Target Gate | Status | Operational Boundary |
 | :--- | :---: | :---: | :---: | :---: | :--- |
-| **Tier 1: In-Memory AST Construction** | **0.039 ms** | 0.045 ms | < 0.10 ms | ✅ PASSED | Class instantiation & tree composition |
-| **Tier 2: HTML String Serialization** | **0.038 ms** | 0.044 ms | < 0.15 ms | ✅ PASSED | AST traversal & character escaping |
-| **Tier 3: Full SSR Request (ASGI Roundtrip)** | **3.037 ms** | 3.368 ms | < 15.0 ms | ✅ PASSED | HTTP routing, session decode & HTML response |
-| **Tier 4: Command Dispatch & State Mutate** | **3.475 ms** | 3.946 ms | < 15.0 ms | ✅ PASSED | CSRF check, idempotency lease & DAG update |
-| **Tier 5: Reconciliation & Sub-DOM Diffing** | **0.168 ms** | 0.180 ms | < 1.00 ms | ✅ PASSED | Dependency tracking & diff patch generation |
-| **Tier 6: SSE Patch Delivery Over Wire** | **0.007 ms** | 0.008 ms | < 0.50 ms | ✅ PASSED | Payload encoding & local ASGI SSE chunk write |
+| **Tier 1: In-Memory AST Construction** | **0.039 ms** | 0.045 ms | < 0.10 ms | PASSED | Class instantiation & tree composition |
+| **Tier 2: HTML String Serialization** | **0.038 ms** | 0.044 ms | < 0.15 ms | PASSED | AST traversal & character escaping |
+| **Tier 3: Full SSR Request (ASGI Roundtrip)** | **3.037 ms** | 3.368 ms | < 15.0 ms | PASSED | HTTP routing, session decode & HTML response |
+| **Tier 4: Command Dispatch & State Mutate** | **3.475 ms** | 3.946 ms | < 15.0 ms | PASSED | CSRF check, idempotency lease & DAG update |
+| **Tier 5: Reconciliation & Sub-DOM Diffing** | **0.168 ms** | 0.180 ms | < 1.00 ms | PASSED | Dependency tracking & diff patch generation |
+| **Tier 6: SSE Patch Delivery Over Wire** | **0.007 ms** | 0.008 ms | < 0.50 ms | PASSED | Payload encoding & local ASGI SSE chunk write |
 
 ---
 
-## ✨ Interactive Feature Tours
+## Interactive Feature Tours
 
 Explore RADUI's core subsystem architecture through expandable interactive guides:
 
 <details open>
-<summary><b>1. 🧠 5-Tier Scoped Reactive State & Computed Signals (Click to Expand)</b></summary>
+<summary><b>1. 5-Tier Scoped Reactive State & Computed Signals (Click to Expand)</b></summary>
 <br>
 
 RADUI eliminates global state bugs by enforcing a deterministic 5-tier scoping hierarchy:
@@ -226,7 +226,7 @@ def checkout(ctx: ui.CommandContext):
 </details>
 
 <details>
-<summary><b>2. 🤖 Streaming AI Agent Integration & MCP Protocols (Click to Expand)</b></summary>
+<summary><b>2. Streaming AI Agent Integration & MCP Protocols (Click to Expand)</b></summary>
 <br>
 
 Integrate autonomous LLM agents, Model Context Protocol (MCP) tools, and streaming generative UI:
@@ -260,7 +260,7 @@ def fetch_financials(quarter: str) -> dict:
 </details>
 
 <details>
-<summary><b>3. 🔄 Distributed Background Jobs & Lease Fencing (Click to Expand)</b></summary>
+<summary><b>3. Distributed Background Jobs & Lease Fencing (Click to Expand)</b></summary>
 <br>
 
 Execute heavy computational tasks with monotonic fencing tokens and live browser progress updates:
@@ -288,7 +288,7 @@ def start_export(ctx: ui.CommandContext):
 </details>
 
 <details>
-<summary><b>4. 📊 SWR Data Engine & Singleflight Deduplication (Click to Expand)</b></summary>
+<summary><b>4. SWR Data Engine & Singleflight Deduplication (Click to Expand)</b></summary>
 <br>
 
 Stale-While-Revalidate query caching eliminates redundant database queries:
@@ -320,7 +320,7 @@ def refresh(ctx):
 </details>
 
 <details>
-<summary><b>5. 🛡️ Transactional Outbox Pattern & Failure Recovery (Click to Expand)</b></summary>
+<summary><b>5. Transactional Outbox Pattern & Failure Recovery (Click to Expand)</b></summary>
 <br>
 
 Prevent distributed state corruption between local database transactions and external APIs (Stripe, Twilio, LLMs):
@@ -352,7 +352,7 @@ sequenceDiagram
 
 ---
 
-## 🧩 Interactive Component Explorer (68 Built-in Primitives)
+## Interactive Component Explorer (68 Built-in Primitives)
 
 `ComponentRegistry.builtins()` provides **exactly 68 declarative AST primitives**. Every component inherits from `Component` and supports `id`, `class_name`, and inline `style`.
 
@@ -514,7 +514,7 @@ sequenceDiagram
 
 ---
 
-## 🛠️ Developer CLI Toolkit (45 Commands)
+## Developer CLI Toolkit (45 Commands)
 
 RADUI provides **45 built-in CLI commands** for complete development, testing, auditing, and cloud deployment:
 
@@ -612,7 +612,7 @@ radui <command> [options]
 
 ---
 
-## ⚔️ Framework Architecture Comparison Matrix
+## Framework Architecture Comparison Matrix
 
 | Architectural Feature | **RADUI** | Streamlit | Reflex | NiceGUI | Next.js / React |
 | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -628,28 +628,28 @@ radui <command> [options]
 
 ---
 
-## 🏛️ Architectural Decision Records (ADRs)
+## Architectural Decision Records (ADRs)
 
 RADUI development strictly adheres to 12 formal, immutable Architecture Decision Records:
 
 | Record | Title & Architectural Invariant Enforced | Status |
 | :--- | :--- | :---: |
-| [ADR-001](docs/adr/ADR-001-monotonic-fencing-tokens.md) | **Monotonic Fencing Tokens & Resource-Level Fencing**: Eliminates split-brain overwrites with dual-condition fence tokens. | ✅ ACCEPTED |
-| [ADR-002](docs/adr/ADR-002-transactional-outbox.md) | **Transactional Outbox Pattern**: Guarantees at-least-once external delivery with local database atomicity. | ✅ ACCEPTED |
-| [ADR-003](docs/adr/ADR-003-high-watermark-sse-replay.md) | **High-Watermark SSE Replay**: Guarantees ordered reconnect delivery with cursor validation and backpressure shedding. | ✅ ACCEPTED |
-| [ADR-004](docs/adr/ADR-004-psycopg3-native-postgresql.md) | **Standardizing Native PostgreSQL on psycopg 3**: High-performance async connection pooling and row-level locking. | ✅ ACCEPTED |
-| [ADR-005](docs/adr/ADR-005-multi-tenant-key-isolation.md) | **Multi-Tenant Key Isolation & Database RLS**: Cryptographically segregated tenant namespaces with enforced PostgreSQL RLS. | ✅ ACCEPTED |
-| [ADR-006](docs/adr/ADR-006-five-state-client-mutation-lifecycle.md) | **5-State Client Mutation Lifecycle & IndexedDB Queue**: Resilient offline action queuing and cross-tab Web Locks replay. | ✅ ACCEPTED |
-| [ADR-007](docs/adr/ADR-007-distributed-consistency-failure-semantics.md) | **Distributed Consistency & Failure Semantics**: Subsystem failure matrix and fail-closed split-brain prevention. | ✅ ACCEPTED |
-| [ADR-008](docs/adr/ADR-008-reactive-state-transaction-semantics.md) | **Reactive State Transaction Semantics & Batching**: ACID-like memory rollbacks for `ctx.transaction()` and consolidated batching. | ✅ ACCEPTED |
-| [ADR-009](docs/adr/ADR-009-query-cache-consistency-invalidation.md) | **Query Cache Consistency & Singleflight Invalidation**: Lock-based concurrent query deduplication and generation checking. | ✅ ACCEPTED |
-| [ADR-010](docs/adr/ADR-010-framework-security-threat-model.md) | **Framework Security Architecture & Threat Model**: Hardened CSP policies, CSRF validation, and RBAC security boundaries. | ✅ ACCEPTED |
-| [ADR-011](docs/adr/ADR-011-background-job-execution-guarantees.md) | **Background Job Execution & Distributed Leasing**: Monotonic heartbeat fencing, worker crash recovery, and live telemetry. | ✅ ACCEPTED |
-| [ADR-012](docs/adr/ADR-012-protocol-compatibility-versioning.md) | **Protocol Compatibility & Wire Versioning**: Schema evolution rules for Application IR, A2UI, and SSE stream contracts. | ✅ ACCEPTED |
+| [ADR-001](docs/adr/ADR-001-monotonic-fencing-tokens.md) | **Monotonic Fencing Tokens & Resource-Level Fencing**: Eliminates split-brain overwrites with dual-condition fence tokens. | ACCEPTED |
+| [ADR-002](docs/adr/ADR-002-transactional-outbox.md) | **Transactional Outbox Pattern**: Guarantees at-least-once external delivery with local database atomicity. | ACCEPTED |
+| [ADR-003](docs/adr/ADR-003-high-watermark-sse-replay.md) | **High-Watermark SSE Replay**: Guarantees ordered reconnect delivery with cursor validation and backpressure shedding. | ACCEPTED |
+| [ADR-004](docs/adr/ADR-004-psycopg3-native-postgresql.md) | **Standardizing Native PostgreSQL on psycopg 3**: High-performance async connection pooling and row-level locking. | ACCEPTED |
+| [ADR-005](docs/adr/ADR-005-multi-tenant-key-isolation.md) | **Multi-Tenant Key Isolation & Database RLS**: Cryptographically segregated tenant namespaces with enforced PostgreSQL RLS. | ACCEPTED |
+| [ADR-006](docs/adr/ADR-006-five-state-client-mutation-lifecycle.md) | **5-State Client Mutation Lifecycle & IndexedDB Queue**: Resilient offline action queuing and cross-tab Web Locks replay. | ACCEPTED |
+| [ADR-007](docs/adr/ADR-007-distributed-consistency-failure-semantics.md) | **Distributed Consistency & Failure Semantics**: Subsystem failure matrix and fail-closed split-brain prevention. | ACCEPTED |
+| [ADR-008](docs/adr/ADR-008-reactive-state-transaction-semantics.md) | **Reactive State Transaction Semantics & Batching**: ACID-like memory rollbacks for `ctx.transaction()` and consolidated batching. | ACCEPTED |
+| [ADR-009](docs/adr/ADR-009-query-cache-consistency-invalidation.md) | **Query Cache Consistency & Singleflight Invalidation**: Lock-based concurrent query deduplication and generation checking. | ACCEPTED |
+| [ADR-010](docs/adr/ADR-010-framework-security-threat-model.md) | **Framework Security Architecture & Threat Model**: Hardened CSP policies, CSRF validation, and RBAC security boundaries. | ACCEPTED |
+| [ADR-011](docs/adr/ADR-011-background-job-execution-guarantees.md) | **Background Job Execution & Distributed Leasing**: Monotonic heartbeat fencing, worker crash recovery, and live telemetry. | ACCEPTED |
+| [ADR-012](docs/adr/ADR-012-protocol-compatibility-versioning.md) | **Protocol Compatibility & Wire Versioning**: Schema evolution rules for Application IR, A2UI, and SSE stream contracts. | ACCEPTED |
 
 ---
 
-## 💡 Interactive Developer FAQ
+## Interactive Developer FAQ
 
 <details open>
 <summary><b>Q: Does RADUI require Node.js, npm, or any JavaScript toolchain?</b></summary>
@@ -700,7 +700,7 @@ def test_button():
 
 ---
 
-## 📜 License & Governance
+## License & Governance
 
 RADUI is released as an open-source project under the **[Apache License 2.0](LICENSE)**.
 
