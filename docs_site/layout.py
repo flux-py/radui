@@ -55,6 +55,16 @@ def _render_sidebar() -> ui.Component:
                 ),
                 open=False,
             ),
+            ui.accordion_item(
+                "Enterprise & Infrastructure",
+                ui.column(
+                    ui.link("Authentication & RBAC", "auth.html"),
+                    ui.link("SWR Data Engine", "data-engine.html"),
+                    ui.link("Headless Testing", "testing.html"),
+                    gap=4,
+                ),
+                open=True,
+            ),
         ),
         ui.card(
             ui.badge("Open source | Apache 2.0", variant="neutral"),

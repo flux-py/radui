@@ -2076,7 +2076,10 @@ STATIC_JS = r"""(() => {
     { path: "transport.html", title: "SSE Streaming & Sub-DOM Morphing Transport", url: "transport.html" },
     { path: "jobs.html", title: "Distributed Background Jobs & Lease Fencing", url: "jobs.html" },
     { path: "ai.html", title: "Autonomous AI Agents & Human-in-the-Loop Approvals", url: "ai.html" },
-    { path: "adrs.html", title: "Architecture Decision Records (ADRs)", url: "adrs.html" }
+    { path: "adrs.html", title: "Architecture Decision Records (ADRs)", url: "adrs.html" },
+    { path: "auth.html", title: "Authentication, RBAC & Multi-Tenancy", url: "auth.html" },
+    { path: "data-engine.html", title: "Data Engine, SWR Caching & Browser Downloads", url: "data-engine.html" },
+    { path: "testing.html", title: "Headless Component & App Test Harness", url: "testing.html" }
   ];
 
   const initContinuousScroll = () => {

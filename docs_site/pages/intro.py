@@ -404,5 +404,91 @@ def api_reference_page():
                 copyable=True,
             ),
         ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("4. Automated Pydantic Model Forms (`ui.form_from_model`)", level=3),
+            ui.text("Automatically generate complete, typed, reactive RADUI Forms from Pydantic schemas or dataclasses:"),
+            ui.code_block(
+                "from pydantic import BaseModel\n"
+                "from enum import Enum\n"
+                "import radui as ui\n\n"
+                "class Environment(str, Enum):\n"
+                "    DEV = 'Development'\n"
+                "    STAGING = 'Staging'\n"
+                "    PROD = 'Production'\n\n"
+                "class DeploymentSchema(BaseModel):\n"
+                "    service_name: str\n"
+                "    replicas: int = 3\n"
+                "    env: Environment = Environment.DEV\n"
+                "    enable_autoscaling: bool = True\n"
+                "    release_notes: str = ''\n\n"
+                "# Generates inputs, number fields, select dropdown, checkbox, textarea, and submit button\n"
+                "deploy_form = ui.form_from_model(\n"
+                "    DeploymentSchema,\n"
+                "    command='deploy.service',\n"
+                "    submit_label='Deploy Service',\n"
+                "    optimistic=True,\n"
+                ")",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("5. State Batches, Transactions & Middleware", level=3),
+            ui.text("Group multiple mutations or enforce atomic rollbacks inside command handlers:"),
+            ui.code_block(
+                "@app.command('batch.update')\n"
+                "def on_batch_update(ctx: ui.CommandContext):\n"
+                "    # 1. Batch writes into a single DOM invalidation pass\n"
+                "    with ctx.batch():\n"
+                "        ctx.write(s_kpi_a, 100)\n"
+                "        ctx.write(s_kpi_b, 200)\n"
+                "        ctx.write(s_kpi_c, 300)\n\n"
+                "    # 2. Atomic transaction with automatic rollback on error\n"
+                "    with ctx.transaction():\n"
+                "        ctx.write(s_balance, ctx.read(s_balance) - 50)\n"
+                "        ctx.write(s_transferred, True)\n\n"
+                "# 3. Pluggable state interceptor middleware\n"
+                "class AuditMiddleware(ui.state.StateMiddleware):\n"
+                "    def after_write(self, ref, context, change):\n"
+                "        print(f'State mutated: {change.key} -> {change.value}')\n\n"
+                "app.add_state_middleware(AuditMiddleware())",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("6. Internationalization & Currency Formatting (`ui.i18n`)", level=3),
+            ui.text("Multi-language translation catalogs and locale-aware number/currency/date formatters:"),
+            ui.code_block(
+                "from radui import i18n\n\n"
+                "# 1. Load localized messages\n"
+                "translator = i18n.Translator(default_locale='en')\n"
+                "translator.load_catalog('es', {'welcome': '¡Bienvenido, {name}!'})\n\n"
+                "# 2. Interpolate message\n"
+                "msg = translator.t('welcome', locale='es', name='Elena')\n\n"
+                "# 3. Format numbers and currencies\n"
+                "price_str = i18n.format_currency(1420.50, currency='EUR', locale='de')  # -> '1.420,50 €'\n"
+                "count_str = i18n.format_number(982341.2, decimals=1, locale='fr')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("7. OpenTelemetry Tracing & SVG DAG Visualizer (`ui.inspector`)", level=3),
+            ui.text("Distributed tracing exports and reactive dependency graph visualization:"),
+            ui.code_block(
+                "from radui.inspector import OTLPExporter, generate_dag_svg\n\n"
+                "# 1. Export spans to OTLP collector over gRPC/HTTP\n"
+                "exporter = OTLPExporter(endpoint='http://localhost:4318/v1/traces')\n\n"
+                "# 2. Generate pure SVG diagram of the active reactive DAG\n"
+                "svg_code = generate_dag_svg(app.state_runtime)",
+                language="python",
+                copyable=True,
+            ),
+        ),
         gap=16,
     )
