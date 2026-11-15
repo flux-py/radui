@@ -161,7 +161,8 @@ body {
 .gx-shell { width: min(1080px, calc(100% - 32px)); margin: 32px auto 80px auto; }
 .gx-column { display: flex; flex-direction: column; }
 .gx-row { display: flex; flex-wrap: wrap; align-items: center; }
-.gx-grid { display: grid; width: 100%; }
+.gx-grid { display: grid; width: 100%; max-width: 100%; box-sizing: border-box; }
+.gx-grid > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
 .gx-spacer { width: 100%; flex-shrink: 0; }
 
 .gx-card {
@@ -171,6 +172,8 @@ body {
   background: var(--gx-surface);
   box-shadow: var(--gx-shadow);
   transition: transform .15s ease, box-shadow .15s ease;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .gx-text { line-height: 1.6; color: var(--gx-text); margin: 0; }
@@ -1074,16 +1077,16 @@ body {
 
 /* Responsive Grid Breakpoints */
 @media (min-width: 640px) {
-  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-sm, 1), 1fr) !important; }
+  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-sm, 1), minmax(0, 1fr)) !important; }
 }
 @media (min-width: 768px) {
-  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-md, var(--gx-cols-sm, 2)), 1fr) !important; }
+  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-md, var(--gx-cols-sm, 2)), minmax(0, 1fr)) !important; }
 }
 @media (min-width: 1024px) {
-  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-lg, var(--gx-cols-md, 3)), 1fr) !important; }
+  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-lg, var(--gx-cols-md, 2)), minmax(0, 1fr)) !important; }
 }
 @media (min-width: 1280px) {
-  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-xl, var(--gx-cols-lg, 4)), 1fr) !important; }
+  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-xl, var(--gx-cols-lg, 3)), minmax(0, 1fr)) !important; }
 }
 
 /* Skeleton & Shimmer */
@@ -1550,15 +1553,60 @@ STATIC_JS = r"""(() => {
   }, { passive: true });
 
   let currentCompName = "button";
+  let activeDomain = "all";
+
+  const filterChips = () => {
+    const searchContainer = document.getElementById("comp-search-bar");
+    const searchInput = document.getElementById("comp-search-bar-control") || document.querySelector("#comp-search-bar input") || searchContainer;
+    const countBadge = document.getElementById("comp-results-count");
+    const chipsGrid = document.getElementById("component-chips-grid");
+    if (!chipsGrid) return;
+
+    const rawVal = searchInput ? (searchInput.value !== undefined ? searchInput.value : (searchInput.querySelector?.("input")?.value || "")) : "";
+    const query = (rawVal || "").trim().toLowerCase();
+    const chips = [...chipsGrid.querySelectorAll('button')];
+    let matched = 0;
+
+    chips.forEach(chip => {
+      const name = (chip.dataset.gxComp || chip.textContent).trim().toLowerCase();
+      const meta = RADUI_COMPONENTS[name] || {};
+      const domain = (meta.domain || chip.dataset.domain || "").toLowerCase();
+      const desc = (meta.desc || chip.dataset.desc || "").toLowerCase();
+
+      const matchesQuery = !query || name.includes(query) || domain.includes(query) || desc.includes(query);
+      const matchesDomain = activeDomain === "all" || (
+        activeDomain === "data" ? (domain.includes("data display") || domain.includes("tables")) :
+        activeDomain === "form" ? domain.includes("form") :
+        activeDomain === "diagram" ? domain.includes("diagram") :
+        activeDomain === "typography" ? (domain.includes("typography") || domain.includes("code")) :
+        domain.includes(activeDomain)
+      );
+
+      const visible = matchesQuery && matchesDomain;
+      chip.style.display = visible ? "inline-flex" : "none";
+      if (visible) matched++;
+    });
+
+    if (countBadge) {
+      countBadge.textContent = `Showing ${matched} of 68 primitives`;
+      countBadge.className = matched === 0 ? "gx-badge gx-badge-danger" : (matched < 68 ? "gx-badge gx-badge-warning" : "gx-badge gx-badge-primary");
+    }
+  };
 
   const updateLivePreview = (name) => {
     if (name) currentCompName = name;
     const previewContainer = document.getElementById("component-preview");
     if (!previewContainer) return;
 
-    const labelInput = document.querySelector('input[name="prop.label"]') || document.querySelector('.gx-card input[type="text"]');
-    const variantSelect = document.querySelector('select[name="prop.variant"]') || document.querySelector('.gx-card select');
-    const disabledSwitch = document.querySelector('input[name="prop.disabled"]') || document.querySelector('.gx-card input[type="checkbox"]');
+    const labelInput = document.querySelector('form[data-gx-command="comp.apply_props"] input[name="prop.label"]') ||
+                       document.querySelector('form[data-gx-command="comp.apply_props"] input[type="text"]') ||
+                       document.querySelector('input[name="prop.label"]');
+    const variantSelect = document.querySelector('form[data-gx-command="comp.apply_props"] select[name="prop.variant"]') ||
+                          document.querySelector('form[data-gx-command="comp.apply_props"] select') ||
+                          document.querySelector('select[name="prop.variant"]');
+    const disabledSwitch = document.querySelector('form[data-gx-command="comp.apply_props"] input[name="prop.disabled"]') ||
+                           document.querySelector('form[data-gx-command="comp.apply_props"] input[type="checkbox"]') ||
+                           document.querySelector('input[name="prop.disabled"]');
 
     const label = (labelInput && labelInput.value.trim()) ? labelInput.value.trim() : (
       currentCompName === "button" ? "Launch Cluster" :
@@ -1755,7 +1803,9 @@ STATIC_JS = r"""(() => {
       const descElem = document.getElementById("component-description-text");
       if (descElem && RADUI_COMPONENTS[name]) descElem.textContent = RADUI_COMPONENTS[name].desc;
 
-      const labelInput = document.querySelector('input[name="prop.label"]') || document.querySelector('.gx-card input[type="text"]');
+      const labelInput = document.querySelector('form[data-gx-command="comp.apply_props"] input[name="prop.label"]') ||
+                         document.querySelector('form[data-gx-command="comp.apply_props"] input[type="text"]') ||
+                         document.querySelector('input[name="prop.label"]');
       if (labelInput) {
         const defaultLabels = {
           button: "Launch Cluster",
@@ -1954,55 +2004,22 @@ STATIC_JS = r"""(() => {
 
   // 68-Primitive Search & Domain Filter Toolbar
   const initComponentSearch = () => {
+    filterChips();
+
     const searchContainer = document.getElementById("comp-search-bar");
     const searchInput = document.getElementById("comp-search-bar-control") || document.querySelector("#comp-search-bar input") || searchContainer;
-    const countBadge = document.getElementById("comp-results-count");
-    const chipsGrid = document.getElementById("component-chips-grid");
-    const domainPills = document.getElementById("comp-domain-pills");
-    if (!searchInput || !chipsGrid) return;
-
-    let activeDomain = "all";
-
-    const filterChips = () => {
-      const rawVal = searchInput.value !== undefined ? searchInput.value : (searchInput.querySelector?.("input")?.value || "");
-      const query = (rawVal || "").trim().toLowerCase();
-      const chips = [...chipsGrid.querySelectorAll('button')];
-      let matched = 0;
-
-      chips.forEach(chip => {
-        const name = (chip.dataset.gxComp || chip.textContent).trim().toLowerCase();
-        const meta = RADUI_COMPONENTS[name] || {};
-        const domain = (meta.domain || chip.dataset.domain || "").toLowerCase();
-        const desc = (meta.desc || chip.dataset.desc || "").toLowerCase();
-
-        const matchesQuery = !query || name.includes(query) || domain.includes(query) || desc.includes(query);
-        const matchesDomain = activeDomain === "all" || (
-          activeDomain === "data" ? (domain.includes("data display") || domain.includes("tables")) :
-          activeDomain === "form" ? domain.includes("form") :
-          activeDomain === "diagram" ? domain.includes("diagram") :
-          activeDomain === "typography" ? (domain.includes("typography") || domain.includes("code")) :
-          domain.includes(activeDomain)
-        );
-
-        const visible = matchesQuery && matchesDomain;
-        chip.style.display = visible ? "inline-flex" : "none";
-        if (visible) matched++;
-      });
-
-      if (countBadge) {
-        countBadge.textContent = `Showing ${matched} of 68 primitives`;
-        countBadge.className = matched === 0 ? "gx-badge gx-badge-danger" : (matched < 68 ? "gx-badge gx-badge-warning" : "gx-badge gx-badge-primary");
-      }
-    };
-
-    searchInput.addEventListener("input", filterChips);
-    searchInput.addEventListener("keyup", filterChips);
-    searchInput.addEventListener("search", filterChips);
+    if (searchInput) {
+      searchInput.addEventListener("input", filterChips);
+      searchInput.addEventListener("keyup", filterChips);
+      searchInput.addEventListener("search", filterChips);
+    }
     if (searchContainer && searchContainer !== searchInput) {
       searchContainer.addEventListener("input", filterChips);
     }
 
-    if (domainPills) {
+    const domainPills = document.getElementById("comp-domain-pills");
+    if (domainPills && !domainPills._hasPillHandler) {
+      domainPills._hasPillHandler = true;
       domainPills.addEventListener("click", (e) => {
         const btn = e.target.closest("button");
         if (!btn) return;
@@ -2029,7 +2046,8 @@ STATIC_JS = r"""(() => {
     }
 
     const flipToggleBtn = document.getElementById("comp-flip-toggle-btn");
-    if (flipToggleBtn) {
+    if (flipToggleBtn && !flipToggleBtn._hasFlipHandler) {
+      flipToggleBtn._hasFlipHandler = true;
       flipToggleBtn.classList.add("gx-flip-trigger");
       flipToggleBtn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -2250,6 +2268,7 @@ STATIC_JS = r"""(() => {
 
           initGrids();
           initFlipCards(section);
+          initComponentSearch();
           initArchitectureDiagram(section);
           announce(`Loaded next chapter: ${nextChapter.title}`);
         } else {
@@ -2304,6 +2323,10 @@ STATIC_JS = r"""(() => {
   };
 
   document.addEventListener("input", (e) => {
+    if (e.target.id === "comp-search-bar-control" || e.target.closest("#comp-search-bar")) {
+      filterChips();
+      return;
+    }
     if (e.target.closest('form[data-gx-command="calc.update"]')) {
       const card = e.target.closest(".gx-card") || document;
       const inputs = [...card.querySelectorAll('input[type="number"], input.gx-input')].filter(i => !isNaN(Number(i.value)) && i.value.trim() !== "");
@@ -2316,12 +2339,23 @@ STATIC_JS = r"""(() => {
         metrics[1].textContent = `${(t * 100).toFixed(0)}%`;
         metrics[2].textContent = `$${tot.toFixed(2)}`;
       }
-    } else if (e.target.closest('form[data-gx-command="comp.apply_props"]') || e.target.closest('#docs-content')) {
+    } else if (e.target.closest('form[data-gx-command="comp.apply_props"]')) {
       if (e.target.matches('input, select')) updateLivePreview();
     }
   });
+
+  document.addEventListener("keyup", (e) => {
+    if (e.target.id === "comp-search-bar-control" || e.target.closest("#comp-search-bar")) {
+      filterChips();
+    }
+  });
+
   document.addEventListener("change", (e) => {
-    if (e.target.closest('form[data-gx-command="comp.apply_props"]') || e.target.closest('#docs-content')) {
+    if (e.target.id === "comp-search-bar-control" || e.target.closest("#comp-search-bar")) {
+      filterChips();
+      return;
+    }
+    if (e.target.closest('form[data-gx-command="comp.apply_props"]')) {
       updateLivePreview();
     }
   });
@@ -2352,6 +2386,34 @@ STATIC_JS = r"""(() => {
   }, true);
 
   document.addEventListener("click", (event) => {
+    const domainBtn = event.target.closest("#comp-domain-pills button");
+    if (domainBtn) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const text = domainBtn.textContent.toLowerCase();
+      if (text.includes("all")) activeDomain = "all";
+      else if (text.includes("layout")) activeDomain = "layout";
+      else if (text.includes("form")) activeDomain = "form";
+      else if (text.includes("action")) activeDomain = "action";
+      else if (text.includes("data")) activeDomain = "data";
+      else if (text.includes("feedback")) activeDomain = "feedback";
+      else if (text.includes("navigation") || text.includes("nav")) activeDomain = "navigation";
+      else if (text.includes("indicator")) activeDomain = "indicator";
+      else if (text.includes("ai")) activeDomain = "ai";
+      else if (text.includes("diagram")) activeDomain = "diagram";
+      else if (text.includes("typograph") || text.includes("code")) activeDomain = "typography";
+
+      const pills = document.getElementById("comp-domain-pills");
+      if (pills) {
+        pills.querySelectorAll("button").forEach(b => {
+          const isAct = b === domainBtn;
+          b.className = isAct ? "gx-button gx-button-primary" : "gx-button gx-button-outline";
+        });
+      }
+      filterChips();
+      return;
+    }
+
     const applyBtn = event.target.closest('form[data-gx-command="comp.apply_props"] button');
     if (applyBtn) {
       const form = applyBtn.closest('form');
@@ -4095,10 +4157,10 @@ def render_grid(
         for bp, count in component.columns.items():
             bp_styles.append(f"--gx-cols-{bp}:{count};")
         default_cols = component.columns.get("sm", 1)
-        bp_styles.append(f"grid-template-columns:repeat({default_cols}, 1fr);")
+        bp_styles.append(f"grid-template-columns:repeat({default_cols}, minmax(0, 1fr));")
         style_str = "".join(bp_styles)
         return f'<div class="gx-grid gx-grid-responsive" style="{style_str}"{_attrs(component)}>{children}</div>'
-    return f'<div class="gx-grid" style="grid-template-columns:repeat({component.columns}, 1fr);gap:{component.gap}px"{_attrs(component)}>{children}</div>'
+    return f'<div class="gx-grid" style="grid-template-columns:repeat({component.columns}, minmax(0, 1fr));gap:{component.gap}px"{_attrs(component)}>{children}</div>'
 
 
 def render_card(
