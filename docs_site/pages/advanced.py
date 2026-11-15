@@ -26,6 +26,21 @@ def jobs_page():
             ),
             title="Durable Job Runner Control Plane",
             hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
+            flippable=True,
+            code=(
+                'import radui as ui\n\n'
+                'status = ui.state("job_status", default="IDLE", scope="session")\n'
+                'progress = ui.state("job_progress", default=0.0, scope="session")\n\n'
+                '@ui.command("job.start")\n'
+                'async def start_job(ctx: ui.CommandContext):\n'
+                '    ctx.write(status, "RUNNING")\n'
+                '    await ctx.dispatch_job("worker_pool", steps=10)\n\n'
+                'ui.metric_card("Worker State", status)\n'
+                'ui.metric_card("Execution Progress", progress)\n'
+                'ui.progress_bar(value=progress)\n'
+                'ui.button("Start 10-Second Worker Job", command="job.start")'
+            ),
+            id="job-execution-card",
         ),
         gap=16,
         stagger_children=0.05,
@@ -46,6 +61,17 @@ def ai_page():
                 ),
                 title="Agent Conversation Stream",
                 hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
+                flippable=True,
+                code=(
+                    'import radui as ui\n\n'
+                    'chat = ui.chat_view(\n'
+                    '    ui.chat_message("Hello! I am your RADUI autonomous agent. I can query databases and trigger cluster operations.", role="assistant"),\n'
+                    '    ui.chat_message("Can you run the daily revenue aggregation query?", role="user"),\n'
+                    '    ui.chat_message("I have prepared the tool execution. Please authorize the action below.", role="assistant"),\n'
+                    '    title="Agent Conversation Stream"\n'
+                    ')'
+                ),
+                id="ai-chat-card",
             ),
             ui.card(
                 ui.heading("Human-in-the-Loop Action Card", level=4),
@@ -58,6 +84,17 @@ def ai_page():
                 ),
                 title="Privileged Action Authorization",
                 hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
+                flippable=True,
+                code=(
+                    'import radui as ui\n\n'
+                    'action = ui.action_card(\n'
+                    '    title="Execute Revenue Aggregation Query?",\n'
+                    '    description="Target: \'SELECT SUM(amount) FROM daily_orders WHERE date = CURRENT_DATE;\'",\n'
+                    '    approve_command="agent.approve_demo",\n'
+                    '    reject_command="agent.reject_demo"\n'
+                    ')'
+                ),
+                id="ai-action-card",
             ),
             columns=2,
             gap=16,

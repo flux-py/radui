@@ -572,6 +572,7 @@ body {
   position: relative;
   width: 100%;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   transition: transform 0.65s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.3s ease;
   border-radius: var(--gx-radius);
   cursor: pointer;
@@ -594,7 +595,13 @@ body {
 .gx-flip-front {
   position: relative;
   transform: rotateY(0deg);
+  -webkit-transform: rotateY(0deg);
   z-index: 2;
+}
+.gx-flip-front .gx-card {
+  height: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 .gx-flip-back {
   position: absolute;
@@ -603,6 +610,7 @@ body {
   right: 0;
   bottom: 0;
   transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
   background: var(--gx-surface);
   border: 1px solid var(--gx-border);
   box-shadow: var(--gx-shadow);
@@ -618,7 +626,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--gx-surface);
+  background: var(--gx-surface, #ffffff);
   border-radius: var(--gx-radius);
   overflow: hidden;
 }
@@ -633,10 +641,6 @@ body {
   font-size: 0.82rem;
   letter-spacing: 0.05em;
   color: var(--gx-text-muted);
-}
-[data-theme="dark"] .gx-code-card-header {
-  background: #1a1d22;
-  border-color: #2a2e36;
 }
 .gx-code-card-header .gx-code-lang {
   font-weight: 700;
@@ -667,9 +671,6 @@ body {
   padding: 16px;
   overflow-y: auto;
   background: var(--gx-surface);
-}
-[data-theme="dark"] .gx-code-card-body {
-  background: #111317;
 }
 .gx-code-lines {
   margin: 0;
@@ -709,14 +710,163 @@ body {
   font-style: italic;
 }
 
+/* Syntax Highlighting Tokens (Light Theme Baseline) */
+.gx-syn-kw { color: #cf222e; font-weight: 600; }
+.gx-syn-str { color: #0a3069; }
+.gx-syn-num { color: #0550ae; }
+.gx-syn-fn { color: #8250df; }
+.gx-syn-param { color: #953800; }
+.gx-syn-cmt { color: #6e7781; font-style: italic; }
+
+/* Dark Theme Overrides for Backside Code Card and Syntax Highlighting */
+:root[data-theme="dark"] .gx-flip-card,
+[data-theme="dark"] .gx-flip-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+:root[data-theme="dark"] .gx-flip-card:hover,
+[data-theme="dark"] .gx-flip-card:hover {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--gx-primary);
+}
+:root[data-theme="dark"] .gx-flip-back,
+[data-theme="dark"] .gx-flip-back {
+  background: #0d1117;
+  border-color: #30363d;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+}
+:root[data-theme="dark"] .gx-code-card-inner,
+[data-theme="dark"] .gx-code-card-inner {
+  background: #0d1117;
+}
+:root[data-theme="dark"] .gx-code-card-header,
+[data-theme="dark"] .gx-code-card-header {
+  background: #161b22;
+  border-color: #30363d;
+  color: #8b949e;
+}
+:root[data-theme="dark"] .gx-code-card-header .gx-code-lang,
+[data-theme="dark"] .gx-code-card-header .gx-code-lang {
+  color: #8b949e;
+}
+:root[data-theme="dark"] .gx-code-card-header .gx-code-copy-btn,
+[data-theme="dark"] .gx-code-card-header .gx-code-copy-btn {
+  background: #21262d;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+:root[data-theme="dark"] .gx-code-card-header .gx-code-copy-btn:hover,
+[data-theme="dark"] .gx-code-card-header .gx-code-copy-btn:hover {
+  background: var(--gx-primary);
+  border-color: var(--gx-primary);
+  color: #ffffff;
+}
+:root[data-theme="dark"] .gx-code-card-body,
+[data-theme="dark"] .gx-code-card-body {
+  background: #0d1117;
+}
+:root[data-theme="dark"] .gx-code-lines,
+[data-theme="dark"] .gx-code-lines {
+  color: #e6edf3;
+}
+:root[data-theme="dark"] .gx-code-line-num,
+[data-theme="dark"] .gx-code-line-num {
+  color: #484f58;
+}
+:root[data-theme="dark"] .gx-code-card-footer,
+[data-theme="dark"] .gx-code-card-footer {
+  background: #161b22;
+  border-color: #30363d;
+}
+:root[data-theme="dark"] .gx-flip-return-hint,
+[data-theme="dark"] .gx-flip-return-hint {
+  color: #8b949e;
+}
+
+/* Dark Theme Syntax Tokens */
+:root[data-theme="dark"] .gx-syn-kw,
+[data-theme="dark"] .gx-syn-kw { color: #ff7b72; }
+:root[data-theme="dark"] .gx-syn-str,
+[data-theme="dark"] .gx-syn-str { color: #a5d6ff; }
+:root[data-theme="dark"] .gx-syn-num,
+[data-theme="dark"] .gx-syn-num { color: #79c0ff; }
+:root[data-theme="dark"] .gx-syn-fn,
+[data-theme="dark"] .gx-syn-fn { color: #d2a8ff; }
+:root[data-theme="dark"] .gx-syn-param,
+[data-theme="dark"] .gx-syn-param { color: #ffa657; }
+:root[data-theme="dark"] .gx-syn-cmt,
+[data-theme="dark"] .gx-syn-cmt { color: #8b949e; }
+
+/* OS-level Dark Theme Support (prefers-color-scheme) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .gx-flip-card {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  }
+  :root:not([data-theme="light"]) .gx-flip-card:hover {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--gx-primary);
+  }
+  :root:not([data-theme="light"]) .gx-flip-back {
+    background: #0d1117;
+    border-color: #30363d;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+  }
+  :root:not([data-theme="light"]) .gx-code-card-inner {
+    background: #0d1117;
+  }
+  :root:not([data-theme="light"]) .gx-code-card-header {
+    background: #161b22;
+    border-color: #30363d;
+    color: #8b949e;
+  }
+  :root:not([data-theme="light"]) .gx-code-card-header .gx-code-lang {
+    color: #8b949e;
+  }
+  :root:not([data-theme="light"]) .gx-code-card-header .gx-code-copy-btn {
+    background: #21262d;
+    border-color: #30363d;
+    color: #c9d1d9;
+  }
+  :root:not([data-theme="light"]) .gx-code-card-header .gx-code-copy-btn:hover {
+    background: var(--gx-primary);
+    border-color: var(--gx-primary);
+    color: #ffffff;
+  }
+  :root:not([data-theme="light"]) .gx-code-card-body {
+    background: #0d1117;
+  }
+  :root:not([data-theme="light"]) .gx-code-lines {
+    color: #e6edf3;
+  }
+  :root:not([data-theme="light"]) .gx-code-line-num {
+    color: #484f58;
+  }
+  :root:not([data-theme="light"]) .gx-code-card-footer {
+    background: #161b22;
+    border-color: #30363d;
+  }
+  :root:not([data-theme="light"]) .gx-flip-return-hint {
+    color: #8b949e;
+  }
+  :root:not([data-theme="light"]) .gx-syn-kw { color: #ff7b72; }
+  :root:not([data-theme="light"]) .gx-syn-str { color: #a5d6ff; }
+  :root:not([data-theme="light"]) .gx-syn-num { color: #79c0ff; }
+  :root:not([data-theme="light"]) .gx-syn-fn { color: #d2a8ff; }
+  :root:not([data-theme="light"]) .gx-syn-param { color: #ffa657; }
+  :root:not([data-theme="light"]) .gx-syn-cmt { color: #8b949e; }
+  :root:not([data-theme="light"]) .gx-flip-tooltip {
+    background: #f8fafc;
+    color: #090d16;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
 /* Subtle, Humorous Hover Tooltip: "Click to reveal the code 👀" */
 .gx-flip-tooltip {
   position: absolute;
   bottom: 12px;
   left: 50%;
   transform: translateX(-50%) translateY(6px);
-  background: var(--gx-text);
-  color: var(--gx-surface);
+  background: var(--gx-text, #1e293b);
+  color: var(--gx-surface, #ffffff);
   font-size: 0.74rem;
   font-weight: 600;
   padding: 5px 14px;
@@ -732,10 +882,18 @@ body {
   opacity: 0.95;
   transform: translateX(-50%) translateY(0);
 }
+:root[data-theme="dark"] .gx-flip-tooltip,
+[data-theme="dark"] .gx-flip-tooltip {
+  background: #f8fafc;
+  color: #090d16;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
 .gx-flip-card.is-flipped ~ .gx-flip-tooltip,
 .gx-flip-card.is-flipped .gx-flip-tooltip {
   opacity: 0 !important;
   visibility: hidden;
+  pointer-events: none;
 }
 
 /* Continuous Reading Navigation */
@@ -801,20 +959,46 @@ body {
   color: var(--gx-text);
   border: 1px solid var(--gx-border);
   border-radius: 999px;
-  padding: 8px 18px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 0.82rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  z-index: 999;
+  z-index: 9999;
   backdrop-filter: blur(8px);
-  transition: all 0.25s ease;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .gx-reading-pill:hover {
   border-color: var(--gx-primary);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
-  transform: translateY(-2px);
+}
+.gx-reading-pill.is-dragging {
+  cursor: grabbing !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24), 0 0 0 2px var(--gx-primary) !important;
+  transform: scale(1.03) !important;
+  transition: none !important;
+  opacity: 0.96;
+}
+.gx-pill-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gx-text-muted);
+  font-size: 1rem;
+  letter-spacing: -2px;
+  margin-right: -2px;
+  cursor: grab;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+.gx-reading-pill:hover .gx-pill-grip {
+  opacity: 1;
+  color: var(--gx-primary);
 }
 .gx-reading-pill-top {
   cursor: pointer;
@@ -824,10 +1008,12 @@ body {
   border: 1px solid var(--gx-border);
   font-weight: 700;
   font-size: 0.74rem;
+  transition: all 0.15s ease;
 }
 .gx-reading-pill-top:hover {
   background: var(--gx-primary);
   color: #fff;
+  border-color: var(--gx-primary);
 }
 #component-chips-grid {
   max-height: 240px;
@@ -1453,9 +1639,32 @@ STATIC_JS = r"""(() => {
     } else if (currentCompName === "avatar" || currentCompName === "avatar_group") {
       widgetHtml = `<div style="display:flex;align-items:center;gap:12px"><div class="gx-avatar" style="width:48px;height:48px;border-radius:50%;background:var(--gx-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;position:relative">RX<span style="position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#10b981;border:2px solid var(--gx-surface)"></span></div><div><strong style="display:block">${label}</strong><span style="color:var(--gx-text-muted);font-size:0.85rem">Active Session Contributor</span></div></div>`;
       snippet = compMeta.example || `import radui as ui\n\nwidget = ui.avatar(name="${label}", status="online")`;
+    } else if (currentCompName === "text") {
+      const textStyle = disabled ? "opacity:0.45;filter:grayscale(1);" : "";
+      const colorVar = variant === "primary" ? "var(--gx-primary)" : (variant === "secondary" ? "var(--gx-text-muted)" : (variant === "success" ? "var(--gx-success)" : (variant === "danger" ? "var(--gx-danger)" : (variant === "warning" ? "var(--gx-warning)" : "var(--gx-text)"))));
+      widgetHtml = `<div style="padding:16px;background:var(--gx-surface-alt);border-radius:var(--gx-radius);border:1px solid var(--gx-border);${textStyle}"><p class="gx-text" style="font-size:1.1rem;margin:0;color:${colorVar};font-weight:500">${label}</p></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.text("${label}", variant="${variant}"${disabledCode})`;
+    } else if (currentCompName === "heading") {
+      const headingStyle = disabled ? "opacity:0.45;" : "";
+      const colorVar = variant === "primary" ? "var(--gx-primary)" : "var(--gx-text)";
+      widgetHtml = `<div style="padding:16px;background:var(--gx-surface-alt);border-radius:var(--gx-radius);border:1px solid var(--gx-border);${headingStyle}"><h3 class="gx-heading gx-heading-2" style="margin:0;color:${colorVar}">${label}</h3></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.heading("${label}", level=2${disabledCode})`;
+    } else if (currentCompName === "code_block") {
+      widgetHtml = `<div class="gx-code-container" style="margin:0"><div class="gx-code-header"><span style="font-size:0.75rem">PYTHON</span><button type="button" class="gx-code-copy-btn">Copy</button></div><pre class="gx-code-body" style="padding:12px;margin:0"><code>${label}</code></pre></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.code_block("${label}", language="python", copyable=True)`;
+    } else if (currentCompName === "kbd") {
+      widgetHtml = `<div style="padding:16px;display:flex;align-items:center;gap:8px"><span class="gx-text">Keyboard Shortcut:</span><kbd class="gx-kbd">${label}</kbd></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.kbd("${label}")`;
+    } else if (currentCompName === "link") {
+      widgetHtml = `<div style="padding:16px"><a href="#" class="gx-link gx-link-${variant}" style="font-weight:600;font-size:1.05rem;${disabled ? 'pointer-events:none;opacity:0.5;' : ''}">${label} →</a></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.link("${label}", "#"${disabledCode})`;
+    } else if (currentCompName === "divider") {
+      widgetHtml = `<div style="width:100%;padding:12px 0"><p class="gx-text" style="margin-bottom:8px">${label}</p><hr class="gx-divider" style="border:none;border-top:1px solid var(--gx-border);margin:0"></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.divider()`;
     } else {
-      widgetHtml = `<div style="width:100%;padding:18px;background:var(--gx-surface-alt);border:1px solid var(--gx-border);border-radius:var(--gx-radius)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong style="font-size:1.05rem;color:var(--gx-text)">ui.${currentCompName}()</strong><span class="gx-badge gx-badge-primary">${compMeta.domain || "Primitive"}</span></div><p class="gx-text" style="margin:0 0 10px">${compMeta.desc || label}</p><div style="display:flex;gap:8px"><button class="gx-button gx-button-sm gx-button-${variant}" type="button"${disabledAttr}>Interactive Test</button><span class="gx-badge gx-badge-neutral">AST Verified</span></div></div>`;
-      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.${currentCompName}()`;
+      const displayLabel = label || ("Demo " + currentCompName);
+      widgetHtml = `<div style="width:100%;padding:18px;background:var(--gx-surface-alt);border:1px solid var(--gx-border);border-radius:var(--gx-radius);${disabled ? 'opacity:0.55;' : ''}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong style="font-size:1.05rem;color:var(--gx-text)">ui.${currentCompName}()</strong><span class="gx-badge gx-badge-${variant}">${compMeta.domain || "Primitive"}</span></div><p class="gx-text" style="font-weight:600;margin:0 0 6px">${displayLabel}</p><p class="gx-text-muted" style="font-size:0.85rem;margin:0 0 12px">${compMeta.desc || "Reactive RadUI Primitive"}</p><div style="display:flex;gap:8px"><button class="gx-button gx-button-sm gx-button-${variant}" type="button"${disabledAttr}>Interactive Test</button><span class="gx-badge gx-badge-neutral">AST Verified</span></div></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.${currentCompName}("${displayLabel}"${variant !== 'primary' ? `, variant="${variant}"` : ''}${disabledCode})`;
     }
 
     // Target the front face or preview card
@@ -1620,13 +1829,60 @@ STATIC_JS = r"""(() => {
       const back = document.createElement("div");
       back.className = "gx-flip-back";
 
-      // Render code block formatted exactly like reference design (media_1794759107652_b737195c.png)
+      // Render code block formatted exactly like reference design (media_1794759107652_b737195c.png) with full dual-theme syntax highlighting
       const renderCodeBlockHtml = (rawCode) => {
         const lines = rawCode.split("\n");
         const linesHtml = lines.map((line, idx) => {
           const num = idx + 1;
-          const escaped = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-          return `<div class="gx-code-line"><span class="gx-code-line-num">${num}</span><span class="gx-code-line-text">${escaped || "&nbsp;"}</span></div>`;
+
+          // 1. Isolate and protect string literals
+          const strTokens = [];
+          const processed = line.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, (m) => {
+            const token = `___STR_TOK_${strTokens.length}___`;
+            strTokens.push(m);
+            return token;
+          });
+
+          // 2. Separate code and inline comments
+          let codePart = processed;
+          let commentPart = "";
+          const hashIdx = processed.indexOf("#");
+          if (hashIdx !== -1) {
+            codePart = processed.substring(0, hashIdx);
+            commentPart = processed.substring(hashIdx);
+          }
+
+          // 3. HTML escape
+          const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          let cEsc = esc(codePart);
+          let commEsc = esc(commentPart);
+
+          // 4. Token highlighting
+          // Python keywords
+          cEsc = cEsc.replace(/\b(import|from|as|def|return|class|if|else|elif|for|in|while|try|except|finally|with|async|await|lambda|pass|break|continue|None|True|False)\b/g, '<span class="gx-syn-kw">$1</span>');
+
+          // Named parameters & assignments (e.g. default=, scope=, bind=, etc.)
+          cEsc = cEsc.replace(/\b([a-zA-Z_]\w*)\s*=(?!=)/g, '<span class="gx-syn-param">$1</span>=');
+
+          // Function & method calls (e.g. ui.state, ui.button, ctx.write)
+          cEsc = cEsc.replace(/\b([a-zA-Z_]\w*)\s*(?=\()/g, '<span class="gx-syn-fn">$1</span>');
+
+          // Numeric literals
+          cEsc = cEsc.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="gx-syn-num">$1</span>');
+
+          // 5. Restore strings safely using function replacer to prevent $ pattern issues
+          strTokens.forEach((rawStr, i) => {
+            const escStr = esc(rawStr);
+            cEsc = cEsc.replace(`___STR_TOK_${i}___`, () => `<span class="gx-syn-str">${escStr}</span>`);
+          });
+
+          // 6. Wrap comment
+          if (commEsc) {
+            commEsc = `<span class="gx-syn-cmt">${commEsc}</span>`;
+          }
+
+          const fullLine = (cEsc + commEsc) || "&nbsp;";
+          return `<div class="gx-code-line"><span class="gx-code-line-num">${num}</span><span class="gx-code-line-text">${fullLine}</span></div>`;
         }).join("");
 
         return `
@@ -1825,15 +2081,120 @@ STATIC_JS = r"""(() => {
     if (!pill) {
       pill = document.createElement("div");
       pill.className = "gx-reading-pill";
+      pill.title = "Drag to move anywhere • Double-click to reset";
       pill.innerHTML = `
+        <span class="gx-pill-grip" title="Drag to move anywhere">⋮⋮</span>
         <span style="font-size:1.05rem">📖</span>
         <span class="gx-reading-pill-text">Reading: <strong>${DOCS_NAV_SEQUENCE[currentIdx].title}</strong></span>
         <button type="button" class="gx-reading-pill-top" title="Scroll back to top">↑ Top</button>
       `;
       document.body.appendChild(pill);
-      pill.querySelector(".gx-reading-pill-top").addEventListener("click", () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Make reading pill smoothly draggable anywhere across the screen
+      let isDragging = false;
+      let startX = 0, startY = 0;
+      let startLeft = 0, startTop = 0;
+      let hasMoved = false;
+
+      // Restore saved custom position if valid
+      try {
+        const saved = sessionStorage.getItem("gx-pill-pos");
+        if (saved) {
+          const pos = JSON.parse(saved);
+          const maxL = window.innerWidth - 220;
+          const maxT = window.innerHeight - 50;
+          if (pos.left >= 0 && pos.left <= maxL && pos.top >= 0 && pos.top <= maxT) {
+            pill.style.left = `${pos.left}px`;
+            pill.style.top = `${pos.top}px`;
+            pill.style.bottom = "auto";
+            pill.style.right = "auto";
+          }
+        }
+      } catch (e) {}
+
+      const onPointerDown = (e) => {
+        // Prevent dragging if clicking button or interactive control
+        if (e.target.closest(".gx-reading-pill-top, button, a, input")) return;
+
+        isDragging = true;
+        hasMoved = false;
+        startX = e.clientX;
+        startY = e.clientY;
+
+        const rect = pill.getBoundingClientRect();
+        startLeft = rect.left;
+        startTop = rect.top;
+
+        // Switch to explicit left/top coordinates
+        pill.style.left = `${startLeft}px`;
+        pill.style.top = `${startTop}px`;
+        pill.style.bottom = "auto";
+        pill.style.right = "auto";
+        pill.classList.add("is-dragging");
+
+        try { pill.setPointerCapture(e.pointerId); } catch (_) {}
+      };
+
+      const onPointerMove = (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+          hasMoved = true;
+        }
+
+        const pillW = pill.offsetWidth;
+        const pillH = pill.offsetHeight;
+        const pad = 12;
+
+        let newLeft = startLeft + dx;
+        let newTop = startTop + dy;
+
+        // Viewport boundaries
+        const maxLeft = window.innerWidth - pillW - pad;
+        const maxTop = window.innerHeight - pillH - pad;
+        newLeft = Math.max(pad, Math.min(maxLeft, newLeft));
+        newTop = Math.max(pad, Math.min(maxTop, newTop));
+
+        pill.style.left = `${newLeft}px`;
+        pill.style.top = `${newTop}px`;
+      };
+
+      const onPointerUp = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        pill.classList.remove("is-dragging");
+        try { pill.releasePointerCapture(e.pointerId); } catch (_) {}
+
+        if (hasMoved) {
+          try {
+            const rect = pill.getBoundingClientRect();
+            sessionStorage.setItem("gx-pill-pos", JSON.stringify({ left: Math.round(rect.left), top: Math.round(rect.top) }));
+          } catch (_) {}
+        }
+      };
+
+      pill.addEventListener("pointerdown", onPointerDown);
+      pill.addEventListener("pointermove", onPointerMove);
+      pill.addEventListener("pointerup", onPointerUp);
+      pill.addEventListener("pointercancel", onPointerUp);
+
+      // Double-click to reset position back to default bottom-right
+      pill.addEventListener("dblclick", () => {
+        pill.style.left = "auto";
+        pill.style.top = "auto";
+        pill.style.bottom = "24px";
+        pill.style.right = "28px";
+        try { sessionStorage.removeItem("gx-pill-pos"); } catch (_) {}
       });
+
+      const topBtn = pill.querySelector(".gx-reading-pill-top");
+      if (topBtn) {
+        topBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      }
     }
 
     const updatePill = (title) => {
@@ -1970,10 +2331,50 @@ STATIC_JS = r"""(() => {
     if (!form) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    runDemoCommand(form.dataset.gxCommand || "", form);
+    const cmd = form.dataset.gxCommand || "";
+    runDemoCommand(cmd, form);
+    if (cmd === "comp.apply_props") {
+      const btn = form.querySelector('button[type="submit"], button');
+      if (btn && !btn._flashing) {
+        btn._flashing = true;
+        const oldText = btn.textContent;
+        btn.textContent = "Applied ✓";
+        btn.style.borderColor = "var(--gx-success)";
+        btn.style.color = "var(--gx-success)";
+        setTimeout(() => {
+          btn.textContent = oldText;
+          btn.style.borderColor = "";
+          btn.style.color = "";
+          btn._flashing = false;
+        }, 1200);
+      }
+    }
   }, true);
 
   document.addEventListener("click", (event) => {
+    const applyBtn = event.target.closest('form[data-gx-command="comp.apply_props"] button');
+    if (applyBtn) {
+      const form = applyBtn.closest('form');
+      if (form) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        runDemoCommand("comp.apply_props", form);
+        if (!applyBtn._flashing) {
+          applyBtn._flashing = true;
+          const oldText = applyBtn.textContent;
+          applyBtn.textContent = "Applied ✓";
+          applyBtn.style.borderColor = "var(--gx-success)";
+          applyBtn.style.color = "var(--gx-success)";
+          setTimeout(() => {
+            applyBtn.textContent = oldText;
+            applyBtn.style.borderColor = "";
+            applyBtn.style.color = "";
+            applyBtn._flashing = false;
+          }, 1200);
+        }
+        return;
+      }
+    }
     const button = event.target.closest("button[data-gx-command]");
     if (!button || button.closest("form")) return;
     event.preventDefault();

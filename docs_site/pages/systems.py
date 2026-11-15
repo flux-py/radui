@@ -270,6 +270,18 @@ def state_page():
             ),
             title="Live Computed Signal Sandbox",
             hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
+            flippable=True,
+            code=(
+                'import radui as ui\n\n'
+                'price = ui.state("price", default=100.0, scope="session")\n'
+                'tax = ui.state("tax", default=0.20, scope="session")\n\n'
+                '# Automated DAG derivation\n'
+                'total = ui.computed(lambda: price.value * (1.0 + tax.value))\n\n'
+                'ui.metric_card("Base Price", price)\n'
+                'ui.metric_card("Tax Rate", tax)\n'
+                'ui.metric_card("Computed Total", total)'
+            ),
+            id="calc-state-card",
         ),
         ui.spacer(size=16),
         ui.heading("The 5 Deterministic Scopes", level=2),
