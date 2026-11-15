@@ -51,7 +51,12 @@ def _load_app(target: str = "app.py") -> tuple[App, str]:
     resolved_path = _resolve_target_file(module_path)
     if resolved_path.suffix == ".py" or resolved_path.is_file():
         abs_path = resolved_path.resolve()
-        sys.path.insert(0, str(abs_path.parent))
+        cwd_str = str(Path.cwd().resolve())
+        parent_str = str(abs_path.parent)
+        grandparent_str = str(abs_path.parent.parent)
+        for p in (grandparent_str, parent_str, cwd_str):
+            if p not in sys.path:
+                sys.path.insert(0, p)
         module_name = abs_path.stem
         spec = importlib.util.spec_from_file_location(module_name, abs_path)
         if spec is None or spec.loader is None:

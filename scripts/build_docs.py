@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
 import subprocess
@@ -13,8 +14,10 @@ def build():
     
     # 1. Export static pages using radui CLI
     print("--> Exporting static pages via radui CLI...")
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(root) + (os.pathsep + env["PYTHONPATH"] if "PYTHONPATH" in env else "")
     cmd = [sys.executable, "-m", "radui", "export", "docs_site/app.py", "--static", "--output", str(dist)]
-    res = subprocess.run(cmd, cwd=root, capture_output=True, text=True)
+    res = subprocess.run(cmd, cwd=root, env=env, capture_output=True, text=True)
     print(res.stdout)
     if res.returncode != 0:
         print(res.stderr, file=sys.stderr)

@@ -35,6 +35,8 @@ jobs:
           pip install -e .
 
       - name: Export RADUI-Native Static Documentation
+        env:
+          PYTHONPATH: .
         run: |
           python -m radui export docs_site/app.py --static --output ./dist_docs
           mkdir -p ./dist_docs/assets
