@@ -490,5 +490,383 @@ def api_reference_page():
                 copyable=True,
             ),
         ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("8. Distributed State Backends & Failover (`ui.*StateBackend`)", level=3),
+            ui.text(
+                "Pluggable enterprise storage engines for session and view state. Supports local in-memory, "
+                "embedded SQLite WAL mode, distributed Redis, and ACID PostgreSQL."
+            ),
+            ui.code_block(
+                "from radui import (\n"
+                "    App,\n"
+                "    InMemoryStateBackend,\n"
+                "    SQLiteStateBackend,\n"
+                "    RedisStateBackend,\n"
+                "    PostgreSQLStateBackend,\n"
+                "    StateBackendUnavailableError,\n"
+                ")\n\n"
+                "# 1. Clustered Redis storage with connection pooling\n"
+                "redis_backend = RedisStateBackend(redis_url='redis://cluster-auth:6379/0', ttl_seconds=86400)\n\n"
+                "# 2. Embedded SQLite WAL storage for zero-dependency edge deployments\n"
+                "sqlite_backend = SQLiteStateBackend(db_path='/data/radui_state.db')\n\n"
+                "# 3. ACID PostgreSQL state with tenant row isolation\n"
+                "pg_backend = PostgreSQLStateBackend(dsn='postgresql://app:secret@db:5432/radui')\n\n"
+                "# Bind backend to App lifecycle\n"
+                "app = App(state_backend=redis_backend)\n\n"
+                "# Fault handling: catch transient network partition errors\n"
+                "try:\n"
+                "    await redis_backend.ping()\n"
+                "except StateBackendUnavailableError as err:\n"
+                "    logger.critical(f'State store unreachable: {err}')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("9. Event Streaming Backends & Event Broker (`ui.*EventBackend`)", level=3),
+            ui.text(
+                "High-throughput pub/sub event distribution protocols for multi-node web server clusters. "
+                "Enables sub-millisecond SSE broadcasting across instances."
+            ),
+            ui.code_block(
+                "from radui import (\n"
+                "    EventBackend,\n"
+                "    EventRecord,\n"
+                "    InMemoryEventBackend,\n"
+                "    SQLiteEventBackend,\n"
+                "    RedisEventBackend,\n"
+                "    PostgreSQLEventBackend,\n"
+                ")\n\n"
+                "# 1. Initialize distributed Redis Streams event broker\n"
+                "broker: EventBackend = RedisEventBackend(redis_url='redis://localhost:6379/1')\n\n"
+                "# 2. Publish structured event record\n"
+                "event = EventRecord(\n"
+                "    topic='cluster.alerts',\n"
+                "    event_type='node_scaled',\n"
+                "    payload={'node_id': 'srv-east-4', 'cores': 64},\n"
+                "    sequence=10492,\n"
+                ")\n"
+                "await broker.publish(event)\n\n"
+                "# 3. Subscribe with non-blocking async generator\n"
+                "async for record in broker.subscribe('cluster.*'):\n"
+                "    print(f'[{record.topic}] {record.event_type}: {record.payload}')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("10. Idempotency Engine & Deduplication (`ui.*IdempotencyBackend`)", level=3),
+            ui.text(
+                "Cryptographic request fingerprinting and deduplication backends preventing double-submits, "
+                "network replay attacks, and duplicate payment or command mutations."
+            ),
+            ui.code_block(
+                "from radui import (\n"
+                "    IdempotencyBackend,\n"
+                "    IdempotencyRecord,\n"
+                "    IdempotencyResult,\n"
+                "    IdempotencyError,\n"
+                "    IdempotencyConflictError,\n"
+                "    IdempotencyBackendUnavailableError,\n"
+                "    InMemoryIdempotencyBackend,\n"
+                "    SQLiteIdempotencyBackend,\n"
+                "    RedisIdempotencyBackend,\n"
+                "    PostgreSQLIdempotencyBackend,\n"
+                "    compute_payload_fingerprint,\n"
+                ")\n\n"
+                "# 1. Hash command payload into deterministic SHA-256 fingerprint\n"
+                "fp = compute_payload_fingerprint({'cmd': 'transfer', 'amount': 1500, 'to': 'acc_928'})\n\n"
+                "# 2. Query idempotency store with lease fencing\n"
+                "idempotency = RedisIdempotencyBackend('redis://localhost:6379/2')\n"
+                "status: IdempotencyResult = await idempotency.acquire_or_get(key=fp, ttl_seconds=300)\n\n"
+                "if status.is_cached:\n"
+                "    return status.cached_response\n"
+                "elif status.is_in_progress:\n"
+                "    raise IdempotencyConflictError('Mutation currently executing in concurrent worker')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("11. Distributed Jobs, Lease Fencing & Transactional Outbox", level=3),
+            ui.text(
+                "Durable asynchronous background queues, monotonic lease fencing tokens, and transactional "
+                "outbox patterns ensuring atomic state commits and reliable event delivery."
+            ),
+            ui.code_block(
+                "from radui import (\n"
+                "    JobBackend,\n"
+                "    LocalJobBackend,\n"
+                "    SQLiteJobBackend,\n"
+                "    RedisJobBackend,\n"
+                "    JobDefinition,\n"
+                "    JobContext,\n"
+                "    JobSnapshot,\n"
+                "    JobStatus,\n"
+                "    JobSpec,\n"
+                "    JobError,\n"
+                "    JobCancelledError,\n"
+                "    JobCapacityError,\n"
+                "    JobNotFoundError,\n"
+                "    StaleLeaseError,\n"
+                "    TransactionalOutbox,\n"
+                "    OutboxRecord,\n"
+                "    OutboxStatus,\n"
+                "    StaleOutboxLeaseError,\n"
+                ")\n\n"
+                "# 1. Define resilient background job with progress reporting\n"
+                "async def sync_remote_telemetry(ctx: JobContext):\n"
+                "    for idx in range(1, 101):\n"
+                "        if ctx.is_cancelled():\n"
+                "            raise JobCancelledError('Job aborted by operator')\n"
+                "        await ctx.update_progress(percent=idx, status_message=f'Processing shard {idx}/100')\n"
+                "    return {'status': 'synced', 'count': 100}\n\n"
+                "# 2. Register job on Redis backend\n"
+                "job_engine = RedisJobBackend('redis://localhost:6379/3')\n"
+                "job_def = JobDefinition(func=sync_remote_telemetry, retries=3, timeout_seconds=120)\n"
+                "job_id = await job_engine.enqueue(job_def)\n\n"
+                "# 3. Atomic Transactional Outbox write\n"
+                "outbox = TransactionalOutbox(sqlite_backend)\n"
+                "outbox.record_event(OutboxRecord(topic='billing', payload={'invoice_id': 'inv_102'}))",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("12. Reactivity Graph Internals & Scopes", level=3),
+            ui.text(
+                "Internal architecture of RADUI's 5-tier reactivity runtime: DAG cycle detection, "
+                "atomic batch contexts, transaction snapshot rollback, and scoped state references."
+            ),
+            ui.code_block(
+                "from radui import (\n"
+                "    StateRuntime,\n"
+                "    StateScope,\n"
+                "    StateContext,\n"
+                "    StateChange,\n"
+                "    BatchContext,\n"
+                "    TransactionContext,\n"
+                "    ComputedRef,\n"
+                "    CyclicDependencyError,\n"
+                ")\n\n"
+                "# 1. Scopes enum isolation\n"
+                "scope_app = StateScope.APP        # Cluster-wide shared signals\n"
+                "scope_sess = StateScope.SESSION   # Cross-tab user session\n"
+                "scope_view = StateScope.VIEW      # Isolated browser tab\n\n"
+                "# 2. Graph runtime inspection\n"
+                "runtime = StateRuntime()\n"
+                "try:\n"
+                "    runtime.register_computed('node_a', depends_on=['node_b'])\n"
+                "    runtime.register_computed('node_b', depends_on=['node_a'])  # Circular!\n"
+                "except CyclicDependencyError as err:\n"
+                "    print(f'Dependency cycle prevented: {err}')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("13. SWR Query Cache Internals (`QueryCache` & `QueryEntry`)", level=3),
+            ui.text(
+                "Fine-grained control over the Stale-While-Revalidate caching engine, cache entry introspection, "
+                "TTL expiration, and background revalidation promises."
+            ),
+            ui.code_block(
+                "from radui import QueryCache, QueryEntry\n\n"
+                "# 1. Inspect query cache instance\n"
+                "cache = QueryCache(max_entries=2000, default_ttl=300)\n\n"
+                "# 2. Direct entry lookup\n"
+                "entry: QueryEntry | None = cache.get_entry('fetch_cluster_stats:us-east')\n"
+                "if entry and entry.is_stale:\n"
+                "    print(f'Cached value: {entry.value} (revalidating in background...)')\n\n"
+                "# 3. Programmatic eviction\n"
+                "cache.evict_matching('fetch_cluster_stats:*')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("14. AI Protocol, MCP Tool Registry & AGUI Streaming", level=3),
+            ui.text(
+                "Full support for Model Context Protocol (MCP) tool exposure, Agentic UI (AGUI) streaming "
+                "protocols, fence parsing, and SQLite-backed agent chat repositories."
+            ),
+            ui.code_block(
+                "from radui import (\n"
+                "    AGUIEvent,\n"
+                "    AGUIEventJournal,\n"
+                "    AGUIEventType,\n"
+                "    ChatMessageRecord,\n"
+                "    MCPToolDescriptor,\n"
+                "    MCPToolRegistry,\n"
+                "    SQLiteChatRepository,\n"
+                "    StreamingFenceParser,\n"
+                "    TokenStream,\n"
+                "    a2ui_to_component,\n"
+                ")\n\n"
+                "# 1. Register callable tool with MCP JSON schema\n"
+                "mcp_registry = MCPToolRegistry()\n"
+                "mcp_registry.register(\n"
+                "    MCPToolDescriptor(\n"
+                "        name='restart_service',\n"
+                "        description='Gracefully restarts a cluster service',\n"
+                "        parameters={'type': 'object', 'properties': {'service': {'type': 'string'}}},\n"
+                "        handler=lambda args: 'Restarted ' + args.get('service', 'service'),\n"
+                "    )\n"
+                ")\n\n"
+                "# 2. Stream tokens and parse generative markdown UI fences\n"
+                "parser = StreamingFenceParser()\n"
+                "async for token in TokenStream(llm_client.stream_tokens()):\n"
+                "    component_update = parser.feed_token(token)\n"
+                "    if component_update:\n"
+                "        ui.notify('Generated interactive UI widget on the fly!')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("15. Observability, Tracing & Benchmark Engine", level=3),
+            ui.text(
+                "Built-in diagnostic tooling for measuring render latency, recording microsecond trace spans, "
+                "and extracting DAG dependency matrices."
+            ),
+            ui.code_block(
+                "from radui import (\n"
+                "    BenchmarkSuite,\n"
+                "    BenchmarkResult,\n"
+                "    TraceCategory,\n"
+                "    TraceCollector,\n"
+                "    TraceRecord,\n"
+                "    extract_dag_structure,\n"
+                ")\n\n"
+                "# 1. Execute rendering benchmark suite\n"
+                "bench = BenchmarkSuite(app)\n"
+                "results: BenchmarkResult = bench.run_iterations(n=1000)\n"
+                "print(f'Mean render latency: {results.mean_ms:.2f}ms | p99: {results.p99_ms:.2f}ms')\n\n"
+                "# 2. Inspect active trace collector spans\n"
+                "collector = TraceCollector()\n"
+                "spans = collector.get_spans(category=TraceCategory.STATE_IO)\n\n"
+                "# 3. Extract DAG structure for telemetry visualization\n"
+                "dag_graph = extract_dag_structure(app.state_runtime)",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("16. Plugin Architecture (`ui.Plugin` & `PluginManager`)", level=3),
+            ui.text(
+                "Extensible modular architecture for packaging third-party components, state middleware, "
+                "command handlers, and static assets into reusable RADUI plugins."
+            ),
+            ui.code_block(
+                "from radui import Plugin, PluginManager\n\n"
+                "class GeoIPPlugin(Plugin):\n"
+                "    name = 'radui-geoip'\n"
+                "    version = '1.0.0'\n\n"
+                "    def setup(self, app):\n"
+                "        # Register custom middleware and command hooks\n"
+                "        app.add_middleware(self.resolve_visitor_country)\n\n"
+                "# Register and initialize plugin with manager\n"
+                "manager = PluginManager(app)\n"
+                "manager.load(GeoIPPlugin())",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("17. Application IR & Schema Registry", level=3),
+            ui.text(
+                "Access low-level application intermediate representation (IR), component catalogs, command schemas, "
+                "and library release metadata."
+            ),
+            ui.code_block(
+                "from radui import (\n"
+                "    ApplicationIR,\n"
+                "    ComponentRegistry,\n"
+                "    CommandSpec,\n"
+                "    DuplicateComponentRegistrationError,\n"
+                "    UnregisteredComponentError,\n"
+                "    __version__,\n"
+                ")\n\n"
+                "print(f'Running RADUI version: {__version__}')\n\n"
+                "# 1. Inspect complete Application Intermediate Representation\n"
+                "ir: ApplicationIR = app.export_ir()\n"
+                "print(f'Total pages registered: {len(ir.pages)}')\n"
+                "print(f'Total server commands: {len(ir.commands)}')\n\n"
+                "# 2. Component registry introspection\n"
+                "registry = ComponentRegistry.get_global_registry()\n"
+                "is_registered = registry.has('data_grid')  # -> True",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("18. Date Formatting & Locale Management", level=3),
+            ui.text(
+                "Direct helper functions for reading and configuring active execution locales and formatting "
+                "localized date and timestamp strings."
+            ),
+            ui.code_block(
+                "from radui import set_locale, get_locale, format_date\n"
+                "from datetime import datetime\n\n"
+                "# 1. Configure and query context locale\n"
+                "set_locale('fr_FR')\n"
+                "curr_locale = get_locale()  # -> 'fr_FR'\n\n"
+                "# 2. Localized date rendering\n"
+                "now = datetime(2026, 11, 15, 14, 30)\n"
+                "formatted = format_date(now, format_style='full', locale='fr_FR')\n"
+                "print(formatted)  # -> 'dimanche 15 novembre 2026'",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("19. Complete AST Node Class Hierarchy (40 Primitive Classes)", level=3),
+            ui.text(
+                "Direct instantiation of PascalCase AST Node classes for metaprogramming, dynamic component "
+                "factories, tree visitors, and strongly-typed compiler transforms:"
+            ),
+            ui.code_block(
+                "# Available node classes in radui:\n"
+                "from radui import (\n"
+                "    AccordionItem, ActionCard, AvatarGroup, BreadcrumbItem,\n"
+                "    ChatInput, ChatMessage, ChatView, CodeBlock, DatePicker,\n"
+                "    DiagramEdge, DiagramNode, DropdownMenu, DropdownMenuItem,\n"
+                "    DynamicCard, EmptyState, ErrorBoundary, FileUpload,\n"
+                "    GenerativeSlot, JobPanel, Kbd, MetricCard, Plot,\n"
+                "    ProgressBar, ProgressCircle, RadioGroup, Skeleton, Spacer,\n"
+                "    SplitPanel, Stack, StepTimeline, StreamingText, TabItem,\n"
+                "    Tabs, ThemeToggle, TimePicker, Toast, ToastContainer,\n"
+                "    TreeNode, TreeView, VirtualList\n"
+                ")\n\n"
+                "# Example: Direct AST class instantiation for recursive tree construction\n"
+                "root_panel = SplitPanel(\n"
+                "    left=TreeView(\n"
+                "        nodes=[\n"
+                "            TreeNode(label='src', children=[TreeNode(label='app.py')]),\n"
+                "            TreeNode(label='tests', children=[TreeNode(label='test_harness.py')]),\n"
+                "        ]\n"
+                "    ),\n"
+                "    right=VirtualList(\n"
+                "        items=[f'Log record #{i}' for i in range(10000)],\n"
+                "        item_height=36,\n"
+                "    ),\n"
+                "    orientation='horizontal',\n"
+                ")",
+                language="python",
+                copyable=True,
+            ),
+        ),
         gap=16,
     )
