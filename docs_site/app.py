@@ -1,390 +1,129 @@
-"""RADUI Official Documentation Website — Masterclass Interactive Experience.
-
-Built 100% with RADUI native components and reactive runtime.
-Zero external UI frameworks (No React, Vue, Next.js, Tailwind, Docusaurus, etc.).
-Features:
-- Luxury obsidian & radial mesh atmosphere with glassmorphic depth
-- Integrated motion engine (staggered entrances, spring transforms, hover glows, tap compression)
-- Interactive live state playground, reactive DAG calculator, and execution trace visualizer
-- Interactive component explorer across all 68 built-in primitives
-- Vector SVG pipeline diagram with directional stage edges
-"""
+"""RADUI documentation app and interactive examples, built from RADUI components."""
 
 from __future__ import annotations
 
-import time
-from typing import Any
 import radui as ui
-from docs_site.data import COMPONENTS, CLI_COMMANDS, ADRS, COMPONENT_DOMAINS
+from docs_site.data import COMPONENTS, CLI_COMMANDS, ADRS
 
 # =========================================================================
-# WORLD-CLASS DESIGN SYSTEM: THE LUXURY OBSIDIAN & NEON CANVAS
+# DOCUMENTATION DESIGN SYSTEM
 # =========================================================================
 
 CUSTOM_CSS = """
 :root, [data-theme], html, body {
-  --gx-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif !important;
-  --gx-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
-  --gx-bg: #07090e !important;
-  --gx-surface: #0f172a !important;
-  --gx-surface-alt: #1e293b !important;
-  --gx-text: #f1f5f9 !important;
-  --gx-text-muted: #94a3b8 !important;
-  --gx-border: rgba(255, 255, 255, 0.08) !important;
-  --gx-border-strong: rgba(255, 255, 255, 0.16) !important;
-  --gx-primary: #3b82f6 !important;
-  --gx-primary-hover: #60a5fa !important;
-  --gx-primary-subtle: rgba(59, 130, 246, 0.15) !important;
-  color-scheme: dark !important;
+  --gx-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  --gx-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace !important;
+  --gx-bg: #f5f4ef !important;
+  --gx-surface: #ffffff !important;
+  --gx-surface-alt: #f0efe9 !important;
+  --gx-text: #19221e !important;
+  --gx-text-muted: #69736c !important;
+  --gx-border: #e5e4dc !important;
+  --gx-border-strong: #d4d5ca !important;
+  --gx-primary: #206b52 !important;
+  --gx-primary-hover: #174d3b !important;
+  --gx-primary-subtle: #e7f1eb !important;
+  color-scheme: light !important;
 }
-
-/* Atmosphere & Background Mesh */
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
 body {
-  background-color: #07090e !important;
-  background-image:
-    radial-gradient(ellipse 90% 60% at 50% -15%, rgba(99, 102, 241, 0.22) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 100% 30%, rgba(6, 182, 212, 0.14) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 30% at 0% 70%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
-    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px) !important;
-  background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px !important;
-  background-attachment: fixed !important;
-  color: #f1f5f9 !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif !important;
+  background: #f5f4ef !important;
+  background-image: radial-gradient(ellipse at 50% -25%, rgba(184, 207, 185, .42), transparent 62%),
+    linear-gradient(90deg, rgba(32,107,82,.025) 1px, transparent 1px),
+    linear-gradient(rgba(32,107,82,.025) 1px, transparent 1px) !important;
+  background-size: auto, 52px 52px, 52px 52px !important;
+  color: #19221e !important;
+  font-family: var(--gx-font) !important;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
 }
-
-/* Typography & Contrast Overrides */
-p, .gx-text, span {
-  color: #cbd5e1 !important;
-  line-height: 1.6 !important;
+#docs-shell { max-width: 1320px !important; padding: 0 36px !important; }
+.gx-shell:has(#docs-shell) { width: min(1400px, calc(100% - 36px)) !important; max-width: none !important; margin: 24px auto 64px !important; }
+#docs-header {
+  position: sticky; top: 0; z-index: 30; padding: 18px 0 14px;
+  background: rgba(245,244,239,.9); backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(212,213,202,.72); margin-bottom: 28px;
 }
-
-.gx-text-muted, [class*="muted"] {
-  color: #94a3b8 !important;
+#docs-header .gx-heading { margin: 0; font-size: 1.2rem !important; letter-spacing: -.055em !important; color: #19221e !important; }
+#docs-header .gx-link { padding: 7px 10px; border-radius: 8px; color: #536158 !important; font-size: .88rem; text-decoration: none; transition: color .18s ease, background .18s ease; }
+#docs-header .gx-link:hover { color: #174d3b !important; background: #e7f1eb; text-decoration: none; }
+#docs-layout { align-items: start; grid-template-columns: 224px minmax(0,1fr) !important; gap: 62px !important; }
+#docs-sidebar { position: sticky; top: 102px; padding: 4px 0 20px; max-height: calc(100vh - 116px); overflow: auto; }
+#docs-sidebar .gx-heading { color: #879087 !important; font-size: .7rem !important; font-weight: 700 !important; letter-spacing: .12em !important; text-transform: uppercase; margin: 16px 0 6px; }
+#docs-sidebar .gx-accordion { border: 0 !important; gap: 15px; overflow: visible !important; background: transparent !important; }
+#docs-sidebar .gx-accordion-item { border: 0 !important; background: transparent !important; }
+#docs-sidebar .gx-accordion-header { padding: 2px 0 7px !important; background: transparent !important; color: #26332b !important; font-size: .82rem !important; font-weight: 700 !important; }
+#docs-sidebar .gx-accordion-content { border: 0 !important; padding: 0 !important; background: transparent !important; }
+#docs-sidebar .gx-column { gap: 2px !important; }
+#docs-sidebar .gx-link { color: #69736c !important; padding: 5px 9px !important; border-radius: 6px; font-size: .84rem !important; font-weight: 450 !important; text-decoration: none; transition: color .18s ease, background .18s ease, transform .18s ease; }
+#docs-sidebar .gx-link:hover { color: #174d3b !important; background: #e7f1eb; padding-left: 13px !important; text-shadow: none !important; }
+#docs-sidebar > .gx-card { margin-top: 22px; padding: 14px !important; background: rgba(255,255,255,.62) !important; box-shadow: none !important; border-radius: 12px !important; }
+#docs-sidebar > .gx-card .gx-text { font-size: .8rem; }
+#docs-content { min-width: 0; padding: 3px 0 54px; animation: docs-enter .55s cubic-bezier(.2,.75,.25,1) both; }
+@keyframes docs-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes docs-reveal { from { opacity: .55; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@supports (animation-timeline: view()) {
+  #docs-content .gx-grid .gx-card {
+    animation: docs-reveal .65s ease both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 18%;
+  }
 }
-
-.gx-text[class*="lead"], .gx-lead {
-  color: #e2e8f0 !important;
-  font-size: 1.15rem !important;
-  line-height: 1.7 !important;
-}
-
-h1, h2, h3, h4, h5, h6, .gx-heading {
-  color: #ffffff !important;
-  letter-spacing: -0.02em !important;
-}
-
-/* Custom Sleek Scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: rgba(7, 9, 14, 0.8); }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.5); }
-
-/* Glassmorphic Accordion & Sidebar (High Contrast Dark) */
-.gx-accordion {
-  display: flex !important;
-  flex-direction: column !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-  background: transparent !important;
-}
-
-.gx-accordion-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background: rgba(15, 23, 42, 0.7) !important;
-}
-
-.gx-accordion-item:last-child {
-  border-bottom: none !important;
-}
-
-.gx-accordion-header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  padding: 13px 16px !important;
-  font-weight: 600 !important;
-  font-size: 0.95rem !important;
-  color: #f8fafc !important;
-  background: rgba(15, 23, 42, 0.85) !important;
-  cursor: pointer !important;
-  user-select: none !important;
-  transition: all 0.2s ease !important;
-}
-
-.gx-accordion-header:hover {
-  background: rgba(30, 41, 59, 0.9) !important;
-  color: #38bdf8 !important;
-}
-
-.gx-accordion-arrow {
-  font-size: 1.1rem !important;
-  color: #94a3b8 !important;
-  transition: transform 0.2s ease !important;
-}
-
-.gx-accordion-content {
-  padding: 14px 16px !important;
-  background: rgba(11, 15, 25, 0.92) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #cbd5e1 !important;
-}
-
-/* Glassmorphic Cards */
+.gx-heading { color: #19221e !important; letter-spacing: -.04em !important; line-height: 1.16 !important; }
+#docs-content > .gx-column > .gx-heading:first-child { font-size: clamp(2.1rem, 4vw, 3.35rem) !important; max-width: 850px; margin: 0; }
+#docs-content .gx-column:first-child > .gx-heading { font-size: clamp(2.35rem, 4.5vw, 3.8rem) !important; max-width: 780px; }
+.gx-text { color: #536158 !important; line-height: 1.72 !important; }
+.gx-text[class*="lead"] { max-width: 690px; color: #536158 !important; font-size: 1.12rem !important; }
 .gx-card {
-  background: rgba(15, 23, 42, 0.75) !important;
-  backdrop-filter: blur(20px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-  border-radius: 14px !important;
-  padding: 24px !important;
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: flex !important; flex-direction: column !important; gap: 14px !important;
+  background: rgba(255,255,255,.88) !important; border: 1px solid #e5e4dc !important;
+  border-radius: 16px !important; padding: 22px !important; box-shadow: 0 6px 22px rgba(36,48,39,.035) !important;
+  transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease !important;
 }
-
-.gx-card:hover {
-  border-color: rgba(99, 102, 241, 0.45) !important;
-  box-shadow: 0 20px 45px -12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+.gx-card:hover { transform: translateY(-3px); border-color: #c4d7c9 !important; box-shadow: 0 14px 34px rgba(36,48,39,.08) !important; }
+.gx-metric { background: #f8f8f4 !important; border: 1px solid #e8e9e2 !important; border-radius: 12px !important; padding: 17px !important; transition: transform .2s ease, border-color .2s ease !important; }
+.gx-metric:hover { transform: translateY(-2px); border-color: #b9d1c1 !important; }
+.gx-metric-value { color: #206b52 !important; font-family: var(--gx-font-mono) !important; font-size: 1.8rem !important; font-weight: 700 !important; }
+.gx-badge { border-radius: 999px !important; padding: 4px 10px !important; font-size: .72rem !important; letter-spacing: .02em; }
+.gx-badge-primary { color: #206b52 !important; background: #e7f1eb !important; border: 1px solid #d0e4d6 !important; }
+.gx-badge-success { color: #276a4a !important; background: #e8f3e8 !important; border: 1px solid #d0e5d1 !important; }
+.gx-badge-neutral { color: #606a62 !important; background: #f0efe9 !important; border: 1px solid #e1e0d8 !important; }
+.gx-btn, .gx-button { border-radius: 9px !important; transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important; }
+.gx-btn:hover, .gx-button:hover { transform: translateY(-1px); }
+.gx-button-primary, .gx-btn-primary { background: #206b52 !important; box-shadow: 0 4px 12px rgba(32,107,82,.15) !important; }
+.gx-button-primary:hover, .gx-btn-primary:hover { background: #174d3b !important; box-shadow: 0 7px 18px rgba(32,107,82,.23) !important; }
+.gx-link { color: #206b52 !important; text-decoration-color: rgba(32,107,82,.25); text-underline-offset: 3px; transition: color .18s ease; }
+.gx-link:hover { color: #174d3b !important; }
+.gx-code-block { background: #1e2823 !important; color: #e6eee8 !important; border: 1px solid #303e35 !important; border-radius: 13px !important; box-shadow: 0 12px 30px rgba(25,34,30,.1) !important; font-size: .86rem !important; }
+.gx-callout { border-left: 3px solid #4b9674 !important; border-radius: 8px 12px 12px 8px !important; background: #edf4ed !important; }
+.gx-accordion { border-color: #e5e4dc !important; border-radius: 12px !important; background: rgba(255,255,255,.65) !important; }
+.gx-accordion-item { border-color: #e5e4dc !important; }
+.gx-accordion-header { background: #fff !important; transition: background .18s ease, color .18s ease; }
+.gx-accordion-header:hover { background: #f6f8f4 !important; color: #206b52 !important; }
+.gx-accordion-content { background: #fff !important; border-color: #e5e4dc !important; }
+.gx-input, .gx-select, .gx-textarea { border-radius: 9px !important; border-color: #d9dcd4 !important; background: #fff !important; }
+.gx-input:focus, .gx-select:focus, .gx-textarea:focus { border-color: #579477 !important; box-shadow: 0 0 0 3px rgba(32,107,82,.12) !important; outline: none !important; }
+.gx-tabs-header { border-color: #e5e4dc !important; }
+.gx-tab-btn { transition: color .18s ease, border-color .18s ease, background .18s ease; }
+.gx-tab-btn:hover { color: #206b52 !important; }
+:focus-visible { outline: 3px solid rgba(32,107,82,.55) !important; outline-offset: 3px; }
+::selection { background: #cfe3d4; color: #19221e; }
+@media (max-width: 960px) {
+  #docs-shell { padding: 0 22px !important; }
+  #docs-layout { grid-template-columns: 1fr !important; gap: 20px !important; }
+  #docs-sidebar { position: relative; top: auto; max-height: none; padding-bottom: 0; }
+  #docs-sidebar > .gx-card { display: none; }
 }
-
-.gx-card header h3, .gx-card header h4, .gx-card [class*="title"] {
-  color: #ffffff !important;
+@media (max-width: 640px) {
+  #docs-shell { padding: 0 16px !important; }
+  #docs-header { position: relative; margin-bottom: 20px; }
+  #docs-header > .gx-row { align-items: flex-start !important; flex-direction: column; gap: 10px !important; }
+  #docs-header > .gx-row:last-child { flex-direction: row; flex-wrap: wrap; }
+  #docs-content > .gx-column > .gx-heading:first-child { font-size: 2.15rem !important; }
+  .gx-card { padding: 17px !important; }
 }
-
-.gx-card footer, .gx-card [class*="footer"] {
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-  padding-top: 12px !important;
-  margin-top: 16px !important;
-}
-
-.gx-card footer p, .gx-card footer span {
-  color: #94a3b8 !important;
-  font-size: 0.85rem !important;
-}
-
-/* Metric Cards with High-Contrast Typography */
-.gx-metric {
-  background: rgba(11, 15, 25, 0.85) !important;
-  backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 12px !important;
-  padding: 18px 20px !important;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.gx-metric:hover {
-  border-color: rgba(6, 182, 212, 0.5) !important;
-  box-shadow: 0 12px 28px -8px rgba(6, 182, 212, 0.25) !important;
-  transform: translateY(-2px);
-}
-
-.gx-metric [class*="title"], .gx-metric [class*="label"], .gx-metric-label {
-  color: #94a3b8 !important;
-  font-size: 0.78rem !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  font-weight: 600 !important;
-}
-
-.gx-metric [class*="value"], .gx-metric-value {
-  color: #ffffff !important;
-  font-size: 2.2rem !important;
-  font-weight: 800 !important;
-  font-family: var(--gx-font-mono) !important;
-  background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
-
-.gx-metric [class*="delta"], .gx-metric-delta {
-  color: #38bdf8 !important;
-  font-size: 0.85rem !important;
-  font-weight: 500 !important;
-}
-
-/* Headers & Gradient Typography */
-h1.gx-heading {
-  font-size: 2.75rem !important;
-  font-weight: 800 !important;
-  line-height: 1.15 !important;
-  letter-spacing: -0.04em !important;
-  background: linear-gradient(135deg, #ffffff 15%, #93c5fd 55%, #c084fc 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
-
-h2.gx-heading {
-  font-size: 1.65rem !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.03em !important;
-  color: #f8fafc !important;
-}
-
-h3.gx-heading {
-  font-size: 1.2rem !important;
-  font-weight: 600 !important;
-  color: #e2e8f0 !important;
-}
-
-/* Modern Glowing Buttons */
-.gx-btn {
-  font-weight: 600 !important;
-  font-size: 0.92rem !important;
-  padding: 10px 20px !important;
-  border-radius: 10px !important;
-  letter-spacing: -0.01em !important;
-  cursor: pointer !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-}
-
-.gx-btn-primary {
-  background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
-}
-
-.gx-btn-primary:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%) !important;
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-  transform: translateY(-1.5px) !important;
-}
-
-.gx-btn-secondary, .gx-btn-outline {
-  background: rgba(30, 41, 59, 0.6) !important;
-  color: #e2e8f0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(12px) !important;
-}
-
-.gx-btn-secondary:hover, .gx-btn-outline:hover {
-  background: rgba(51, 65, 85, 0.8) !important;
-  border-color: rgba(99, 102, 241, 0.4) !important;
-  color: #ffffff !important;
-  transform: translateY(-1.5px) !important;
-}
-
-.gx-btn-danger {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35) !important;
-}
-
-/* Badges & Shimmer Tags */
-.gx-badge {
-  font-size: 0.78rem !important;
-  font-weight: 600 !important;
-  padding: 4px 10px !important;
-  border-radius: 9999px !important;
-  letter-spacing: 0.02em !important;
-}
-
-.gx-badge-neutral {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #e2e8f0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-}
-
-.gx-badge-primary {
-  background: rgba(37, 99, 235, 0.25) !important;
-  color: #93c5fd !important;
-  border: 1px solid rgba(59, 130, 246, 0.45) !important;
-}
-
-.gx-badge-success {
-  background: rgba(16, 185, 129, 0.2) !important;
-  color: #6ee7b7 !important;
-  border: 1px solid rgba(16, 185, 129, 0.4) !important;
-}
-
-/* Code Blocks with macOS IDE Chrome */
-.gx-code-block {
-  background: #0b0f19 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
-  position: relative !important;
-  padding-top: 36px !important;
-  font-family: var(--gx-font-mono) !important;
-  font-size: 0.88rem !important;
-}
-
-.gx-code-block::before {
-  content: "";
-  position: absolute;
-  top: 13px;
-  left: 16px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 16px 0 0 #f59e0b, 32px 0 0 #10b981;
-}
-
-/* Navigation Links (Navbar & Sidebar) */
-.gx-accordion-content a, .gx-sidebar a, .gx-link {
-  color: #93c5fd !important;
-  display: block !important;
-  padding: 7px 12px !important;
-  border-radius: 6px !important;
-  font-size: 0.92rem !important;
-  transition: all 0.15s ease !important;
-  text-decoration: none !important;
-}
-
-.gx-accordion-content a:hover, .gx-sidebar a:hover, .gx-link:hover {
-  color: #ffffff !important;
-  background: rgba(59, 130, 246, 0.18) !important;
-  padding-left: 16px !important;
-  text-shadow: 0 0 10px rgba(147, 197, 253, 0.5) !important;
-}
-
-header a, .gx-header a, nav a {
-  color: #cbd5e1 !important;
-  font-size: 0.92rem !important;
-  font-weight: 500 !important;
-  padding: 6px 12px !important;
-  border-radius: 8px !important;
-  transition: all 0.15s ease !important;
-  text-decoration: none !important;
-}
-
-header a:hover, .gx-header a:hover, nav a:hover {
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-}
-
-/* Form Controls with Glowing Focus */
-.gx-input, .gx-select {
-  background: rgba(15, 23, 42, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 8px !important;
-  color: #f8fafc !important;
-  padding: 10px 14px !important;
-  font-size: 0.92rem !important;
-  transition: all 0.2s ease !important;
-}
-
-.gx-input:focus, .gx-select:focus {
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
-  outline: none !important;
-}
-
-/* Callouts */
-.gx-callout {
-  background: rgba(15, 23, 42, 0.7) !important;
-  backdrop-filter: blur(14px) !important;
-  border-left: 4px solid #3b82f6 !important;
-  border-radius: 8px !important;
-  padding: 16px 20px !important;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 """
 
@@ -393,20 +132,20 @@ header a:hover, .gx-header a:hover, nav a:hover {
 # =========================================================================
 
 app = ui.App(
-    title="RADUI — Official Developer Documentation",
+    title="RADUI Documentation",
     theme=ui.Theme(
-        name="radui-dark",
-        mode="dark",
+        name="radui-docs",
+        mode="light",
         direction="ltr",
-        primary="#3b82f6",
-        primary_hover="#60a5fa",
-        bg="#07090e",
-        surface="#0f172a",
-        surface_alt="#1e293b",
-        text="#f8fafc",
-        text_muted="#94a3b8",
-        border="rgba(255, 255, 255, 0.08)",
-        border_strong="rgba(255, 255, 255, 0.16)",
+        primary="#206b52",
+        primary_hover="#174d3b",
+        bg="#f5f4ef",
+        surface="#ffffff",
+        surface_alt="#f0efe9",
+        text="#19221e",
+        text_muted="#69736c",
+        border="#e5e4dc",
+        border_strong="#d4d5ca",
         custom_css=CUSTOM_CSS,
     ),
 )
@@ -416,16 +155,12 @@ app = ui.App(
 # =========================================================================
 
 s_active_comp = ui.state("docs.active_comp", default="button", scope="session")
-s_search_query = ui.state("docs.search_query", default="", scope="session")
-s_category_filter = ui.state("docs.cat_filter", default="All", scope="session")
-
 # Interactive Counter Demonstration State
 s_counter = ui.state("demo.counter", default=42, scope="session")
 
 # Interactive Property Inspector State for Component Explorer
 s_prop_label = ui.state("prop.label", default="Launch Cluster", scope="session")
 s_prop_variant = ui.state("prop.variant", default="primary", scope="session")
-s_prop_size = ui.state("prop.size", default="md", scope="session")
 s_prop_disabled = ui.state("prop.disabled", default=False, scope="session")
 
 # Reactive Calculator State (Computed Signals Demo)
@@ -435,25 +170,6 @@ s_tax = ui.state("calc.tax", default=0.20, scope="session")
 # Live Background Job Simulation State
 s_job_status = ui.state("job.status", default="IDLE", scope="session")
 s_job_progress = ui.state("job.progress", default=0.0, scope="session")
-
-# Event Trace Visualizer Records
-s_event_traces = ui.state(
-    "trace.records",
-    default=[
-        {
-            "id": "evt-init-01",
-            "time": "17:30:00",
-            "source": "Client DOM",
-            "action": "page.load",
-            "command": "core.init",
-            "status": "COMPLETED",
-            "duration": "3.037ms",
-            "delta": "Session initialized",
-        }
-    ],
-    scope="session",
-)
-
 
 # =========================================================================
 # COMPUTED REACTIVE SIGNALS
@@ -470,83 +186,67 @@ def s_calc_total() -> float:
 # =========================================================================
 
 def _render_sidebar() -> ui.Component:
-    """Builds the reactive multi-level documentation navigation sidebar."""
+    """A compact, task-oriented guide navigation built from native disclosure components."""
     return ui.column(
-        ui.row(
-            ui.heading("Navigation", level=4),
-            ui.badge("11 Routes", variant="neutral"),
-            justify="between",
-            align="center",
-        ),
         ui.accordion(
             ui.accordion_item(
-                "Fundamentals",
+                "Start here",
                 ui.column(
-                    ui.link("Overview & Hero", "index.html"),
-                    ui.link("Getting Started", "getting-started.html"),
-                    ui.link("System Architecture", "architecture.html"),
-                    gap=8,
+                    ui.link("Overview", "index.html"),
+                    ui.link("Install & quickstart", "getting-started.html"),
+                    ui.link("Components", "components.html"),
+                    gap=4,
                 ),
                 open=True,
             ),
             ui.accordion_item(
-                "Framework Systems",
+                "Core concepts",
                 ui.column(
-                    ui.link("Component Explorer (68)", "components.html"),
-                    ui.link("Reactive State & DAG", "state.html"),
-                    ui.link("Real-Time SSE Broker", "transport.html"),
-                    ui.link("Background Jobs", "jobs.html"),
-                    ui.link("AI & MCP Protocols", "ai.html"),
-                    gap=8,
+                    ui.link("State & reactivity", "state.html"),
+                    ui.link("Architecture", "architecture.html"),
+                    ui.link("Events & streaming", "transport.html"),
+                    ui.link("Background jobs", "jobs.html"),
+                    gap=4,
                 ),
                 open=True,
             ),
             ui.accordion_item(
-                "Reference & Specs",
+                "Advanced guides",
                 ui.column(
-                    ui.link("CLI Reference (45)", "cli.html"),
-                    ui.link("12 Architecture Records", "adrs.html"),
-                    ui.link("Live Event Trace", "event-trace.html"),
-                    gap=8,
+                    ui.link("AI & approvals", "ai.html"),
+                    ui.link("CLI reference", "cli.html"),
+                    ui.link("Architecture decisions", "adrs.html"),
+                    gap=4,
                 ),
-                open=True,
+                open=False,
             ),
         ),
-        ui.spacer(size=16),
         ui.card(
-            ui.row(
-                ui.badge("Dogfooding", variant="success"),
-                ui.badge("100% Native", variant="primary"),
-                gap=8,
-            ),
-            ui.text("Zero external JS frameworks. Built and rendered entirely using RADUI AST & SSE morph engine.", variant="muted"),
-            title="RADUI v1.0.0 Stable",
-            hover=ui.motion.hover(scale=1.02, translate_y=-2.0),
+            ui.badge("Open source | Apache 2.0", variant="neutral"),
+            ui.text("A reactive UI toolkit for Python developers.", variant="muted"),
         ),
-        gap=14,
+        id="docs-sidebar",
+        gap=10,
     )
 
 
 def _render_header() -> ui.Component:
-    """Builds the global documentation top navigation header."""
+    """A quiet, responsive global navigation bar."""
     return ui.row(
         ui.row(
-            ui.heading("RADUI", level=3),
-            ui.badge("v1.0.0", variant="primary"),
-            ui.badge("Zero JS Toolchain", variant="success"),
-            gap=12,
+            ui.heading("radui", level=3),
+            ui.badge("docs", variant="primary"),
+            gap=10,
             align="center",
         ),
         ui.row(
             ui.link("Quickstart", "getting-started.html"),
             ui.link("Components", "components.html"),
-            ui.link("Architecture", "architecture.html"),
-            ui.link("CLI", "cli.html"),
-            ui.theme_toggle("Toggle Theme"),
-            ui.link("GitHub", "https://github.com/flux-py/radui", external=True),
-            gap=16,
+            ui.link("GitHub >", "https://github.com/flux-py/radui", external=True),
+            gap=10,
             align="center",
         ),
+        id="docs-header",
         justify="between",
         align="center",
     )
@@ -554,32 +254,30 @@ def _render_header() -> ui.Component:
 
 @app.layout("/")
 def docs_layout(outlet: ui.Component) -> ui.Component:
-    """Root persistent documentation layout wrapping all sub-pages."""
+    """Persistent, responsive documentation frame."""
     return ui.container(
         _render_header(),
-        ui.divider(),
-        ui.spacer(size=12),
         ui.grid(
             _render_sidebar(),
-            outlet,
+            ui.column(outlet, id="docs-content", gap=0),
             columns={"sm": 1, "md": 1, "lg": 2},
-            gap=24,
+            gap=32,
+            id="docs-layout",
         ),
-        ui.spacer(size=36),
         ui.divider(),
         ui.row(
-            ui.text("RADUI is open-source under the Apache License 2.0. Copyright (c) 2026 Flux-Py / RADUI Contributors.", variant="caption"),
+            ui.text("RADUI ? Python-first reactive UI", variant="caption"),
             ui.row(
-                ui.link("ADRs", "adrs.html"),
-                ui.link("Benchmarks", "architecture.html"),
-                ui.link("Event Trace", "event-trace.html"),
-                gap=16,
+                ui.link("GitHub", "https://github.com/flux-py/radui", external=True),
+                ui.link("Decisions", "adrs.html"),
+                gap=14,
             ),
             justify="between",
             align="center",
         ),
-        max_width="1440px",
+        max_width="1320px",
         centered=True,
+        id="docs-shell",
     )
 
 
@@ -590,72 +288,74 @@ def docs_layout(outlet: ui.Component) -> ui.Component:
 @app.page("/")
 def home_page():
     return ui.column(
-        # Glowing Hero Headline & Value Proposition
         ui.column(
-            ui.row(
-                ui.badge("Framework v1.0.0 Live", variant="primary"),
-                ui.badge("Verified Gate 4 Latency", variant="success"),
-                ui.badge("Zero npm Dependencies", variant="neutral"),
-                gap=8,
-            ),
-            ui.heading("The Python-First Reactive User Interface", level=1),
+            ui.badge("Python-first | Server-rendered | Reactive", variant="success"),
+            ui.heading("Build responsive apps with Python.", level=1),
             ui.text(
-                "An enterprise reactive application framework engineered for real-time dashboards, autonomous AI agent workbenches, and interactive web applications without writing a line of JavaScript.",
+                "RADUI is a component library and reactive runtime for building interactive web apps in Python. Define your interface as a typed component tree; RADUI renders it on the server and streams updates as state changes.",
                 variant="lead",
             ),
             ui.row(
-                ui.link("Get Started in 60s", "getting-started.html"),
-                ui.link("Explore 68 Components", "components.html"),
-                ui.link("System Architecture", "architecture.html"),
-                gap=16,
+                ui.link("Start building >", "getting-started.html"),
+                ui.link("Browse components", "components.html"),
+                gap=20,
             ),
-            gap=12,
-            motion=ui.motion.slide_up(delay=0.05, duration=0.4),
+            gap=15,
+            motion=ui.motion.slide_up(delay=0.04, duration=0.45),
         ),
-        ui.spacer(size=16),
-
-        # Interactive Live State Demonstration Card
-        ui.card(
-            ui.row(
-                ui.heading("Interactive Live State Demonstration", level=3),
-                ui.badge("Command Dispatch Live", variant="success"),
-                justify="between",
-                align="center",
-            ),
-            ui.text(
-                "Click the buttons below. RADUI executes a server-side command dispatch, mutates session state, and transmits a targeted SSE sub-DOM patch with zero full page reloads:"
-            ),
-            ui.metric_card("Live Counter Signal", s_counter, delta="+1 on increment"),
-            ui.form(
-                ui.row(
-                    ui.button("Increment", variant="primary", tap=ui.motion.tap(scale=0.96)),
-                    ui.button("Reset Counter", variant="danger", tap=ui.motion.tap(scale=0.96)),
-                    gap=12,
-                ),
-                command="demo.inc",
-            ),
-            footer=ui.text("Executed over ASGI 3.0 with monotonic command deduplication.", variant="caption"),
-            title="Live Reactive Engine Sandbox",
-            hover=ui.motion.hover(scale=1.015, translate_y=-3.0),
-            motion=ui.motion.fade_in(delay=0.1),
-        ),
-        ui.spacer(size=16),
-
-        # High-Speed Benchmarks Summary (All 6 Verified Tiers)
-        ui.heading("Verified Latency Benchmarks (Median)", level=2),
+        ui.spacer(size=24),
         ui.grid(
-            ui.metric_card("In-Memory AST Compilation", "0.039 ms", delta="Gate < 0.10ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
-            ui.metric_card("HTML Stream Serialization", "0.038 ms", delta="Gate < 0.15ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
-            ui.metric_card("Full SSR ASGI Roundtrip", "3.037 ms", delta="Gate < 15.0ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
-            ui.metric_card("Command Dispatch & Mutate", "3.475 ms", delta="Gate < 15.0ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
-            ui.metric_card("Sub-DOM Diffing & Patch", "0.168 ms", delta="Gate < 1.00ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
-            ui.metric_card("SSE Wire Delivery", "0.007 ms", delta="Gate < 0.50ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
-            columns=3,
+            ui.card(
+                ui.row(
+                    ui.badge("LIVE EXAMPLE", variant="success"),
+                    ui.badge("session state", variant="neutral"),
+                    gap=8,
+                ),
+                ui.heading("A small state change. A live page update.", level=3),
+                ui.text("Change the counter. The command runs on the server, updates session state, and sends the resulting UI patch to this page."),
+                ui.metric_card("Counter", s_counter, delta="Bound to a server state signal"),
+                ui.row(
+                    ui.form(ui.button("Decrease", variant="secondary"), command="demo.dec"),
+                    ui.form(ui.button("Increase", variant="primary"), command="demo.inc"),
+                    gap=10,
+                ),
+                ui.code_block(
+                    'count = ui.state("count", default=0, scope="session")\n\n'
+                    'ui.metric_card("Counter", count)\n'
+                    'ctx.write(count, ctx.read(count) + 1)',
+                    language="python",
+                    copyable=True,
+                ),
+                gap=14,
+                motion=ui.motion.fade_in(delay=0.12),
+            ),
+            ui.card(
+                ui.badge("THE RADUI MODEL", variant="primary"),
+                ui.heading("One Python tree. A responsive interface.", level=3),
+                ui.text("Compose layouts, forms, data displays, feedback, and AI workflows from the same native component system."),
+                ui.divider(),
+                ui.row(ui.badge("Typed components", variant="neutral"), ui.badge("Server rendered", variant="neutral"), gap=8),
+                ui.row(ui.badge("Reactive state", variant="neutral"), ui.badge("SSE updates", variant="neutral"), gap=8),
+                ui.spacer(size=8),
+                ui.callout("No JavaScript build pipeline is required. Add client code only when your application needs it.", title="A focused Python workflow", variant="info"),
+                gap=12,
+                motion=ui.motion.slide_up(delay=0.2, duration=0.45),
+            ),
+            columns={"sm": 1, "md": 2, "lg": 2},
+            gap=18,
+            stagger_children=0.08,
+        ),
+        ui.spacer(size=32),
+        ui.heading("A clear path from first view to production", level=2),
+        ui.grid(
+            ui.card(ui.badge("01", variant="primary"), ui.heading("Get started", level=3), ui.text("Install RADUI, create an app, and run the development server."), ui.link("Follow the quickstart >", "getting-started.html"), gap=10),
+            ui.card(ui.badge("02", variant="primary"), ui.heading("Compose your UI", level=3), ui.text("Explore the component catalog and see how layouts, inputs, and feedback fit together."), ui.link("Explore components >", "components.html"), gap=10),
+            ui.card(ui.badge("03", variant="primary"), ui.heading("Understand reactivity", level=3), ui.text("Learn state scopes, command handling, and the server-to-browser update flow."), ui.link("Read the core concepts >", "state.html"), gap=10),
+            columns={"sm": 1, "md": 3, "lg": 3},
             gap=14,
-            motion=ui.motion.slide_up(delay=0.15, duration=0.4),
+            stagger_children=0.06,
         ),
         gap=16,
-        stagger_children=0.06,
     )
 
 
@@ -786,7 +486,6 @@ def components_page():
             s_prop_label.value,
             command="comp.test_trigger",
             variant=s_prop_variant.value,
-            size=s_prop_size.value,
             disabled=s_prop_disabled.value,
             tap=ui.motion.tap(scale=0.96),
         )
@@ -1060,42 +759,6 @@ def adrs_page():
 
 
 # =========================================================================
-# PAGE 11: LIVE EVENT TRACE VISUALIZER ("/event-trace")
-# =========================================================================
-
-@app.page("/event-trace")
-def event_trace_page():
-    traces = s_event_traces.value
-    timeline_steps = [
-        {
-            "title": f"[{t['time']}] {t['action']} -> {t['command']}",
-            "status": "completed" if t["status"] == "COMPLETED" else "active",
-            "latency": t["duration"],
-        }
-        for t in traces
-    ]
-
-    return ui.column(
-        ui.heading("Live Event Trace Visualizer", level=1),
-        ui.text("Inspect the real-time execution telemetry of user interactions, command dispatches, reactive DAG invalidations, and SSE sub-DOM patches:"),
-        ui.card(
-            ui.step_timeline(timeline_steps),
-            ui.spacer(size=12),
-            ui.row(
-                ui.button("Trigger Test Interaction", command="trace.simulate", variant="primary"),
-                ui.button("Clear Event History", command="trace.clear", variant="secondary"),
-                gap=12,
-            ),
-            title="Real-Time Execution Journal",
-            subtitle="Demonstrates verified server-side execution latency and payload lifecycle",
-            hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
-        ),
-        gap=16,
-        stagger_children=0.05,
-    )
-
-
-# =========================================================================
 # COMMAND HANDLERS (Business Logic & Reactive State Mutations)
 # =========================================================================
 
@@ -1113,7 +776,6 @@ def on_calc_update(ctx: ui.CommandContext):
 def on_demo_inc(ctx: ui.CommandContext):
     current = ctx.read(s_counter)
     ctx.write(s_counter, current + 1)
-    _record_trace(ctx, "click", "demo.inc", f"Counter: {current} -> {current + 1}")
     ui.notify(f"Counter incremented to {current + 1}", variant="success")
 
 
@@ -1121,14 +783,6 @@ def on_demo_inc(ctx: ui.CommandContext):
 def on_demo_dec(ctx: ui.CommandContext):
     current = ctx.read(s_counter)
     ctx.write(s_counter, current - 1)
-    _record_trace(ctx, "click", "demo.dec", f"Counter: {current} -> {current - 1}")
-
-
-@app.command("demo.reset")
-def on_demo_reset(ctx: ui.CommandContext):
-    ctx.write(s_counter, 0)
-    _record_trace(ctx, "click", "demo.reset", "Counter reset to 0")
-    ui.notify("Counter reset to 0", variant="info")
 
 
 @app.command("comp.select_button")
@@ -1169,7 +823,6 @@ def on_comp_test(ctx: ui.CommandContext):
 def on_job_start(ctx: ui.CommandContext):
     ctx.write(s_job_status, "RUNNING")
     ctx.write(s_job_progress, 0.45)
-    _record_trace(ctx, "job.submit", "job.start", "Lease acquired with fence_token=104")
     ui.notify("Background worker lease acquired!", variant="info")
 
 
@@ -1177,52 +830,19 @@ def on_job_start(ctx: ui.CommandContext):
 def on_job_cancel(ctx: ui.CommandContext):
     ctx.write(s_job_status, "CANCELLED")
     ctx.write(s_job_progress, 0.0)
-    _record_trace(ctx, "job.cancel", "job.cancel", "Job cancelled by operator")
     ui.notify("Background job cancelled.", variant="warning")
 
 
 @app.command("agent.approve_demo")
 def on_agent_approve(ctx: ui.CommandContext):
     ui.notify("Agent query authorized! Executing aggregation...", variant="success")
-    _record_trace(ctx, "hitl.confirm", "agent.approve", "Operator approved privileged action")
 
 
 @app.command("agent.reject_demo")
 def on_agent_reject(ctx: ui.CommandContext):
     ui.notify("Agent action declined by operator.", variant="danger")
-    _record_trace(ctx, "hitl.reject", "agent.reject", "Operator declined privileged action")
 
 
-@app.command("trace.simulate")
-def on_trace_simulate(ctx: ui.CommandContext):
-    _record_trace(ctx, "user.click", "trace.simulate", "Simulated interaction dispatched")
-    ui.notify("Simulated execution trace recorded!", variant="info")
-
-
-@app.command("trace.clear")
-def on_trace_clear(ctx: ui.CommandContext):
-    ctx.write(s_event_traces, [])
-    ui.notify("Event traces cleared.", variant="info")
-
-
-def _record_trace(ctx: ui.CommandContext, action: str, cmd: str, delta: str):
-    """Helper to append an execution step to the live event trace journal."""
-    history = list(ctx.read(s_event_traces))
-    cur_time = time.strftime("%H:%M:%S")
-    evt_num = len(history) + 1
-    history.append({
-        "id": f"evt-{evt_num:03d}",
-        "time": cur_time,
-        "source": "Client DOM",
-        "action": action,
-        "command": cmd,
-        "status": "COMPLETED",
-        "duration": "0.168ms",
-        "delta": delta,
-    })
-    if len(history) > 15:
-        history = history[-15:]
-    ctx.write(s_event_traces, history)
 
 
 # =========================================================================
