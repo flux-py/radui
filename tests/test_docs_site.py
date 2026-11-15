@@ -28,17 +28,24 @@ def test_docs_site_metadata_integrity():
 
 
 def test_docs_site_all_routes_render_200(client):
-    """Verify all 10 documentation routes render with HTTP 200 OK."""
+    """Verify all 17 documentation routes render with HTTP 200 OK."""
     routes = [
         "/",
         "/getting-started",
+        "/api-reference",
         "/architecture",
         "/components",
+        "/components-layout",
+        "/components-forms",
+        "/components-data",
+        "/components-feedback",
+        "/components-ai",
+        "/cli",
+        "/cli-workflows",
         "/state",
         "/transport",
         "/jobs",
         "/ai",
-        "/cli",
         "/adrs",
     ]
 

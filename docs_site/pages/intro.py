@@ -129,3 +129,78 @@ def getting_started_page():
         gap=16,
         stagger_children=0.05,
     )
+
+@app.page("/api-reference")
+def api_reference_page():
+    return ui.column(
+        ui.badge("Core SDK", variant="primary"),
+        ui.heading("Python API & SDK Reference", level=1),
+        ui.text(
+            "Complete reference for the top-level RADUI Python programming interface, decorators, context managers, and reactive primitives.",
+            variant="lead",
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("1. App Initialization & Lifecycle (`ui.App`)", level=3),
+            ui.text("The central registry managing routes, layouts, state backends, theme configuration, and ASGI 3.0 protocol routing:"),
+            ui.code_block(
+                "app = ui.App(\n"
+                "    title='Enterprise Portal',\n"
+                "    theme=ui.Theme(name='dark', mode='dark'),\n"
+                "    command_palette=True,\n"
+                "    debug=False,\n"
+                ")\n\n"
+                "# Decorator for route registration\n"
+                "@app.page('/analytics', title='Analytics')\n"
+                "def analytics_page():\n"
+                "    return ui.heading('Analytics')\n\n"
+                "# Layout wrapper decorator\n"
+                "@app.layout('/')\n"
+                "def root_layout(outlet: ui.Component):\n"
+                "    return ui.container(outlet)\n\n"
+                "# Server command handler decorator\n"
+                "@app.command('data.refresh')\n"
+                "def on_refresh(ctx: ui.CommandContext):\n"
+                "    ui.notify('Refreshed!', variant='success')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("2. Reactive Signals (`ui.state` & `@ui.computed`)", level=3),
+            ui.text("Deterministic state declarations with automatic reactive dependency graph resolution:"),
+            ui.code_block(
+                "# 1. Declare state with deterministic scope ('session', 'view', 'app')\n"
+                "s_price = ui.state('cart.price', default=99.0, scope='session')\n"
+                "s_qty = ui.state('cart.qty', default=2, scope='session')\n\n"
+                "# 2. Derived computed signal with automated DAG dependency tracking\n"
+                "@ui.computed\n"
+                "def s_subtotal() -> float:\n"
+                "    return round(s_price.value * s_qty.value, 2)\n\n"
+                "# 3. Mutation inside command handler\n"
+                "@app.command('cart.add')\n"
+                "def on_add(ctx: ui.CommandContext):\n"
+                "    ctx.write(s_qty, ctx.read(s_qty) + 1)",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("3. Motion & Animation Tokens (`ui.motion`)", level=3),
+            ui.text("Hardware-accelerated CSS animations and spring physics:"),
+            ui.code_block(
+                "# Hover elevation and scale\n"
+                "hover_fx = ui.motion.hover(scale=1.02, translate_y=-3.0)\n\n"
+                "# Active press/tap scale down\n"
+                "tap_fx = ui.motion.tap(scale=0.96)\n\n"
+                "# Entrance slide animation\n"
+                "enter_fx = ui.motion.slide_up(delay=0.1, duration=0.4)\n\n"
+                "btn = ui.button('Launch', hover=hover_fx, tap=tap_fx, motion=enter_fx)",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        gap=16,
+    )

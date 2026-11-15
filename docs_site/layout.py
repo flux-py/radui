@@ -6,7 +6,7 @@ import radui as ui
 from docs_site.core import app
 
 def _render_sidebar() -> ui.Component:
-    """A compact, task-oriented guide navigation built from native disclosure components."""
+    """A comprehensive, categorized guide navigation built from native disclosure components."""
     return ui.column(
         ui.accordion(
             ui.accordion_item(
@@ -14,7 +14,30 @@ def _render_sidebar() -> ui.Component:
                 ui.column(
                     ui.link("Overview", "index.html"),
                     ui.link("Install & quickstart", "getting-started.html"),
-                    ui.link("Components", "components.html"),
+                    ui.link("Python API Reference", "api-reference.html"),
+                    ui.link("System Architecture", "architecture.html"),
+                    gap=4,
+                ),
+                open=True,
+            ),
+            ui.accordion_item(
+                "Component Library (68)",
+                ui.column(
+                    ui.link("Component Explorer", "components.html"),
+                    ui.link("Layout & Grids", "components-layout.html"),
+                    ui.link("Forms & Inputs", "components-forms.html"),
+                    ui.link("Data Displays & Grids", "components-data.html"),
+                    ui.link("Feedback & Overlays", "components-feedback.html"),
+                    ui.link("AI & Streaming Media", "components-ai.html"),
+                    gap=4,
+                ),
+                open=True,
+            ),
+            ui.accordion_item(
+                "CLI & Toolchain (45)",
+                ui.column(
+                    ui.link("CLI Reference (45)", "cli.html"),
+                    ui.link("Developer Workflows", "cli-workflows.html"),
                     gap=4,
                 ),
                 open=True,
@@ -23,18 +46,9 @@ def _render_sidebar() -> ui.Component:
                 "Core concepts",
                 ui.column(
                     ui.link("State & reactivity", "state.html"),
-                    ui.link("Architecture", "architecture.html"),
                     ui.link("Events & streaming", "transport.html"),
                     ui.link("Background jobs", "jobs.html"),
-                    gap=4,
-                ),
-                open=True,
-            ),
-            ui.accordion_item(
-                "Advanced guides",
-                ui.column(
                     ui.link("AI & approvals", "ai.html"),
-                    ui.link("CLI reference", "cli.html"),
                     ui.link("Architecture decisions", "adrs.html"),
                     gap=4,
                 ),

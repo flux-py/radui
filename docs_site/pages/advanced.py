@@ -66,19 +66,6 @@ def ai_page():
         stagger_children=0.05,
     )
 
-@app.page("/cli")
-def cli_page():
-    return ui.column(
-        ui.heading("Developer CLI Reference (All 45 Subcommands)", level=1),
-        ui.text("Explore all 45 registered command-line subcommands for project scaffolding, local development, auditing, inspection, and production deployment:"),
-        ui.table(
-            headers=["Command", "Domain", "Syntax", "Description"],
-            rows=[[c["cmd"], c["domain"], f"`{c['syntax']}`", c["description"]] for c in CLI_COMMANDS],
-        ),
-        gap=16,
-        stagger_children=0.05,
-    )
-
 @app.page("/adrs")
 def adrs_page():
     return ui.column(
