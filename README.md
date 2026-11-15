@@ -21,7 +21,9 @@
 [![AST Latency](https://img.shields.io/badge/AST%20latency-0.039ms-8b5cf6.svg?style=for-the-badge&logo=speedtest&logoColor=white)](benchmarks/)
 [![Zero JS Toolchain](https://img.shields.io/badge/npm%20dependencies-0-f59e0b.svg?style=for-the-badge&logo=javascript&logoColor=white)](#why-radui)
 [![Production Ready](https://img.shields.io/badge/production-v1.0.0%20stable-06b6d4.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](#installation--packaging-extras)
+[![Docs Live](https://img.shields.io/badge/docs-live%20on%20github%20pages-2563eb.svg?style=for-the-badge&logo=githubpages&logoColor=white)](https://flux-py.github.io/radui/)
 
+[Live Documentation](https://flux-py.github.io/radui/) •
 [60-Second Quickstart](#quickstart-in-60-seconds) •
 [Interactive Showcase](#interactive-feature-tours) •
 [Benchmarks](#verified-performance-latency-6-tier-benchmark-suite) •
