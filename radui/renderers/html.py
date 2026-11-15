@@ -1475,11 +1475,14 @@ STATIC_JS = r"""(() => {
     }
 
     // Update code block below
-    const pre = document.querySelector('#comp-code-block code') || document.querySelector('#docs-content .gx-code-container code');
-    if (pre) {
-      pre.textContent = snippet;
-      const copy = pre.closest('.gx-code-container')?.querySelector('[data-gx-copy]');
-      if (copy) copy.dataset.gxRawCode = snippet;
+    const codeContainer = document.getElementById("comp-code-block") || document.querySelector("#docs-content .gx-code-container");
+    if (codeContainer) {
+      const codeElem = codeContainer.querySelector("code");
+      const preElem = codeContainer.querySelector("pre.gx-code-body") || codeElem?.parentElement;
+      const copyBtn = codeContainer.querySelector("[data-gx-copy]");
+      if (codeElem) codeElem.textContent = snippet;
+      if (preElem) preElem.dataset.gxRawCode = snippet;
+      if (copyBtn) copyBtn.dataset.gxRawCode = snippet;
     }
 
     // Update backside of 3D flip card
@@ -1542,6 +1545,35 @@ STATIC_JS = r"""(() => {
       if (selection) selection.textContent = `Selected: ui.${name}`;
       const descElem = document.getElementById("component-description-text");
       if (descElem && RADUI_COMPONENTS[name]) descElem.textContent = RADUI_COMPONENTS[name].desc;
+
+      const labelInput = document.querySelector('input[name="prop.label"]') || document.querySelector('.gx-card input[type="text"]');
+      if (labelInput) {
+        const defaultLabels = {
+          button: "Launch Cluster",
+          badge: "v1.0.0 Verified",
+          callout: "Production AST pipeline verified.",
+          metric_card: "1,420 rps",
+          progress_bar: "Build & Deploy Pipeline",
+          slider: "Processing Threshold",
+          switch: "Enable Live SSE Stream",
+          checkbox: "Accept Fenced Terms",
+          input: "developer@flux.py",
+          textarea: "System instructions and reactive prompt...",
+          modal: "Cluster Confirmation Dialog",
+          chat_view: "Can you execute the partition maintenance job?",
+          action_card: "Authorize DB Partition Rotation?",
+          tabs: "Production Workspace",
+          avatar: "Core Maintainer",
+          select: "Cluster Tier Selection",
+          radio_group: "Execution Priority",
+          table: "Cluster Status Table",
+          tag: "Production Ready",
+          step_timeline: "Deployment Pipeline Phase",
+          job_panel: "Telemetry Export Worker"
+        };
+        labelInput.value = defaultLabels[name] || ("Demo " + name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()));
+      }
+
       updateLivePreview(name);
       announce(`${name} primitive selected`);
     } else if (command === "comp.apply_props" || command === "comp.test_trigger") {
@@ -1666,7 +1698,8 @@ STATIC_JS = r"""(() => {
 
   // 68-Primitive Search & Domain Filter Toolbar
   const initComponentSearch = () => {
-    const searchInput = document.getElementById("comp-search-bar");
+    const searchContainer = document.getElementById("comp-search-bar");
+    const searchInput = document.getElementById("comp-search-bar-control") || document.querySelector("#comp-search-bar input") || searchContainer;
     const countBadge = document.getElementById("comp-results-count");
     const chipsGrid = document.getElementById("component-chips-grid");
     const domainPills = document.getElementById("comp-domain-pills");
@@ -1675,7 +1708,8 @@ STATIC_JS = r"""(() => {
     let activeDomain = "all";
 
     const filterChips = () => {
-      const query = (searchInput.value || "").trim().toLowerCase();
+      const rawVal = searchInput.value !== undefined ? searchInput.value : (searchInput.querySelector?.("input")?.value || "");
+      const query = (rawVal || "").trim().toLowerCase();
       const chips = [...chipsGrid.querySelectorAll('button')];
       let matched = 0;
 
@@ -1686,7 +1720,13 @@ STATIC_JS = r"""(() => {
         const desc = (meta.desc || chip.dataset.desc || "").toLowerCase();
 
         const matchesQuery = !query || name.includes(query) || domain.includes(query) || desc.includes(query);
-        const matchesDomain = activeDomain === "all" || domain.includes(activeDomain);
+        const matchesDomain = activeDomain === "all" || (
+          activeDomain === "data" ? (domain.includes("data display") || domain.includes("tables")) :
+          activeDomain === "form" ? domain.includes("form") :
+          activeDomain === "diagram" ? domain.includes("diagram") :
+          activeDomain === "typography" ? (domain.includes("typography") || domain.includes("code")) :
+          domain.includes(activeDomain)
+        );
 
         const visible = matchesQuery && matchesDomain;
         chip.style.display = visible ? "inline-flex" : "none";
@@ -1700,6 +1740,11 @@ STATIC_JS = r"""(() => {
     };
 
     searchInput.addEventListener("input", filterChips);
+    searchInput.addEventListener("keyup", filterChips);
+    searchInput.addEventListener("search", filterChips);
+    if (searchContainer && searchContainer !== searchInput) {
+      searchContainer.addEventListener("input", filterChips);
+    }
 
     if (domainPills) {
       domainPills.addEventListener("click", (e) => {
@@ -1716,6 +1761,8 @@ STATIC_JS = r"""(() => {
         else if (text.includes("navigation") || text.includes("nav")) activeDomain = "navigation";
         else if (text.includes("indicator")) activeDomain = "indicator";
         else if (text.includes("ai")) activeDomain = "ai";
+        else if (text.includes("diagram")) activeDomain = "diagram";
+        else if (text.includes("typograph") || text.includes("code")) activeDomain = "typography";
 
         domainPills.querySelectorAll("button").forEach(b => {
           const isCurrent = b === btn;
@@ -1727,6 +1774,7 @@ STATIC_JS = r"""(() => {
 
     const flipToggleBtn = document.getElementById("comp-flip-toggle-btn");
     if (flipToggleBtn) {
+      flipToggleBtn.classList.add("gx-flip-trigger");
       flipToggleBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -3628,6 +3676,9 @@ def render_row(
             "baseline": "baseline",
         }
         styles.append(f"align-items:{a_map.get(align, align)}")
+    wrap = getattr(component, "wrap", None)
+    if wrap is not None:
+        styles.append(f"flex-wrap:{'wrap' if wrap else 'nowrap'}")
     style_attr = ";".join(styles)
     children = "".join(_render_child(child, registry, state_context, csrf_token) for child in component.children)
     return f'<div class="gx-row" style="{style_attr}"{_attrs(component)}>{children}</div>'

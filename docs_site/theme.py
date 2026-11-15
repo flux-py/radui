@@ -441,6 +441,42 @@ body {
   background: var(--gx-primary-subtle) !important;
 }
 
+/* Component Chips Tray & Discovery */
+#component-chips-grid {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 8px !important;
+  border-radius: 12px;
+  background: var(--gx-surface-alt) !important;
+  border: 1px solid var(--gx-border) !important;
+  scrollbar-width: thin;
+}
+#component-chips-grid::-webkit-scrollbar {
+  width: 6px;
+}
+#component-chips-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+#component-chips-grid::-webkit-scrollbar-thumb {
+  background: var(--gx-border-strong);
+  border-radius: 999px;
+}
+#component-chips-grid .gx-button {
+  font-size: 0.78rem !important;
+  padding: 5px 11px !important;
+  border-radius: 999px !important;
+}
+
+#comp-search-bar input {
+  font-size: 0.94rem !important;
+  padding: 10px 14px !important;
+}
+#comp-domain-pills .gx-button {
+  font-size: 0.78rem !important;
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+}
+
 /* Links */
 .gx-link {
   display: inline-block; color: var(--gx-primary) !important;

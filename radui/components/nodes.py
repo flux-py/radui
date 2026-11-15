@@ -116,6 +116,9 @@ class Row(Component):
     kind: Literal["row"] = "row"
     children: tuple[Element, ...] = ()
     gap: int = Field(default=12, ge=0, le=64)
+    justify: str | None = None
+    align: str | None = None
+    wrap: bool = False
 
 
 class Card(Component):
@@ -908,6 +911,9 @@ def row(*children: Element, gap: int = 12, id: str | None = None, **kwargs: Any)
         children=tuple(children),
         gap=gap,
         id=id,
+        justify=kwargs.get("justify"),
+        align=kwargs.get("align"),
+        wrap=bool(kwargs.get("wrap", False)),
         motion=kwargs.get("motion"),
         hover=kwargs.get("hover"),
         tap=kwargs.get("tap"),

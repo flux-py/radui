@@ -155,6 +155,8 @@ def components_page():
                 ui.button("Navigation (5)", command="comp.test_trigger", variant="outline", id="domain-filter-nav"),
                 ui.button("Indicators (8)", command="comp.test_trigger", variant="outline", id="domain-filter-indicators"),
                 ui.button("AI & Agent (8)", command="comp.test_trigger", variant="outline", id="domain-filter-ai"),
+                ui.button("Diagrams (2)", command="comp.test_trigger", variant="outline", id="domain-filter-diagrams"),
+                ui.button("Typography (5)", command="comp.test_trigger", variant="outline", id="domain-filter-typography"),
                 gap=6,
                 wrap=True,
                 id="comp-domain-pills",
