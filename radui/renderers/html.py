@@ -1111,6 +1111,22 @@ STATIC_JS = r"""(() => {
     } catch (_) { announce("Clipboard access is unavailable"); }
   });
 
+  const toggleTheme = () => {
+    const current = document.documentElement.dataset.theme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const next = current === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("gx-theme", next); } catch(err) {}
+    announce(`Theme switched to ${next} mode`);
+  };
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-gx-theme-toggle], #theme-toggle, .gx-theme-toggle")) toggleTheme();
+  });
+  document.addEventListener("gx-theme-toggle", toggleTheme);
+  try {
+    const saved = localStorage.getItem("gx-theme");
+    if (saved) document.documentElement.dataset.theme = saved;
+  } catch(err) {}
+
   const initGrids = () => document.querySelectorAll("[data-gx-grid]").forEach(grid => {
     if (grid.dataset.staticReady) return;
     grid.dataset.staticReady = "true";
@@ -2517,12 +2533,15 @@ class HTMLRenderer:
         live_region = '<div class="gx-aria-live" aria-live="polite" aria-atomic="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>'
         extra_css = f"<style>{custom_css}</style>" if custom_css else ""
         runtime_script = f"<script>{STATIC_JS}</script>" if static_export else '<script src="/_gx/client.js" defer></script>'
+        theme_init_script = '<script>(function(){try{var s=localStorage.getItem("gx-theme")||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(s)document.documentElement.dataset.theme=s;}catch(e){}})();</script>'
+        favicon_tag = '<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">'
         return (
             "<!doctype html>"
             f'<html lang="en" dir="{direction}"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
             f'<meta name="gx-view" content="{safe_view}">'
             f'<meta name="gx-event-cursor" content="{event_cursor}">'
+            f"{theme_init_script}{favicon_tag}"
             f"<title>{safe_title}</title><style>{BASE_CSS}</style>{extra_css}"
             f"{runtime_script}"
             f'</head><body><main class="gx-shell" id="gx-root" data-gx-root>{body}</main>{inspector_html}{palette_html}{live_region}</body></html>'

@@ -1,24 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="100%" height="100%" fill="none">
   <defs>
-    <linearGradient id="markPrimary" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Luminous Emerald-Mint Reactive Signal Gradient -->
+    <linearGradient id="radui-grad-stem" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#34d399" />
-      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="40%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+
+    <linearGradient id="radui-grad-loop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="50%" stop-color="#059669" />
       <stop offset="100%" stop-color="#047857" />
     </linearGradient>
 
-    <linearGradient id="markLoop" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#059669" />
-      <stop offset="50%" stop-color="#10b981" />
+    <linearGradient id="radui-grad-kick" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="60%" stop-color="#34d399" />
       <stop offset="100%" stop-color="#6ee7b7" />
     </linearGradient>
 
-    <linearGradient id="markKick" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#10b981" />
-      <stop offset="60%" stop-color="#34d399" />
-      <stop offset="100%" stop-color="#a7f3d0" />
-    </linearGradient>
-
-    <filter id="markGlow" x="-30%" y="-30%" width="160%" height="160%">
+    <filter id="radui-glow" x="-25%" y="-25%" width="150%" height="150%">
       <feGaussianBlur stdDeviation="4" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
@@ -27,33 +28,44 @@
     </filter>
   </defs>
 
-  <!-- Left Stem -->
-  <rect x="70" y="60" width="46" height="280" rx="23" fill="url(#markPrimary)" />
+  <!-- Group with tight transparent bounds, centered in 240x240 -->
+  <g id="radui-symbol">
+    <!-- 1. Left Vertical Stem (The Python Architecture Pillar) -->
+    <rect x="36" y="28" width="34" height="184" rx="17" fill="url(#radui-grad-stem)" />
 
-  <!-- Radiating Upper Loop -->
-  <path d="M 93 60
-           H 210
-           C 272 60, 316 100, 316 162
-           C 316 224, 272 264, 210 264
-           H 116"
-        fill="none"
-        stroke="url(#markLoop)"
-        stroke-width="46"
-        stroke-linecap="round"
-        stroke-linejoin="round" />
+    <!-- 2. The Reactive Signal Loop (Continuous DAG Arc) -->
+    <path d="M 53 28
+             H 136
+             C 186 28, 206 60, 206 98
+             C 206 136, 186 166, 136 166
+             H 70"
+          stroke="url(#radui-grad-loop)"
+          stroke-width="34"
+          stroke-linecap="round"
+          stroke-linejoin="round" />
 
-  <!-- Diagonal Kick -->
-  <path d="M 188 234
-           L 294 340"
-        fill="none"
-        stroke="url(#markKick)"
-        stroke-width="46"
-        stroke-linecap="round" />
+    <!-- 3. Dynamic Reactive Kick Beam (Shoots outward to DOM target) -->
+    <path d="M 120 148
+             L 194 212"
+          stroke="url(#radui-grad-kick)"
+          stroke-width="34"
+          stroke-linecap="round" />
 
-  <!-- Glowing Signal Nodes (Reactive DAG) -->
-  <g filter="url(#markGlow)">
-    <circle cx="93" cy="83" r="10" fill="#f0fdf4" stroke="#059669" stroke-width="3.5" />
-    <circle cx="316" cy="162" r="10" fill="#f0fdf4" stroke="#10b981" stroke-width="3.5" />
-    <circle cx="294" cy="340" r="12" fill="#ffffff" stroke="#34d399" stroke-width="4" />
+    <!-- 4. Reactive DAG State Nodes (Genuinely vector, transparent integration) -->
+    <g filter="url(#radui-glow)">
+      <!-- Root State Node -->
+      <circle cx="53" cy="45" r="7.5" fill="#f0fdf4" stroke="#059669" stroke-width="2.5" />
+      <!-- Derived / Computed Signal Node -->
+      <circle cx="206" cy="98" r="7.5" fill="#f0fdf4" stroke="#10b981" stroke-width="2.5" />
+      <!-- Reactive Stream Emit Node -->
+      <circle cx="194" cy="212" r="9" fill="#ffffff" stroke="#34d399" stroke-width="3" />
+    </g>
+
+    <!-- Subtle Reactive Orbit Wave -->
+    <path d="M 148 58 C 170 70, 182 86, 182 108"
+          stroke="rgba(52, 211, 153, 0.45)"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-dasharray="4 5" />
   </g>
 </svg>

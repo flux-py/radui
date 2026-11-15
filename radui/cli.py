@@ -744,6 +744,15 @@ def cmd_export(args: argparse.Namespace) -> int:
                 out_file = output_dir / safe_name
                 out_file.write_text(doc_html, encoding="utf-8")
                 print(f"[OK] Exported static page '{path}' to: {out_file}")
+
+        target_path = Path(getattr(args, "target", "app.py"))
+        app_assets = target_path.parent / "assets"
+        if not app_assets.is_dir():
+            app_assets = Path("assets")
+        if app_assets.is_dir():
+            dest_assets = output_dir / "assets"
+            shutil.copytree(app_assets, dest_assets, dirs_exist_ok=True)
+            print(f"[OK] Copied assets from '{app_assets}' to: {dest_assets}")
     else:
         ir = app_instance.to_ir()
         out_file = output_dir / f"{app_instance.metadata.id}_ir.json"

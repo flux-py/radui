@@ -2,16 +2,9 @@
 
 <div align="center">
 
-```
-   ██████╗  █████╗ ██████╗ ██╗   ██╗██╗
-   ██╔══██╗██╔══██╗██╔══██╗██║   ██║██║
-   ██████╔╝███████║██║  ██║██║   ██║██║
-   ██╔══██╗██╔══██║██║  ██║██║   ██║██║
-   ██║  ██║██║  ██║██████╔╝╚██████╔╝██║
-   ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝
-   
-   REACTIVE APPLICATION DEVELOPMENT USER INTERFACE
-```
+<a href="https://flux-py.github.io/radui/"><img src="docs_site/assets/radui-logo.svg" alt="RADUI Logo" width="260"></a>
+
+<br>
 
 **The Python-First Reactive Engine for Enterprise Dashboards, Autonomous AI Agents & Real-Time Web Apps**
 

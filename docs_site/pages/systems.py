@@ -154,7 +154,7 @@ def components_page():
         ),
         ui.spacer(size=12),
         # Synchronized Python Implementation Code
-        ui.heading("Catalog example", level=3),
+        ui.heading("Synchronized Python Implementation", level=3),
         ui.code_block(gen_code, language="python", copyable=True),
         ui.heading("Complete component reference", level=2),
         ui.data_grid(

@@ -1,18 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
   <defs>
-    <linearGradient id="favGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="fav-stem" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#34d399" />
       <stop offset="100%" stop-color="#059669" />
     </linearGradient>
+    <linearGradient id="fav-kick" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#6ee7b7" />
+    </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="14" fill="#090f0d" />
-  <!-- Scaled R Mark -->
-  <g transform="translate(10, 8) scale(0.125)">
-    <rect x="70" y="60" width="46" height="280" rx="23" fill="url(#favGrad)" />
-    <path d="M 93 60 H 210 C 272 60, 316 100, 316 162 C 316 224, 272 264, 210 264 H 116"
-          fill="none" stroke="url(#favGrad)" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" />
-    <path d="M 188 234 L 294 340"
-          fill="none" stroke="#6ee7b7" stroke-width="48" stroke-linecap="round" />
-    <circle cx="294" cy="340" r="14" fill="#ffffff" stroke="#10b981" stroke-width="4" />
+  <g transform="translate(6, 6) scale(0.216)">
+    <rect x="36" y="28" width="34" height="184" rx="17" fill="url(#fav-stem)" />
+    <path d="M 53 28 H 136 C 186 28, 206 60, 206 98 C 206 136, 186 166, 136 166 H 70"
+          stroke="url(#fav-stem)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M 120 148 L 194 212"
+          stroke="url(#fav-kick)" stroke-width="34" stroke-linecap="round" />
+    <circle cx="194" cy="212" r="10" fill="#ffffff" stroke="#10b981" stroke-width="4" />
   </g>
 </svg>

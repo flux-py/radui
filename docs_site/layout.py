@@ -50,19 +50,22 @@ def _render_sidebar() -> ui.Component:
     )
 
 def _render_header() -> ui.Component:
-    """A quiet, responsive global navigation bar."""
+    """A quiet, responsive global navigation bar with transparent logo and theme toggle."""
     return ui.row(
         ui.row(
-            ui.heading("radui", level=3),
+            ui.heading("radui", level=3, id="docs-brand-logo"),
             ui.badge("docs", variant="primary"),
             gap=10,
             align="center",
+            id="docs-logo-link",
         ),
         ui.row(
             ui.link("Quickstart", "getting-started.html"),
             ui.link("Components", "components.html"),
+            ui.link("Architecture", "architecture.html"),
+            ui.theme_toggle("Theme", id="theme-toggle"),
             ui.link("GitHub >", "https://github.com/flux-py/radui", external=True),
-            gap=10,
+            gap=12,
             align="center",
         ),
         id="docs-header",
