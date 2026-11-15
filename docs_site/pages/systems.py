@@ -189,9 +189,9 @@ def state_page():
             ),
             ui.spacer(size=12),
             ui.row(
-                ui.metric_card("Base Price", s_price, hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
-                ui.metric_card("Tax Rate", s_tax, hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
-                ui.metric_card("Computed Total", s_calc_total, delta="Automated DAG derivation", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+                ui.metric_card("Base Price", f"${s_price.value:.2f}", id="calc-base-price", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+                ui.metric_card("Tax Rate", f"{s_tax.value * 100:.0f}%", id="calc-tax-rate", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+                ui.metric_card("Computed Total", f"${s_calc_total.value:.2f}", delta="Automated DAG derivation", id="calc-total", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
                 gap=16,
             ),
             title="Live Computed Signal Sandbox",

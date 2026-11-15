@@ -1097,8 +1097,8 @@ STATIC_JS = r"""(() => {
   };
 
   const runDemoCommand = (command, source) => {
-    const card = source.closest(".gx-card");
-    const metrics = card ? [...card.querySelectorAll(".gx-metric-value")] : [];
+    const card = source.closest(".gx-card") || document;
+    const metrics = [...card.querySelectorAll(".gx-metric-val, .gx-metric-value")];
     if (command === "demo.inc" || command === "demo.dec") {
       const metric = metrics[0];
       if (metric) {
@@ -1109,17 +1109,32 @@ STATIC_JS = r"""(() => {
         announce(`Counter updated to ${next}`);
       }
     } else if (command === "calc.update") {
-      const inputs = [...(card?.querySelectorAll('input[type="number"]') || [])].map(input => Number(input.value));
+      const inputs = [...card.querySelectorAll('input[type="number"], input.gx-input')].filter(i => !isNaN(Number(i.value)) && i.value.trim() !== "");
       if (inputs.length >= 2 && metrics.length >= 3) {
-        metrics[2].textContent = (inputs[0] * (1 + inputs[1])).toFixed(2);
-        announce("Computed total updated");
+        const p = Number(inputs[0].value) || 0;
+        const t = Number(inputs[1].value) || 0;
+        const tot = p * (1 + t);
+        metrics[0].textContent = `$${p.toFixed(2)}`;
+        metrics[1].textContent = `${(t * 100).toFixed(0)}%`;
+        metrics[2].textContent = `$${tot.toFixed(2)}`;
+        metrics[2].animate?.([{ transform: "scale(1.08)" }, { transform: "scale(1)" }], { duration: 240, easing: "ease-out" });
+        announce(`Computed total updated to $${tot.toFixed(2)}`);
       }
     } else if (command === "job.start" || command === "job.cancel") {
       if (metrics[0]) metrics[0].textContent = command === "job.start" ? "RUNNING" : "CANCELLED";
       if (metrics[1]) metrics[1].textContent = command === "job.start" ? "45%" : "0%";
-      const bar = card?.querySelector(".gx-progress-bar");
+      const bar = card.querySelector(".gx-progress-bar");
       if (bar) bar.style.width = command === "job.start" ? "45%" : "0%";
       announce(command === "job.start" ? "Demo job started" : "Demo job cancelled");
+    } else if (command === "agent.approve_demo") {
+      const btn = source.closest("button") || source;
+      btn.textContent = "Authorized ✓";
+      btn.classList.add("gx-button-success");
+      announce("Agent query authorized");
+    } else if (command === "agent.reject_demo") {
+      const btn = source.closest("button") || source;
+      btn.textContent = "Declined ✕";
+      announce("Agent query declined");
     } else if (command.startsWith("comp.select_")) {
       const name = command.replace("comp.select_", "");
       document.querySelectorAll('[data-gx-command^="comp.select_"]').forEach(button => {
@@ -1144,7 +1159,19 @@ STATIC_JS = r"""(() => {
   };
 
   document.addEventListener("input", (e) => {
-    if (e.target.closest('form[data-gx-command="comp.apply_props"]') || e.target.closest('#docs-content')) {
+    if (e.target.closest('form[data-gx-command="calc.update"]')) {
+      const card = e.target.closest(".gx-card") || document;
+      const inputs = [...card.querySelectorAll('input[type="number"], input.gx-input')].filter(i => !isNaN(Number(i.value)) && i.value.trim() !== "");
+      const metrics = [...card.querySelectorAll(".gx-metric-val, .gx-metric-value")];
+      if (inputs.length >= 2 && metrics.length >= 3) {
+        const p = Number(inputs[0].value) || 0;
+        const t = Number(inputs[1].value) || 0;
+        const tot = p * (1 + t);
+        metrics[0].textContent = `$${p.toFixed(2)}`;
+        metrics[1].textContent = `${(t * 100).toFixed(0)}%`;
+        metrics[2].textContent = `$${tot.toFixed(2)}`;
+      }
+    } else if (e.target.closest('form[data-gx-command="comp.apply_props"]') || e.target.closest('#docs-content')) {
       if (e.target.matches('input, select')) updateLivePreview();
     }
   });
@@ -2991,7 +3018,7 @@ def render_metric_card(
     return (
         f'<div class="gx-metric"{_attrs(component)}>'
         f'<div class="gx-metric-title">{escape(component.title)}</div>'
-        f'<div class="gx-metric-val"{anim_attr}>{escape(component.value)}</div>'
+        f'<div class="gx-metric-val gx-metric-value"{anim_attr}>{escape(component.value)}</div>'
         f'<div class="gx-metric-foot">{trend_html}{subtitle_html}</div>'
         "</div>"
     )

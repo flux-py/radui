@@ -1185,7 +1185,7 @@ def job_panel(job: Any, *, label: str = "Background task", id: str | None = None
 
 def metric_card(
     title: str,
-    value: str,
+    value: Any,
     *,
     change: str = "",
     delta: str = "",
@@ -1207,9 +1207,23 @@ def metric_card(
         else:
             final_trend = "neutral"
     final_title = f"{icon} {title}".strip() if icon else title
+
+    resolved_val: str
+    if hasattr(value, "value"):
+        resolved_val = str(value.value)
+    elif hasattr(value, "default"):
+        resolved_val = str(value.default)
+    elif callable(value):
+        try:
+            resolved_val = str(value())
+        except Exception:
+            resolved_val = str(value)
+    else:
+        resolved_val = str(value)
+
     return MetricCard(
         title=final_title,
-        value=str(value),
+        value=resolved_val,
         change=final_change,
         trend=final_trend,
         subtitle=subtitle,
