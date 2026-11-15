@@ -13,6 +13,7 @@ def _render_sidebar() -> ui.Component:
                 "Start here",
                 ui.column(
                     ui.link("Overview", "index.html"),
+                    ui.link("Why RADUI?", "index.html#why-radui"),
                     ui.link("Install & quickstart", "getting-started.html"),
                     ui.link("Python API Reference", "api-reference.html"),
                     ui.link("System Architecture", "architecture.html"),
@@ -74,6 +75,7 @@ def _render_header() -> ui.Component:
             id="docs-logo-link",
         ),
         ui.row(
+            ui.link("Why RADUI?", "index.html#why-radui"),
             ui.link("Quickstart", "getting-started.html"),
             ui.link("Components", "components.html"),
             ui.link("Architecture", "architecture.html"),

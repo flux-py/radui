@@ -744,6 +744,40 @@ body {
   padding: 4px;
 }
 
+/* Architecture Diagram Glow & Node Interactivity */
+.gx-diagram-node {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+  cursor: pointer;
+}
+.gx-diagram-node:hover {
+  transform: translateY(-3px) scale(1.02);
+  filter: drop-shadow(0 6px 16px rgba(16, 185, 129, 0.35));
+}
+.gx-diagram-node.selected {
+  transform: translateY(-3px) scale(1.03);
+  filter: drop-shadow(0 0 18px var(--gx-primary));
+}
+.gx-diagram-node.selected rect,
+.gx-diagram-node.selected polygon {
+  stroke: var(--gx-primary) !important;
+  stroke-width: 2.8px !important;
+}
+.gx-diagram-edge-animated {
+  stroke-dasharray: 6 4;
+  animation: gx-diagram-flow 1.2s linear infinite;
+}
+@keyframes gx-diagram-flow {
+  from { stroke-dashoffset: 20; }
+  to { stroke-dashoffset: 0; }
+}
+#why-radui-heading {
+  background: linear-gradient(135deg, var(--gx-text) 0%, var(--gx-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+
 [data-gx-hover]:hover {
   cursor: pointer;
 }
@@ -1725,6 +1759,7 @@ STATIC_JS = r"""(() => {
 
           initGrids();
           initFlipCards(section);
+          initArchitectureDiagram(section);
           announce(`Loaded next chapter: ${nextChapter.title}`);
         } else {
           loadingElem.remove();
@@ -1889,11 +1924,85 @@ STATIC_JS = r"""(() => {
     update();
   });
 
+  const initArchitectureDiagram = (root = document) => {
+    const diag = root.querySelector("#why-radui-diagram") || document.getElementById("why-radui-diagram");
+    const inspector = root.querySelector("#arch-inspector-card") || document.getElementById("arch-inspector-card");
+    if (!diag || !inspector) return;
+
+    const nodeDetails = {
+      "n_ast": {
+        title: "Pure Python AST (Type-Safe Declarative)",
+        phase: "INITIAL BUILD",
+        latency: "0.012 ms AST build",
+        desc: "Declarative component tree built with strongly typed Python classes. Automatically validates layout constraints, event triggers, and accessibility properties at definition time with zero compilers."
+      },
+      "n_ssr": {
+        title: "High-Speed SSR Engine (< 3.1ms Initial Load)",
+        phase: "INITIAL RENDER",
+        latency: "< 3.1 ms First Paint",
+        desc: "Pre-renders complete, SEO-ready semantic HTML directly on the server. Achieves sub-4ms First Contentful Paint without client bundle parsing or hydration lag."
+      },
+      "n_dom": {
+        title: "Interactive Browser DOM (Zero npm / 9.6KB)",
+        phase: "CLIENT RUNTIME",
+        latency: "9.6 KB Zero-npm Payload",
+        desc: "Lightweight, zero-npm micro-runtime executes seamlessly in modern browsers. Captures user interactions, dispatches server commands, and surgically morphs mutated DOM subtrees."
+      },
+      "n_dispatch": {
+        title: "Command Dispatch & Idempotency",
+        phase: "REACTIVE INBOUND",
+        latency: "0.12 ms Ingestion & Fencing",
+        desc: "Dispatches server commands with cryptographic CSRF tokens, monotonic lease fencing (ADR-001), and idempotent deduplication to guarantee safe distributed execution."
+      },
+      "n_dag": {
+        title: "Reactive DAG Runtime (5-Tier Scoped State)",
+        phase: "REACTIVE MUTATION",
+        latency: "0.168 ms Sub-DOM Diffing",
+        desc: "Evaluates dependency graph across ephemeral, view, session, user, and app scopes. Surgical diff engine calculates minimal differential DOM patches and streams targeted SSE events."
+      }
+    };
+
+    diag.querySelectorAll(".gx-diagram-node").forEach(nodeGroup => {
+      const id = nodeGroup.id.replace("gx-node-", "");
+      const info = nodeDetails[id];
+      if (!info) return;
+
+      nodeGroup.style.cursor = "pointer";
+      const updateInspector = () => {
+        diag.querySelectorAll(".gx-diagram-node").forEach(n => {
+          n.classList.remove("selected");
+          const rect = n.querySelector("rect, polygon");
+          if (rect) rect.setAttribute("stroke-width", "1.5");
+        });
+        nodeGroup.classList.add("selected");
+        const rect = nodeGroup.querySelector("rect, polygon");
+        if (rect) rect.setAttribute("stroke-width", "3");
+
+        const titleElem = inspector.querySelector("#arch-node-title");
+        const phaseElem = inspector.querySelector("#arch-node-phase");
+        const latencyElem = inspector.querySelector("#arch-node-latency");
+        const descElem = inspector.querySelector("#arch-node-desc");
+
+        if (titleElem) titleElem.textContent = info.title;
+        if (phaseElem) phaseElem.textContent = info.phase;
+        if (latencyElem) latencyElem.textContent = info.latency;
+        if (descElem) descElem.textContent = info.desc;
+
+        inspector.animate?.([{ opacity: 0.6, transform: "scale(0.99)" }, { opacity: 1, transform: "scale(1)" }], { duration: 180, easing: "ease-out" });
+        announce(`Selected architecture node: ${info.title}`);
+      };
+
+      nodeGroup.addEventListener("mouseenter", updateInspector);
+      nodeGroup.addEventListener("click", updateInspector);
+    });
+  };
+
   const initAll = () => {
     initGrids();
     initFlipCards();
     initComponentSearch();
     initContinuousScroll();
+    initArchitectureDiagram();
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initAll);
