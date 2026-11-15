@@ -98,10 +98,19 @@ body {
    3. HEADER & LOGO BRAND LOCKUP
    ========================================================================= */
 #docs-header {
+  display: flex !important;
+  width: 100% !important;
+  align-items: center !important;
+  justify-content: space-between !important;
   position: sticky; top: 0; z-index: 30; padding: 14px 0 12px;
   background: var(--gx-header-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--gx-header-border); margin-bottom: 28px;
   transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+#docs-header > #theme-toggle,
+#docs-header .gx-theme-toggle {
+  margin-left: auto !important;
 }
 
 #docs-logo-link {

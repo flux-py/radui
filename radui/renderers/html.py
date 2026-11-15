@@ -2674,8 +2674,31 @@ def render_row(
     component: Component, registry: ComponentRegistry, state_context: object | None, csrf_token: str | None
 ) -> str:
     assert isinstance(component, Row)
+    styles = [f"gap:{component.gap}px"]
+    justify = getattr(component, "justify", None)
+    if justify:
+        j_map = {
+            "start": "flex-start",
+            "end": "flex-end",
+            "center": "center",
+            "between": "space-between",
+            "around": "space-around",
+            "evenly": "space-evenly",
+        }
+        styles.append(f"justify-content:{j_map.get(justify, justify)}")
+    align = getattr(component, "align", None)
+    if align:
+        a_map = {
+            "start": "flex-start",
+            "end": "flex-end",
+            "center": "center",
+            "stretch": "stretch",
+            "baseline": "baseline",
+        }
+        styles.append(f"align-items:{a_map.get(align, align)}")
+    style_attr = ";".join(styles)
     children = "".join(_render_child(child, registry, state_context, csrf_token) for child in component.children)
-    return f'<div class="gx-row" style="gap:{component.gap}px"{_attrs(component)}>{children}</div>'
+    return f'<div class="gx-row" style="{style_attr}"{_attrs(component)}>{children}</div>'
 
 
 def render_grid(
