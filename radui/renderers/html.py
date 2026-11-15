@@ -235,8 +235,16 @@ body {
 .gx-button-primary:hover { background: var(--gx-primary-hover); }
 .gx-button-secondary { background: var(--gx-surface-alt); color: var(--gx-text); border: 1px solid var(--gx-border); }
 .gx-button-secondary:hover { background: var(--gx-border); }
+.gx-button-success { background: var(--gx-success, #16a34a); color: white; }
+.gx-button-success:hover { filter: brightness(0.92); }
+.gx-button-warning { background: var(--gx-warning, #d97706); color: white; }
+.gx-button-warning:hover { filter: brightness(0.92); }
 .gx-button-danger { background: var(--gx-danger); color: white; }
+.gx-button-danger:hover { filter: brightness(0.92); }
+.gx-button-neutral { background: var(--gx-surface-alt); color: var(--gx-text); border: 1px solid var(--gx-border); }
+.gx-button-neutral:hover { background: var(--gx-border); }
 .gx-button-outline { background: transparent; color: var(--gx-primary); border: 1px solid var(--gx-primary); }
+.gx-button-outline:hover { background: var(--gx-primary-subtle); }
 .gx-button:disabled { opacity: .6; cursor: wait; }
 
 .gx-tabs-header { display: flex; border-bottom: 2px solid var(--gx-border); gap: 8px; margin-bottom: 16px; }
@@ -1395,8 +1403,26 @@ STATIC_JS = r"""(() => {
       widgetHtml = `<div class="gx-metric" style="width:100%"><span class="gx-metric-label">Real-Time KPI</span><span class="gx-metric-value" style="display:block;margin:6px 0">${label}</span><span class="gx-metric-delta" style="color:var(--gx-primary)">+12% vs target</span></div>`;
       snippet = `import radui as ui\n\nwidget = ui.metric_card("Real-Time KPI", "${label}", delta="+12% vs target")`;
     } else if (currentCompName === "progress_bar" || currentCompName === "progress") {
-      widgetHtml = `<div style="width:100%"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="gx-text">Task Progress (${label})</span><span class="gx-text" style="font-weight:700">75%</span></div><div class="gx-progress" style="background:var(--gx-surface-alt);border-radius:999px;height:12px;overflow:hidden"><div class="gx-progress-bar gx-progress-${variant}" style="width:75%;height:100%;border-radius:999px;background:var(--gx-primary);transition:width .3s ease"></div></div></div>`;
+      widgetHtml = `<div style="width:100%"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="gx-text">Task Progress (${label})</span><span class="gx-text" style="font-weight:700">75%</span></div><div class="gx-progress" style="background:var(--gx-surface-alt);border-radius:999px;height:12px;overflow:hidden"><div class="gx-progress-bar gx-progress-${variant}" style="width:75%;height:100%;border-radius:999px;transition:width .3s ease"></div></div></div>`;
       snippet = `import radui as ui\n\nwidget = ui.progress_bar(value=75.0, variant="${variant}")`;
+    } else if (currentCompName === "select") {
+      widgetHtml = `<div style="width:100%"><label class="gx-label" style="display:block;margin-bottom:6px">${label}</label><select class="gx-select" style="width:100%"><option value="opt1">Standard Configuration</option><option value="opt2" selected>Accelerated Cluster Node</option><option value="opt3">Dedicated GPU Worker</option></select></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.select("${label}", options=[("std", "Standard"), ("acc", "Accelerated")])`;
+    } else if (currentCompName === "radio_group") {
+      widgetHtml = `<div style="width:100%"><label class="gx-label" style="display:block;margin-bottom:8px">${label}</label><div style="display:flex;flex-direction:column;gap:8px"><label class="gx-checkbox" style="display:flex;gap:8px;align-items:center"><input type="radio" name="preview_radio" checked> <span>Option Alpha (Default)</span></label><label class="gx-checkbox" style="display:flex;gap:8px;align-items:center"><input type="radio" name="preview_radio"> <span>Option Beta (High-Throughput)</span></label></div></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.radio_group("${label}", options=[("a", "Alpha"), ("b", "Beta")])`;
+    } else if (currentCompName === "table" || currentCompName === "data_grid") {
+      widgetHtml = `<div style="width:100%;overflow-x:auto"><table class="gx-table" style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:2px solid var(--gx-border);text-align:left"><th style="padding:8px">Partition</th><th style="padding:8px">Status</th><th style="padding:8px">Throughput</th></tr></thead><tbody><tr style="border-bottom:1px solid var(--gx-border)"><td style="padding:8px">us-east-1a</td><td style="padding:8px"><span class="gx-badge gx-badge-success">HEALTHY</span></td><td style="padding:8px">14.2k req/s</td></tr><tr><td style="padding:8px">eu-central-1</td><td style="padding:8px"><span class="gx-badge gx-badge-primary">ACTIVE</span></td><td style="padding:8px">9.8k req/s</td></tr></tbody></table></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.table(columns=["Partition", "Status", "Throughput"], rows=[["us-east-1a", "HEALTHY", "14.2k req/s"]])`;
+    } else if (currentCompName === "tag") {
+      widgetHtml = `<div style="display:flex;align-items:center;gap:8px"><span class="gx-badge gx-badge-${variant}" style="font-size:0.88rem;padding:4px 12px;border-radius:999px">${label} <button type="button" style="background:none;border:none;margin-left:6px;cursor:pointer;color:inherit;font-weight:700" onclick="this.parentElement.remove()">✕</button></span></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.tag("${label}", variant="${variant}")`;
+    } else if (currentCompName === "step_timeline") {
+      widgetHtml = `<div style="width:100%;display:flex;flex-direction:column;gap:10px"><div style="display:flex;align-items:center;gap:10px"><span style="width:22px;height:22px;border-radius:50%;background:#10b981;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">✓</span><span>1. AST Tree Compiled (0.012ms)</span></div><div style="display:flex;align-items:center;gap:10px"><span style="width:22px;height:22px;border-radius:50%;background:var(--gx-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</span><span>2. ${label} (Active Phase)</span></div></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.step_timeline([{"title": "AST Compiled", "status": "completed"}, {"title": "${label}", "status": "active"}])`;
+    } else if (currentCompName === "job_panel") {
+      widgetHtml = `<div class="gx-card" style="width:100%;padding:16px;background:var(--gx-surface-alt);border:1px solid var(--gx-border);border-radius:var(--gx-radius)"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><strong>Job: ${label}</strong><span class="gx-badge gx-badge-primary">RUNNING</span></div><div class="gx-progress" style="height:10px;background:var(--gx-border);border-radius:999px;margin-bottom:10px"><div class="gx-progress-bar gx-progress-${variant}" style="width:60%;height:100%;border-radius:999px"></div></div><button class="gx-button gx-button-sm gx-button-danger" type="button" onclick="this.textContent='Cancelled ✕'">Cancel Job</button></div>`;
+      snippet = compMeta.example || `import radui as ui\n\nwidget = ui.job_panel(job_id="export-metrics")`;
     } else if (currentCompName === "slider") {
       widgetHtml = `<div style="width:100%"><label class="gx-label" style="display:block;margin-bottom:8px">${label}: <span id="comp-slider-val" style="font-weight:700">65</span>%</label><input type="range" min="0" max="100" value="65" class="gx-slider" style="width:100%" oninput="document.getElementById('comp-slider-val').textContent=this.value"></div>`;
       snippet = `import radui as ui\n\nwidget = ui.slider("${label}", min=0, max=100, step=1, value=65)`;
@@ -1735,6 +1761,8 @@ STATIC_JS = r"""(() => {
     const content = document.getElementById("docs-content");
     if (!content) return;
 
+    const isGhPages = window.location.pathname.startsWith("/radui");
+    const basePath = isGhPages ? "/radui/" : "/";
     const currentPath = window.location.pathname.split("/").filter(Boolean).pop() || "index.html";
     const normalizedCurrent = currentPath.endsWith(".html") ? currentPath : `${currentPath}.html`;
     
@@ -1780,7 +1808,8 @@ STATIC_JS = r"""(() => {
       content.appendChild(loadingElem);
 
       try {
-        const res = await fetch(nextChapter.url);
+        const fetchUrl = basePath + nextChapter.url.replace(/^\//, "");
+        const res = await fetch(fetchUrl);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const htmlText = await res.text();
         const doc = new DOMParser().parseFromString(htmlText, "text/html");
@@ -1818,7 +1847,7 @@ STATIC_JS = r"""(() => {
           loadingElem.remove();
         }
       } catch (err) {
-        loadingElem.innerHTML = `<span>Could not load next chapter automatically.</span> <a href="${nextChapter.url}" style="color:var(--gx-primary);text-decoration:underline">Click here to open ${nextChapter.title} →</a>`;
+        loadingElem.innerHTML = `<span>Could not load next chapter automatically.</span> <a href="${basePath + nextChapter.url}" style="color:var(--gx-primary);text-decoration:underline">Click here to open ${nextChapter.title} →</a>`;
       } finally {
         isLoading = false;
       }
@@ -1847,7 +1876,7 @@ STATIC_JS = r"""(() => {
         if (rect.top <= 200) {
           if (window.location.pathname.split("/").pop() !== ch.url) {
             try {
-              history.replaceState(null, "", ch.url);
+              history.replaceState(null, "", basePath + ch.url);
               document.title = `${ch.title} — RADUI Documentation`;
               updatePill(ch.title);
 
@@ -2056,6 +2085,15 @@ STATIC_JS = r"""(() => {
     initComponentSearch();
     initContinuousScroll();
     initArchitectureDiagram();
+
+    const logoLink = document.getElementById("docs-logo-link");
+    if (logoLink && !logoLink._hasNav) {
+      logoLink._hasNav = true;
+      logoLink.addEventListener("click", () => {
+        const isGh = window.location.pathname.startsWith("/radui");
+        window.location.href = isGh ? "/radui/index.html" : "index.html";
+      });
+    }
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initAll);
@@ -3988,25 +4026,27 @@ def render_action_card(
     safe_payload = escape(json.dumps(component.data), quote=True)
     status_badge = f'<span class="gx-badge gx-badge-warning">{component.status.title()}</span>'
     actions_html = ""
-    if component.status == "pending" and csrf_token:
-        approve_action = "/_gx/commands/" + quote(component.approve_command, safe="")
+    if component.status == "pending":
+        csrf_val = escape(csrf_token or "static_csrf", quote=True)
+        view_val = escape(getattr(state_context, "view_id", "/"), quote=True)
+        approve_action = "/_gx/commands/" + quote(component.approve_command, safe="") if component.approve_command else "#"
         actions_html = (
             f'<div style="display:flex;gap:8px;margin-top:12px;">'
             f'<form class="gx-form" method="post" action="{escape(approve_action, quote=True)}" data-gx-command="{escape(component.approve_command, quote=True)}" style="margin:0;">'
-            f'<input type="hidden" name="_csrf" value="{escape(csrf_token, quote=True)}">'
+            f'<input type="hidden" name="_csrf" value="{csrf_val}">'
             f'<input type="hidden" name="_gx_action_id" value="{escape(secrets.token_urlsafe(18), quote=True)}">'
-            f'<input type="hidden" name="_gx_view_id" value="{escape(getattr(state_context, "view_id", "/"), quote=True)}">'
-            f'<button type="submit" class="gx-button gx-button-primary">Approve</button>'
+            f'<input type="hidden" name="_gx_view_id" value="{view_val}">'
+            f'<button type="submit" class="gx-button gx-button-success">Approve</button>'
             f'</form>'
         )
         if component.reject_command:
-            reject_action = "/_gx/commands/" + quote(component.reject_command, safe="")
+            reject_action = "/_gx/commands/" + quote(component.reject_command, safe="") if component.reject_command else "#"
             actions_html += (
                 f'<form class="gx-form" method="post" action="{escape(reject_action, quote=True)}" data-gx-command="{escape(component.reject_command, quote=True)}" style="margin:0;">'
-                f'<input type="hidden" name="_csrf" value="{escape(csrf_token, quote=True)}">'
+                f'<input type="hidden" name="_csrf" value="{csrf_val}">'
                 f'<input type="hidden" name="_gx_action_id" value="{escape(secrets.token_urlsafe(18), quote=True)}">'
-                f'<input type="hidden" name="_gx_view_id" value="{escape(getattr(state_context, "view_id", "/"), quote=True)}">'
-                f'<button type="submit" class="gx-button gx-button-secondary">Reject</button>'
+                f'<input type="hidden" name="_gx_view_id" value="{view_val}">'
+                f'<button type="submit" class="gx-button gx-button-danger">Reject</button>'
                 f'</form>'
             )
         actions_html += "</div>"

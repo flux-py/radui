@@ -14,7 +14,7 @@ def jobs_page():
         ui.card(
             ui.heading("Background Job Execution Sandbox", level=3),
             ui.row(
-                ui.metric_card("Worker State", s_job_status, hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+                ui.metric_card("Worker State", s_job_status.value, hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
                 ui.metric_card("Execution Progress", f"{int(s_job_progress.value * 100)}%", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
                 gap=16,
             ),

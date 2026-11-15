@@ -334,6 +334,36 @@ body {
   background: var(--gx-surface-alt) !important;
   border: 1px solid var(--gx-border) !important;
 }
+.gx-badge-warning {
+  color: #b45309 !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+[data-theme="dark"] .gx-badge-warning {
+  color: #fbbf24 !important;
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+.gx-badge-danger {
+  color: #dc2626 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+[data-theme="dark"] .gx-badge-danger {
+  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+.gx-badge-info {
+  color: #0284c7 !important;
+  background: rgba(14, 165, 233, 0.12) !important;
+  border: 1px solid rgba(14, 165, 233, 0.3) !important;
+}
+[data-theme="dark"] .gx-badge-info {
+  color: #38bdf8 !important;
+  background: rgba(14, 165, 233, 0.2) !important;
+  border-color: rgba(14, 165, 233, 0.4) !important;
+}
 
 /* Buttons with Tactile Elevation */
 .gx-btn, .gx-button {
@@ -360,6 +390,55 @@ body {
 .gx-button-primary:hover, .gx-btn-primary:hover {
   background: var(--gx-primary-hover) !important;
   box-shadow: 0 6px 18px rgba(16, 185, 129, 0.28) !important;
+}
+.gx-button-success, .gx-btn-success {
+  background: #10b981 !important;
+  color: #ffffff !important;
+}
+.gx-button-success:hover, .gx-btn-success:hover {
+  background: #059669 !important;
+}
+.gx-button-warning, .gx-btn-warning {
+  background: #f59e0b !important;
+  color: #1e221f !important;
+}
+.gx-button-warning:hover, .gx-btn-warning:hover {
+  background: #d97706 !important;
+}
+[data-theme="dark"] .gx-button-warning, [data-theme="dark"] .gx-btn-warning {
+  background: #f59e0b !important;
+  color: #090e0b !important;
+}
+.gx-button-danger, .gx-btn-danger {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+.gx-button-danger:hover, .gx-btn-danger:hover {
+  background: #dc2626 !important;
+}
+.gx-button-secondary, .gx-btn-secondary {
+  background: var(--gx-surface-alt) !important;
+  color: var(--gx-text) !important;
+  border: 1px solid var(--gx-border) !important;
+}
+.gx-button-secondary:hover, .gx-btn-secondary:hover {
+  background: var(--gx-border) !important;
+}
+.gx-button-neutral, .gx-btn-neutral {
+  background: var(--gx-surface-alt) !important;
+  color: var(--gx-text) !important;
+  border: 1px solid var(--gx-border) !important;
+}
+.gx-button-neutral:hover, .gx-btn-neutral:hover {
+  background: var(--gx-border) !important;
+}
+.gx-button-outline, .gx-btn-outline {
+  background: transparent !important;
+  color: var(--gx-primary) !important;
+  border: 1px solid var(--gx-primary) !important;
+}
+.gx-button-outline:hover, .gx-btn-outline:hover {
+  background: var(--gx-primary-subtle) !important;
 }
 
 /* Links */

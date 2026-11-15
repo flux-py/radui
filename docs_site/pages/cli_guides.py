@@ -156,7 +156,7 @@ def cli_workflows_page():
                 "[OK] Exported static page '/getting-started' to: dist_docs/getting-started.html\n"
                 "[OK] Exported static page '/components' to: dist_docs/components.html\n"
                 "[OK] Copied assets from 'docs_site/assets' to: dist_docs/assets\n"
-                "Successfully exported 10 pages with zero build pipeline.",
+                "Successfully exported 17 pages with zero build pipeline.",
                 language="text",
             ),
         ),
