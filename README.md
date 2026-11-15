@@ -139,11 +139,25 @@ radui dev app.py --port 3000 --open
 
 ## Installation & Packaging Extras
 
+### Immediate Installation (Direct from GitHub)
+
+You can install and use `radui` directly from GitHub today:
+
 ```bash
 # Core framework runtime
-pip install radui
+pip install "git+https://github.com/flux-py/radui.git"
 
 # Full enterprise production bundle (ASGI, PostgreSQL psycopg 3, Redis, OpenTelemetry):
+pip install "radui[all] @ git+https://github.com/flux-py/radui.git"
+```
+
+### Standard PyPI Installation
+
+```bash
+# Core framework runtime (when published on PyPI)
+pip install radui
+
+# Full enterprise production bundle:
 pip install "radui[all]"
 ```
 

@@ -253,7 +253,7 @@ def getting_started_page():
             variant="info",
         ),
         ui.heading("1. Installation", level=2),
-        ui.code_block("pip install radui\n\n# Or install with full production bundle (PostgreSQL, Redis, Telemetry):\npip install \"radui[all]\"", language="bash"),
+        ui.code_block("# Direct install from GitHub (Available immediately):\npip install \"git+https://github.com/flux-py/radui.git\"\n\n# Enterprise production bundle from GitHub:\npip install \"radui[all] @ git+https://github.com/flux-py/radui.git\"\n\n# Or install from PyPI (once published):\npip install radui\npip install \"radui[all]\"", language="bash"),
         ui.heading("2. Create Your First App (app.py)", level=2),
         ui.code_block(
             'import radui as ui\n\n'

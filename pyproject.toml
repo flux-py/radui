@@ -61,7 +61,7 @@ radui = "radui.cli:main"
 genesis = "radui.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["radui"]
+packages = ["radui", "genesis"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
