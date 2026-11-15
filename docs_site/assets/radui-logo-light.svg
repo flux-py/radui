@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="llMarkPrimary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" />
+      <stop offset="50%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#15803d" />
+    </linearGradient>
+
+    <linearGradient id="llMarkLoop" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="50%" stop-color="#22c55e" />
+      <stop offset="100%" stop-color="#4ade80" />
+    </linearGradient>
+
+    <linearGradient id="llMarkKick" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="60%" stop-color="#22c55e" />
+      <stop offset="100%" stop-color="#86efac" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left Icon Mark -->
+  <g transform="translate(14, 14) scale(0.23)">
+    <!-- Stem -->
+    <rect x="70" y="60" width="46" height="280" rx="23" fill="url(#llMarkPrimary)" />
+    <!-- Loop -->
+    <path d="M 93 60 H 210 C 272 60, 316 100, 316 162 C 316 224, 272 264, 210 264 H 116"
+          fill="none" stroke="url(#llMarkLoop)" stroke-width="46" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Kick -->
+    <path d="M 188 234 L 294 340"
+          fill="none" stroke="url(#llMarkKick)" stroke-width="46" stroke-linecap="round" />
+    <!-- Signal Nodes -->
+    <circle cx="93" cy="83" r="10" fill="#f0fdf4" stroke="#15803d" stroke-width="3.5" />
+    <circle cx="316" cy="162" r="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="3.5" />
+    <circle cx="294" cy="340" r="12" fill="#ffffff" stroke="#22c55e" stroke-width="4" />
+  </g>
+
+  <!-- Wordmark "RADUI" in Precision Geometric Typography -->
+  <g fill="#19221e">
+    <text x="122" y="74"
+          font-family="system-ui, -apple-system, 'SF Pro Display', Inter, 'Segoe UI', sans-serif"
+          font-size="52"
+          font-weight="900"
+          letter-spacing="-1.5px">RADUI</text>
+  </g>
+
+  <!-- Tagline / Descriptor Badge -->
+  <rect x="312" y="44" width="205" height="28" rx="7" fill="#e7f1eb" stroke="#d0e4d6" stroke-width="1.2" />
+  <text x="323" y="63"
+        font-family="system-ui, -apple-system, Inter, sans-serif"
+        font-size="11.5"
+        font-weight="700"
+        fill="#206b52"
+        letter-spacing="0.8px">PYTHON REACTIVE UI</text>
+
+  <!-- Subtitle -->
+  <text x="124" y="98"
+        font-family="system-ui, -apple-system, Inter, sans-serif"
+        font-size="12"
+        font-weight="500"
+        fill="#69736c"
+        letter-spacing="0.2px">The Python-First Reactive User Interface Framework</text>
+</svg>

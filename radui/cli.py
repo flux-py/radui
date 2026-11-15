@@ -739,6 +739,7 @@ def cmd_export(args: argparse.Namespace) -> int:
                     custom_css=custom_css,
                     view_id=path,
                     direction=app_instance.theme.direction if app_instance.theme else "ltr",
+                    static_export=True,
                 )
                 out_file = output_dir / safe_name
                 out_file.write_text(doc_html, encoding="utf-8")

@@ -1029,6 +1029,138 @@ body {
 """.strip()
 
 
+STATIC_JS = r"""(() => {
+  const announce = (message) => {
+    const live = document.querySelector(".gx-aria-live");
+    if (live) live.textContent = message;
+  };
+
+  document.addEventListener("pointermove", (event) => {
+    if (event.pointerType === "touch") return;
+    const surface = event.target.closest(".gx-card, .gx-metric, .gx-code-block");
+    if (!surface) return;
+    const rect = surface.getBoundingClientRect();
+    surface.style.setProperty("--gx-pointer-x", `${event.clientX - rect.left}px`);
+    surface.style.setProperty("--gx-pointer-y", `${event.clientY - rect.top}px`);
+  }, { passive: true });
+
+  const runDemoCommand = (command, source) => {
+    const card = source.closest(".gx-card");
+    const metrics = card ? [...card.querySelectorAll(".gx-metric-value")] : [];
+    if (command === "demo.inc" || command === "demo.dec") {
+      const metric = metrics[0];
+      if (metric) {
+        const current = Number(metric.textContent.trim()) || 0;
+        const next = current + (command === "demo.inc" ? 1 : -1);
+        metric.textContent = String(next);
+        metric.animate?.([{ transform: "scale(.9)", opacity: .55 }, { transform: "scale(1)", opacity: 1 }], { duration: 220, easing: "ease-out" });
+        announce(`Counter updated to ${next}`);
+      }
+    } else if (command === "calc.update") {
+      const inputs = [...(card?.querySelectorAll('input[type="number"]') || [])].map(input => Number(input.value));
+      if (inputs.length >= 2 && metrics.length >= 3) {
+        metrics[2].textContent = (inputs[0] * (1 + inputs[1])).toFixed(2);
+        announce("Computed total updated");
+      }
+    } else if (command === "job.start" || command === "job.cancel") {
+      if (metrics[0]) metrics[0].textContent = command === "job.start" ? "RUNNING" : "CANCELLED";
+      if (metrics[1]) metrics[1].textContent = command === "job.start" ? "45%" : "0%";
+      const bar = card?.querySelector(".gx-progress-bar");
+      if (bar) bar.style.width = command === "job.start" ? "45%" : "0%";
+      announce(command === "job.start" ? "Demo job started" : "Demo job cancelled");
+    } else if (command.startsWith("comp.select_")) {
+      document.querySelectorAll('[data-gx-command^="comp.select_"]').forEach(button => {
+        const selected = button === source;
+        button.classList.toggle("is-selected", selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
+      const selection = document.getElementById("component-selection");
+      const name = command.replace("comp.select_", "");
+      if (selection) selection.textContent = `Selected live preview: ${name.replaceAll("_", " ")}`;
+      announce(`${name.replaceAll("_", " ")} preview selected`);
+    } else {
+      announce("Example interaction received");
+    }
+  };
+
+  document.addEventListener("submit", (event) => {
+    const form = event.target.closest("form[data-gx-command]");
+    if (!form) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    runDemoCommand(form.dataset.gxCommand || "", form);
+  }, true);
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-gx-command]");
+    if (!button || button.closest("form")) return;
+    event.preventDefault();
+    runDemoCommand(button.dataset.gxCommand || "", button);
+  }, true);
+
+  document.addEventListener("click", async (event) => {
+    const copy = event.target.closest("[data-gx-copy]");
+    if (!copy) return;
+    const code = document.getElementById(copy.dataset.gxCopy);
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code.dataset.gxRawCode || code.innerText);
+      const old = copy.textContent;
+      copy.textContent = "Copied!";
+      setTimeout(() => { copy.textContent = old; }, 1400);
+    } catch (_) { announce("Clipboard access is unavailable"); }
+  });
+
+  const initGrids = () => document.querySelectorAll("[data-gx-grid]").forEach(grid => {
+    if (grid.dataset.staticReady) return;
+    grid.dataset.staticReady = "true";
+    const body = grid.querySelector("tbody");
+    if (!body) return;
+    const rows = [...body.querySelectorAll("tr")];
+    const search = grid.querySelector("[data-gx-grid-search]");
+    const total = grid.querySelector("[data-gx-grid-total]");
+    const pageInfo = grid.querySelector("[data-gx-grid-page-info]");
+    const previous = grid.querySelector("[data-gx-grid-prev]");
+    const next = grid.querySelector("[data-gx-grid-next]");
+    const size = Number(grid.dataset.gxPageSize) || 10;
+    let page = 1, column = -1, ascending = true, visible = rows;
+    const update = () => {
+      const query = (search?.value || "").trim().toLowerCase();
+      visible = rows.filter(row => row.textContent.toLowerCase().includes(query));
+      if (column >= 0) visible.sort((a, b) => {
+        const av = a.children[column]?.textContent.trim() || "";
+        const bv = b.children[column]?.textContent.trim() || "";
+        const an = Number(av), bn = Number(bv);
+        const compare = av && bv && Number.isFinite(an) && Number.isFinite(bn) ? an - bn : av.localeCompare(bv);
+        return ascending ? compare : -compare;
+      });
+      const pages = Math.max(1, Math.ceil(visible.length / size));
+      page = Math.min(page, pages);
+      rows.forEach(row => { row.hidden = true; });
+      visible.slice((page - 1) * size, page * size).forEach(row => { row.hidden = false; body.appendChild(row); });
+      if (total) total.textContent = `${visible.length} items`;
+      if (pageInfo) pageInfo.textContent = `Page ${page} of ${pages}`;
+      if (previous) previous.disabled = page <= 1;
+      if (next) next.disabled = page >= pages;
+    };
+    search?.addEventListener("input", () => { page = 1; update(); });
+    grid.querySelectorAll("th[data-gx-sort-col]").forEach(header => header.addEventListener("click", () => {
+      const selected = Number(header.dataset.gxSortCol);
+      ascending = column === selected ? !ascending : true;
+      column = selected;
+      page = 1;
+      update();
+    }));
+    previous?.addEventListener("click", () => { page--; update(); });
+    next?.addEventListener("click", () => { page++; update(); });
+    update();
+  });
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initGrids);
+  else initGrids();
+})();""".strip()
+
+
 CLIENT_JS = r"""(() => {
   const view = document.querySelector('meta[name="gx-view"]')?.content || location.pathname;
   const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1324,6 +1456,17 @@ CLIENT_JS = r"""(() => {
   });
 
   // Pointer & Micro-interaction handlers (hover & tap)
+  // Keep the pointer origin on native RadUI surfaces so themes can render a
+  // subtle cursor-following highlight without adding per-component scripts.
+  document.addEventListener("pointermove", (event) => {
+    if (event.pointerType === "touch") return;
+    const surface = event.target.closest(".gx-card, .gx-metric, .gx-code-block");
+    if (!surface) return;
+    const rect = surface.getBoundingClientRect();
+    surface.style.setProperty("--gx-pointer-x", `${event.clientX - rect.left}px`);
+    surface.style.setProperty("--gx-pointer-y", `${event.clientY - rect.top}px`);
+  }, { passive: true });
+
   document.addEventListener("pointerdown", (e) => {
     const tapEl = e.target.closest("[data-gx-tap]");
     if (!tapEl || prefersReducedMotion()) return;
@@ -2320,6 +2463,7 @@ class HTMLRenderer:
         custom_css: str = "",
         command_palette: bool = True,
         direction: str = "ltr",
+        static_export: bool = False,
     ) -> str:
         self.registry.validate(root)
         safe_title = escape(title)
@@ -2372,6 +2516,7 @@ class HTMLRenderer:
             """
         live_region = '<div class="gx-aria-live" aria-live="polite" aria-atomic="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>'
         extra_css = f"<style>{custom_css}</style>" if custom_css else ""
+        runtime_script = f"<script>{STATIC_JS}</script>" if static_export else '<script src="/_gx/client.js" defer></script>'
         return (
             "<!doctype html>"
             f'<html lang="en" dir="{direction}"><head><meta charset="utf-8">'
@@ -2379,7 +2524,7 @@ class HTMLRenderer:
             f'<meta name="gx-view" content="{safe_view}">'
             f'<meta name="gx-event-cursor" content="{event_cursor}">'
             f"<title>{safe_title}</title><style>{BASE_CSS}</style>{extra_css}"
-            '<script src="/_gx/client.js" defer></script>'
+            f"{runtime_script}"
             f'</head><body><main class="gx-shell" id="gx-root" data-gx-root>{body}</main>{inspector_html}{palette_html}{live_region}</body></html>'
         )
 

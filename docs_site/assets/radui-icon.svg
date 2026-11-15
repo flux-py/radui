@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgGlow" cx="50%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#142c23" />
+      <stop offset="60%" stop-color="#0c1713" />
+      <stop offset="100%" stop-color="#070c09" />
+    </radialGradient>
+
+    <!-- Emerald-Mint Reactive Brand Gradient -->
+    <linearGradient id="radPrimary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="45%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+
+    <!-- Electric Cyan Accent Gradient (Signifying Reactive Signals) -->
+    <linearGradient id="radSignal" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#6ee7b7" />
+    </linearGradient>
+
+    <!-- Dynamic Leg Beam Gradient -->
+    <linearGradient id="radBeam" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="50%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#a7f3d0" />
+    </linearGradient>
+
+    <!-- Soft Glow Filter -->
+    <filter id="luminousGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="nodeGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Container Squircle with subtle glass border -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bgGlow)" stroke="#1e3a2f" stroke-width="3" />
+  <rect x="18" y="18" width="476" height="476" rx="106" fill="none" stroke="rgba(52, 211, 153, 0.15)" stroke-width="1.5" />
+
+  <!-- Ambient Internal Pulse -->
+  <circle cx="280" cy="220" r="140" fill="radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)" opacity="0.6" />
+
+  <!-- Core Icon: Geometric Reactive 'R' Lockup -->
+  <g transform="translate(20, 0)">
+    <!-- 1. Left Vertical Stem: Rounded solid pillar with reactive state track -->
+    <rect x="120" y="116" width="52" height="280" rx="26" fill="url(#radPrimary)" />
+
+    <!-- 2. Radiating Reactive Upper Loop: Fluid geometry flowing into middle node -->
+    <path d="M 146 116
+             H 276
+             C 342 116, 388 158, 388 224
+             C 388 290, 342 332, 276 332
+             H 172"
+          fill="none"
+          stroke="url(#radSignal)"
+          stroke-width="52"
+          stroke-linecap="round"
+          stroke-linejoin="round" />
+
+    <!-- 3. Dynamic Kick / Reactive Signal Beam: Shooting out diagonally to the bottom-right -->
+    <path d="M 252 296
+             L 366 396"
+          fill="none"
+          stroke="url(#radBeam)"
+          stroke-width="52"
+          stroke-linecap="round" />
+
+    <!-- 4. Reactive DAG Network Nodes: Visualizing Python state signals propagating -->
+    <g filter="url(#nodeGlow)">
+      <!-- Origin Signal Node -->
+      <circle cx="146" cy="142" r="11" fill="#ecfdf5" stroke="#10b981" stroke-width="4" />
+      
+      <!-- Computed Signal Node -->
+      <circle cx="388" cy="224" r="11" fill="#ecfdf5" stroke="#34d399" stroke-width="4" />
+
+      <!-- Action / Output Node -->
+      <circle cx="366" cy="396" r="13" fill="#ffffff" stroke="#10b981" stroke-width="5" />
+    </g>
+
+    <!-- Subtle Connection Arc (Signal Wave Ring) -->
+    <path d="M 330 150 A 110 110 0 0 1 340 300"
+          fill="none"
+          stroke="rgba(110, 231, 183, 0.35)"
+          stroke-width="4"
+          stroke-dasharray="8 8"
+          stroke-linecap="round" />
+  </g>
+</svg>
