@@ -1,8 +1,13 @@
-"""RADUI Official Documentation Website — Production Interactive Application.
+"""RADUI Official Documentation Website — Masterclass Interactive Experience.
 
-Built 100% with RADUI. Zero external UI frameworks (No React, Vue, Next.js, Tailwind, etc.).
-Demonstrates RADUI's real AST components, 5-tier reactive state, command dispatch,
-surgical SSE morphing, live component playgrounds, and interactive architecture visualizers.
+Built 100% with RADUI native components and reactive runtime.
+Zero external UI frameworks (No React, Vue, Next.js, Tailwind, Docusaurus, etc.).
+Features:
+- Luxury obsidian & radial mesh atmosphere with glassmorphic depth
+- Integrated motion engine (staggered entrances, spring transforms, hover glows, tap compression)
+- Interactive live state playground, reactive DAG calculator, and execution trace visualizer
+- Interactive component explorer across all 68 built-in primitives
+- Vector SVG pipeline diagram with directional stage edges
 """
 
 from __future__ import annotations
@@ -13,19 +18,258 @@ import radui as ui
 from docs_site.data import COMPONENTS, CLI_COMMANDS, ADRS, COMPONENT_DOMAINS
 
 # =========================================================================
+# WORLD-CLASS DESIGN SYSTEM: THE LUXURY OBSIDIAN & NEON CANVAS
+# =========================================================================
+
+CUSTOM_CSS = """
+/* Atmosphere & Background Mesh */
+body {
+  background-color: #07090e !important;
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -15%, rgba(99, 102, 241, 0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 100% 30%, rgba(6, 182, 212, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 30% at 0% 70%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 28px 28px !important;
+  background-attachment: fixed !important;
+  color: #f1f5f9 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(7, 9, 14, 0.8); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.5); }
+
+/* Glassmorphic Cards */
+.gx-card {
+  background: rgba(15, 23, 42, 0.65) !important;
+  backdrop-filter: blur(20px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.gx-card:hover {
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 20px 45px -12px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+/* Metric Cards */
+.gx-metric {
+  background: rgba(15, 23, 42, 0.7) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 18px 20px !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.gx-metric:hover {
+  border-color: rgba(6, 182, 212, 0.45) !important;
+  box-shadow: 0 12px 28px -8px rgba(6, 182, 212, 0.22) !important;
+  transform: translateY(-2px);
+}
+
+.gx-metric [class*="value"] {
+  font-family: var(--gx-font-mono) !important;
+  font-weight: 800 !important;
+  font-size: 1.85rem !important;
+  letter-spacing: -0.03em !important;
+  background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Headers & Gradient Typography */
+h1.gx-heading {
+  font-size: 2.75rem !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.04em !important;
+  background: linear-gradient(135deg, #ffffff 15%, #93c5fd 55%, #c084fc 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+h2.gx-heading {
+  font-size: 1.65rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+  color: #f8fafc !important;
+}
+
+h3.gx-heading {
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Modern Glowing Buttons */
+.gx-btn {
+  font-weight: 600 !important;
+  font-size: 0.92rem !important;
+  padding: 10px 20px !important;
+  border-radius: 10px !important;
+  letter-spacing: -0.01em !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.gx-btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+.gx-btn-primary:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%) !important;
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-1.5px) !important;
+}
+
+.gx-btn-secondary, .gx-btn-outline {
+  background: rgba(30, 41, 59, 0.6) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.gx-btn-secondary:hover, .gx-btn-outline:hover {
+  background: rgba(51, 65, 85, 0.8) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  color: #ffffff !important;
+  transform: translateY(-1.5px) !important;
+}
+
+.gx-btn-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35) !important;
+}
+
+/* Badges & Shimmer Tags */
+.gx-badge {
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 4px 10px !important;
+  border-radius: 9999px !important;
+  letter-spacing: 0.02em !important;
+}
+
+.gx-badge-primary {
+  background: rgba(37, 99, 235, 0.2) !important;
+  color: #93c5fd !important;
+  border: 1px solid rgba(59, 130, 246, 0.4) !important;
+}
+
+.gx-badge-success {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #6ee7b7 !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+
+/* Code Blocks with macOS IDE Chrome */
+.gx-code-block {
+  background: #0b0f19 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+  position: relative !important;
+  padding-top: 36px !important;
+  font-family: var(--gx-font-mono) !important;
+  font-size: 0.88rem !important;
+}
+
+.gx-code-block::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 16px 0 0 #f59e0b, 32px 0 0 #10b981;
+}
+
+/* Navigation Links */
+a {
+  color: #93c5fd;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(147, 197, 253, 0.5);
+}
+
+/* Form Controls with Glowing Focus */
+.gx-input, .gx-select {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px !important;
+  color: #f8fafc !important;
+  padding: 10px 14px !important;
+  font-size: 0.92rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.gx-input:focus, .gx-select:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+  outline: none !important;
+}
+
+/* Callouts */
+.gx-callout {
+  background: rgba(15, 23, 42, 0.7) !important;
+  backdrop-filter: blur(14px) !important;
+  border-left: 4px solid #3b82f6 !important;
+  border-radius: 8px !important;
+  padding: 16px 20px !important;
+}
+"""
+
+# =========================================================================
 # APPLICATION INITIALIZATION & CONFIGURATION
 # =========================================================================
 
 app = ui.App(
     title="RADUI — Official Developer Documentation",
-    theme=ui.Theme(name="radui-dark", direction="ltr"),
+    theme=ui.Theme(
+        name="radui-dark",
+        mode="dark",
+        direction="ltr",
+        primary="#3b82f6",
+        primary_hover="#60a5fa",
+        bg="#07090e",
+        surface="#0f172a",
+        surface_alt="#1e293b",
+        text="#f8fafc",
+        text_muted="#94a3b8",
+        border="rgba(255, 255, 255, 0.08)",
+        border_strong="rgba(255, 255, 255, 0.16)",
+        custom_css=CUSTOM_CSS,
+    ),
 )
 
 # =========================================================================
 # REACTIVE STATE DEFINITIONS (Session Scoped)
 # =========================================================================
 
-# Navigation & Command Palette State
 s_active_comp = ui.state("docs.active_comp", default="button", scope="session")
 s_search_query = ui.state("docs.search_query", default="", scope="session")
 s_category_filter = ui.state("docs.cat_filter", default="All", scope="session")
@@ -83,7 +327,12 @@ def s_calc_total() -> float:
 def _render_sidebar() -> ui.Component:
     """Builds the reactive multi-level documentation navigation sidebar."""
     return ui.column(
-        ui.heading("Navigation", level=4),
+        ui.row(
+            ui.heading("Navigation", level=4),
+            ui.badge("11 Routes", variant="neutral"),
+            justify="between",
+            align="center",
+        ),
         ui.accordion(
             ui.accordion_item(
                 "Fundamentals",
@@ -91,7 +340,7 @@ def _render_sidebar() -> ui.Component:
                     ui.link("Overview & Hero", "/"),
                     ui.link("Getting Started", "/getting-started"),
                     ui.link("System Architecture", "/architecture"),
-                    gap=6,
+                    gap=8,
                 ),
                 open=True,
             ),
@@ -103,7 +352,7 @@ def _render_sidebar() -> ui.Component:
                     ui.link("Real-Time SSE Broker", "/transport"),
                     ui.link("Background Jobs", "/jobs"),
                     ui.link("AI & MCP Protocols", "/ai"),
-                    gap=6,
+                    gap=8,
                 ),
                 open=True,
             ),
@@ -113,18 +362,23 @@ def _render_sidebar() -> ui.Component:
                     ui.link("CLI Reference (45)", "/cli"),
                     ui.link("12 Architecture Records", "/adrs"),
                     ui.link("Live Event Trace", "/event-trace"),
-                    gap=6,
+                    gap=8,
                 ),
                 open=True,
             ),
         ),
-        ui.spacer(size=24),
+        ui.spacer(size=16),
         ui.card(
-            ui.text("Built with RADUI v1.0.0", variant="caption"),
-            ui.text("Zero npm dependencies. 100% pure Python AST rendering.", variant="muted"),
-            title="Native Dogfooding",
+            ui.row(
+                ui.badge("Dogfooding", variant="success"),
+                ui.badge("100% Native", variant="primary"),
+                gap=8,
+            ),
+            ui.text("Zero external JS frameworks. Built and rendered entirely using RADUI AST & SSE morph engine.", variant="muted"),
+            title="RADUI v1.0.0 Stable",
+            hover=ui.motion.hover(scale=1.02, translate_y=-2.0),
         ),
-        gap=12,
+        gap=14,
     )
 
 
@@ -133,7 +387,7 @@ def _render_header() -> ui.Component:
     return ui.row(
         ui.row(
             ui.heading("RADUI", level=3),
-            ui.badge("v1.0.0 Stable", variant="primary"),
+            ui.badge("v1.0.0", variant="primary"),
             ui.badge("Zero JS Toolchain", variant="success"),
             gap=12,
             align="center",
@@ -166,7 +420,7 @@ def docs_layout(outlet: ui.Component) -> ui.Component:
             columns={"sm": 1, "md": 1, "lg": 2},
             gap=24,
         ),
-        ui.spacer(size=32),
+        ui.spacer(size=36),
         ui.divider(),
         ui.row(
             ui.text("RADUI is open-source under the Apache License 2.0. Copyright (c) 2026 Flux-Py / RADUI Contributors.", variant="caption"),
@@ -179,7 +433,7 @@ def docs_layout(outlet: ui.Component) -> ui.Component:
             justify="between",
             align="center",
         ),
-        max_width="1400px",
+        max_width="1440px",
         centered=True,
     )
 
@@ -191,50 +445,72 @@ def docs_layout(outlet: ui.Component) -> ui.Component:
 @app.page("/")
 def home_page():
     return ui.column(
-        ui.heading("RADUI — The Python-First Reactive User Interface", level=1),
-        ui.text(
-            "An enterprise reactive application framework engineered for real-time dashboards, autonomous AI agent workbenches, and interactive web applications.",
-            variant="lead",
-        ),
-        ui.row(
-            ui.link("Get Started in 60s", "/getting-started"),
-            ui.link("Explore 68 Components", "/components"),
-            ui.link("System Architecture", "/architecture"),
-            gap=16,
+        # Glowing Hero Headline & Value Proposition
+        ui.column(
+            ui.row(
+                ui.badge("Framework v1.0.0 Live", variant="primary"),
+                ui.badge("Verified Gate 4 Latency", variant="success"),
+                ui.badge("Zero npm Dependencies", variant="neutral"),
+                gap=8,
+            ),
+            ui.heading("The Python-First Reactive User Interface", level=1),
+            ui.text(
+                "An enterprise reactive application framework engineered for real-time dashboards, autonomous AI agent workbenches, and interactive web applications without writing a line of JavaScript.",
+                variant="lead",
+            ),
+            ui.row(
+                ui.link("Get Started in 60s", "/getting-started"),
+                ui.link("Explore 68 Components", "/components"),
+                ui.link("System Architecture", "/architecture"),
+                gap=16,
+            ),
+            gap=12,
+            motion=ui.motion.slide_up(delay=0.05, duration=0.4),
         ),
         ui.spacer(size=16),
-        # Interactive Live Demonstration Card
+
+        # Interactive Live State Demonstration Card
         ui.card(
-            ui.heading("Interactive Live State Demonstration", level=3),
+            ui.row(
+                ui.heading("Interactive Live State Demonstration", level=3),
+                ui.badge("Command Dispatch Live", variant="success"),
+                justify="between",
+                align="center",
+            ),
             ui.text(
                 "Click the buttons below. RADUI executes a server-side command dispatch, mutates session state, and transmits a targeted SSE sub-DOM patch with zero full page reloads:"
             ),
             ui.metric_card("Live Counter Signal", s_counter, delta="+1 on increment"),
             ui.form(
                 ui.row(
-                    ui.button("Increment", variant="primary"),
-                    ui.button("Reset Counter", variant="danger"),
+                    ui.button("Increment", variant="primary", tap=ui.motion.tap(scale=0.96)),
+                    ui.button("Reset Counter", variant="danger", tap=ui.motion.tap(scale=0.96)),
                     gap=12,
                 ),
                 command="demo.inc",
             ),
             footer=ui.text("Executed over ASGI 3.0 with monotonic command deduplication.", variant="caption"),
             title="Live Reactive Engine Sandbox",
+            hover=ui.motion.hover(scale=1.015, translate_y=-3.0),
+            motion=ui.motion.fade_in(delay=0.1),
         ),
         ui.spacer(size=16),
-        # High-Speed Benchmarks Summary
+
+        # High-Speed Benchmarks Summary (All 6 Verified Tiers)
         ui.heading("Verified Latency Benchmarks (Median)", level=2),
         ui.grid(
-            ui.metric_card("In-Memory AST Compilation", "0.039 ms", delta="Gate < 0.10ms"),
-            ui.metric_card("HTML Stream Serialization", "0.038 ms", delta="Gate < 0.15ms"),
-            ui.metric_card("Full SSR ASGI Roundtrip", "3.037 ms", delta="Gate < 15.0ms"),
-            ui.metric_card("Command Dispatch & Mutate", "3.475 ms", delta="Gate < 15.0ms"),
-            ui.metric_card("Sub-DOM Diffing & Patch", "0.168 ms", delta="Gate < 1.00ms"),
-            ui.metric_card("SSE Wire Delivery", "0.007 ms", delta="Gate < 0.50ms"),
+            ui.metric_card("In-Memory AST Compilation", "0.039 ms", delta="Gate < 0.10ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+            ui.metric_card("HTML Stream Serialization", "0.038 ms", delta="Gate < 0.15ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+            ui.metric_card("Full SSR ASGI Roundtrip", "3.037 ms", delta="Gate < 15.0ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+            ui.metric_card("Command Dispatch & Mutate", "3.475 ms", delta="Gate < 15.0ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+            ui.metric_card("Sub-DOM Diffing & Patch", "0.168 ms", delta="Gate < 1.00ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+            ui.metric_card("SSE Wire Delivery", "0.007 ms", delta="Gate < 0.50ms [PASSED]", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
             columns=3,
-            gap=12,
+            gap=14,
+            motion=ui.motion.slide_up(delay=0.15, duration=0.4),
         ),
         gap=16,
+        stagger_children=0.06,
     )
 
 
@@ -252,8 +528,19 @@ def getting_started_page():
             title="Zero JavaScript Toolchain Required",
             variant="info",
         ),
+        ui.spacer(size=12),
         ui.heading("1. Installation", level=2),
-        ui.code_block("# Direct install from GitHub (Available immediately):\npip install \"git+https://github.com/flux-py/radui.git\"\n\n# Enterprise production bundle from GitHub:\npip install \"radui[all] @ git+https://github.com/flux-py/radui.git\"\n\n# Or install from PyPI (once published):\npip install radui\npip install \"radui[all]\"", language="bash"),
+        ui.code_block(
+            "# Direct install from GitHub (Available immediately):\n"
+            "pip install \"git+https://github.com/flux-py/radui.git\"\n\n"
+            "# Enterprise production bundle from GitHub:\n"
+            "pip install \"radui[all] @ git+https://github.com/flux-py/radui.git\"\n\n"
+            "# Or install from PyPI (once published):\n"
+            "pip install radui\n"
+            "pip install \"radui[all]\"",
+            language="bash",
+            copyable=True,
+        ),
         ui.heading("2. Create Your First App (app.py)", level=2),
         ui.code_block(
             'import radui as ui\n\n'
@@ -275,10 +562,12 @@ def getting_started_page():
             'if __name__ == "__main__":\n'
             '    app.run(port=3000)',
             language="python",
+            copyable=True,
         ),
         ui.heading("3. Run the Development Server", level=2),
-        ui.code_block("radui dev app.py --port 3000 --open", language="bash"),
+        ui.code_block("radui dev app.py --port 3000 --open", language="bash", copyable=True),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -310,6 +599,7 @@ def architecture_page():
             ui.diagram(nodes, edges, height=280),
             title="Interactive Execution Pipeline",
             subtitle="Click or inspect nodes to understand lifecycle invariants",
+            hover=ui.motion.hover(scale=1.015, translate_y=-3.0),
         ),
         ui.spacer(size=12),
         ui.heading("Core Architectural Invariants", level=2),
@@ -331,6 +621,7 @@ def architecture_page():
             ),
         ),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -340,11 +631,10 @@ def architecture_page():
 
 @app.page("/components")
 def components_page():
-    # Find active component metadata
     active_name = s_active_comp.value
     meta = next((c for c in COMPONENTS if c["name"] == active_name), COMPONENTS[0])
 
-    # Build dynamic live preview of the component
+    # Dynamic live preview of the selected component
     preview_widget: ui.Component
     if meta["name"] == "button":
         preview_widget = ui.button(
@@ -353,6 +643,7 @@ def components_page():
             variant=s_prop_variant.value,
             size=s_prop_size.value,
             disabled=s_prop_disabled.value,
+            tap=ui.motion.tap(scale=0.96),
         )
     elif meta["name"] == "badge":
         preview_widget = ui.badge(s_prop_label.value, variant=s_prop_variant.value)
@@ -369,7 +660,7 @@ def components_page():
             subtitle=meta["domain"],
         )
 
-    # Generated Python Code
+    # Generated Python AST code snippet
     gen_code = f"import radui as ui\n\n# Declarative component usage\nwidget = ui.{meta['name']}("
     if meta["params"]:
         gen_code += f'\n    label="{s_prop_label.value}",\n    variant="{s_prop_variant.value}",\n    disabled={s_prop_disabled.value},\n'
@@ -395,6 +686,7 @@ def components_page():
                 ui.text(f"Selected: ui.{meta['name']}", variant="code"),
                 ui.text(meta["description"]),
                 title="Catalog Index (68 Total)",
+                hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
             ),
             # Right Column: Property Inspector
             ui.card(
@@ -411,6 +703,7 @@ def components_page():
                     command="comp.apply_props",
                 ),
                 title="Live Property Controls",
+                hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
             ),
             columns=2,
             gap=16,
@@ -421,12 +714,14 @@ def components_page():
             preview_widget,
             title="Live Rendered Component Preview",
             subtitle="Mutations update through server-side surgical SSE sub-DOM morphing",
+            hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
         ),
         ui.spacer(size=12),
         # Synchronized Python Implementation Code
         ui.heading("Synchronized Python Implementation", level=3),
         ui.code_block(gen_code, language="python", copyable=True),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -454,12 +749,13 @@ def state_page():
             ),
             ui.spacer(size=12),
             ui.row(
-                ui.metric_card("Base Price", s_price),
-                ui.metric_card("Tax Rate", s_tax),
-                ui.metric_card("Computed Total", s_calc_total, delta="Automated DAG derivation"),
+                ui.metric_card("Base Price", s_price, hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+                ui.metric_card("Tax Rate", s_tax, hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+                ui.metric_card("Computed Total", s_calc_total, delta="Automated DAG derivation", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
                 gap=16,
             ),
             title="Live Computed Signal Sandbox",
+            hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
         ),
         ui.spacer(size=16),
         ui.heading("The 5 Deterministic Scopes", level=2),
@@ -474,6 +770,7 @@ def state_page():
             ],
         ),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -492,9 +789,9 @@ def transport_page():
             variant="success",
         ),
         ui.grid(
-            ui.metric_card("Wire Dispatch Latency", "0.007 ms", delta="Sub-millisecond delivery"),
-            ui.metric_card("Client Footprint", "9.6 KB", delta="Gzip uncompressed 37.6KB"),
-            ui.metric_card("Replay Guarantees", "Monotonic", delta="Zero duplicate execution"),
+            ui.metric_card("Wire Dispatch Latency", "0.007 ms", delta="Sub-millisecond delivery", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+            ui.metric_card("Client Footprint", "9.6 KB", delta="Gzip uncompressed 37.6KB", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+            ui.metric_card("Replay Guarantees", "Monotonic", delta="Zero duplicate execution", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
             columns=3,
             gap=12,
         ),
@@ -504,8 +801,10 @@ def transport_page():
             'id: 104\n'
             'data: {"view_id": "/dashboard", "sequence": 104, "patches": [{"id": "kpi_counter", "html": "<span>43</span>"}]}\n\n',
             language="json",
+            copyable=True,
         ),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -521,8 +820,8 @@ def jobs_page():
         ui.card(
             ui.heading("Background Job Execution Sandbox", level=3),
             ui.row(
-                ui.metric_card("Worker State", s_job_status),
-                ui.metric_card("Execution Progress", f"{int(s_job_progress.value * 100)}%"),
+                ui.metric_card("Worker State", s_job_status, hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
+                ui.metric_card("Execution Progress", f"{int(s_job_progress.value * 100)}%", hover=ui.motion.hover(scale=1.03, translate_y=-4.0)),
                 gap=16,
             ),
             ui.progress_bar(value=s_job_progress.value * 100.0, variant="primary"),
@@ -532,8 +831,10 @@ def jobs_page():
                 gap=12,
             ),
             title="Durable Job Runner Control Plane",
+            hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
         ),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -555,6 +856,7 @@ def ai_page():
                     title="Agent Conversation Stream",
                 ),
                 title="Agent Conversation Stream",
+                hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
             ),
             ui.card(
                 ui.heading("Human-in-the-Loop Action Card", level=4),
@@ -566,11 +868,13 @@ def ai_page():
                     reject_command="agent.reject_demo",
                 ),
                 title="Privileged Action Authorization",
+                hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
             ),
             columns=2,
             gap=16,
         ),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -588,6 +892,7 @@ def cli_page():
             rows=[[c["cmd"], c["domain"], f"`{c['syntax']}`", c["description"]] for c in CLI_COMMANDS],
         ),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -605,6 +910,7 @@ def adrs_page():
             rows=[[a["id"], a["title"], a["scope"], a["invariant"]] for a in ADRS],
         ),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -637,8 +943,10 @@ def event_trace_page():
             ),
             title="Real-Time Execution Journal",
             subtitle="Demonstrates verified server-side execution latency and payload lifecycle",
+            hover=ui.motion.hover(scale=1.015, translate_y=-2.0),
         ),
         gap=16,
+        stagger_children=0.05,
     )
 
 
@@ -767,7 +1075,6 @@ def _record_trace(ctx: ui.CommandContext, action: str, cmd: str, delta: str):
         "duration": "0.168ms",
         "delta": delta,
     })
-    # Keep last 15 traces
     if len(history) > 15:
         history = history[-15:]
     ctx.write(s_event_traces, history)
