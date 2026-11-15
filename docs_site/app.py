@@ -22,6 +22,22 @@ from docs_site.data import COMPONENTS, CLI_COMMANDS, ADRS, COMPONENT_DOMAINS
 # =========================================================================
 
 CUSTOM_CSS = """
+:root, [data-theme], html, body {
+  --gx-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif !important;
+  --gx-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  --gx-bg: #07090e !important;
+  --gx-surface: #0f172a !important;
+  --gx-surface-alt: #1e293b !important;
+  --gx-text: #f1f5f9 !important;
+  --gx-text-muted: #94a3b8 !important;
+  --gx-border: rgba(255, 255, 255, 0.08) !important;
+  --gx-border-strong: rgba(255, 255, 255, 0.16) !important;
+  --gx-primary: #3b82f6 !important;
+  --gx-primary-hover: #60a5fa !important;
+  --gx-primary-subtle: rgba(59, 130, 246, 0.15) !important;
+  color-scheme: dark !important;
+}
+
 /* Atmosphere & Background Mesh */
 body {
   background-color: #07090e !important;
@@ -39,52 +55,154 @@ body {
   line-height: 1.6;
 }
 
+/* Typography & Contrast Overrides */
+p, .gx-text, span {
+  color: #cbd5e1 !important;
+  line-height: 1.6 !important;
+}
+
+.gx-text-muted, [class*="muted"] {
+  color: #94a3b8 !important;
+}
+
+.gx-text[class*="lead"], .gx-lead {
+  color: #e2e8f0 !important;
+  font-size: 1.15rem !important;
+  line-height: 1.7 !important;
+}
+
+h1, h2, h3, h4, h5, h6, .gx-heading {
+  color: #ffffff !important;
+  letter-spacing: -0.02em !important;
+}
+
 /* Custom Sleek Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: rgba(7, 9, 14, 0.8); }
 ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.5); }
 
+/* Glassmorphic Accordion & Sidebar (High Contrast Dark) */
+.gx-accordion {
+  display: flex !important;
+  flex-direction: column !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.gx-accordion-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(15, 23, 42, 0.7) !important;
+}
+
+.gx-accordion-item:last-child {
+  border-bottom: none !important;
+}
+
+.gx-accordion-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 13px 16px !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  color: #f8fafc !important;
+  background: rgba(15, 23, 42, 0.85) !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.gx-accordion-header:hover {
+  background: rgba(30, 41, 59, 0.9) !important;
+  color: #38bdf8 !important;
+}
+
+.gx-accordion-arrow {
+  font-size: 1.1rem !important;
+  color: #94a3b8 !important;
+  transition: transform 0.2s ease !important;
+}
+
+.gx-accordion-content {
+  padding: 14px 16px !important;
+  background: rgba(11, 15, 25, 0.92) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+
 /* Glassmorphic Cards */
 .gx-card {
-  background: rgba(15, 23, 42, 0.65) !important;
+  background: rgba(15, 23, 42, 0.75) !important;
   backdrop-filter: blur(20px) saturate(190%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
   border-radius: 14px !important;
+  padding: 24px !important;
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .gx-card:hover {
-  border-color: rgba(99, 102, 241, 0.4) !important;
-  box-shadow: 0 20px 45px -12px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 20px 45px -12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
 }
 
-/* Metric Cards */
+.gx-card header h3, .gx-card header h4, .gx-card [class*="title"] {
+  color: #ffffff !important;
+}
+
+.gx-card footer, .gx-card [class*="footer"] {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding-top: 12px !important;
+  margin-top: 16px !important;
+}
+
+.gx-card footer p, .gx-card footer span {
+  color: #94a3b8 !important;
+  font-size: 0.85rem !important;
+}
+
+/* Metric Cards with High-Contrast Typography */
 .gx-metric {
-  background: rgba(15, 23, 42, 0.7) !important;
+  background: rgba(11, 15, 25, 0.85) !important;
   backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 12px !important;
   padding: 18px 20px !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .gx-metric:hover {
-  border-color: rgba(6, 182, 212, 0.45) !important;
-  box-shadow: 0 12px 28px -8px rgba(6, 182, 212, 0.22) !important;
+  border-color: rgba(6, 182, 212, 0.5) !important;
+  box-shadow: 0 12px 28px -8px rgba(6, 182, 212, 0.25) !important;
   transform: translateY(-2px);
 }
 
-.gx-metric [class*="value"] {
-  font-family: var(--gx-font-mono) !important;
+.gx-metric [class*="title"], .gx-metric [class*="label"], .gx-metric-label {
+  color: #94a3b8 !important;
+  font-size: 0.78rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-weight: 600 !important;
+}
+
+.gx-metric [class*="value"], .gx-metric-value {
+  color: #ffffff !important;
+  font-size: 2.2rem !important;
   font-weight: 800 !important;
-  font-size: 1.85rem !important;
-  letter-spacing: -0.03em !important;
+  font-family: var(--gx-font-mono) !important;
   background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
+}
+
+.gx-metric [class*="delta"], .gx-metric-delta {
+  color: #38bdf8 !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
 }
 
 /* Headers & Gradient Typography */
@@ -168,16 +286,22 @@ h3.gx-heading {
   letter-spacing: 0.02em !important;
 }
 
+.gx-badge-neutral {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
 .gx-badge-primary {
-  background: rgba(37, 99, 235, 0.2) !important;
+  background: rgba(37, 99, 235, 0.25) !important;
   color: #93c5fd !important;
-  border: 1px solid rgba(59, 130, 246, 0.4) !important;
+  border: 1px solid rgba(59, 130, 246, 0.45) !important;
 }
 
 .gx-badge-success {
-  background: rgba(16, 185, 129, 0.18) !important;
+  background: rgba(16, 185, 129, 0.2) !important;
   color: #6ee7b7 !important;
-  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
 }
 
 /* Code Blocks with macOS IDE Chrome */
@@ -204,16 +328,37 @@ h3.gx-heading {
   box-shadow: 16px 0 0 #f59e0b, 32px 0 0 #10b981;
 }
 
-/* Navigation Links */
-a {
-  color: #93c5fd;
-  text-decoration: none;
-  transition: all 0.2s ease;
+/* Navigation Links (Navbar & Sidebar) */
+.gx-accordion-content a, .gx-sidebar a, .gx-link {
+  color: #93c5fd !important;
+  display: block !important;
+  padding: 7px 12px !important;
+  border-radius: 6px !important;
+  font-size: 0.92rem !important;
+  transition: all 0.15s ease !important;
+  text-decoration: none !important;
 }
 
-a:hover {
-  color: #ffffff;
-  text-shadow: 0 0 10px rgba(147, 197, 253, 0.5);
+.gx-accordion-content a:hover, .gx-sidebar a:hover, .gx-link:hover {
+  color: #ffffff !important;
+  background: rgba(59, 130, 246, 0.18) !important;
+  padding-left: 16px !important;
+  text-shadow: 0 0 10px rgba(147, 197, 253, 0.5) !important;
+}
+
+header a, .gx-header a, nav a {
+  color: #cbd5e1 !important;
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+  text-decoration: none !important;
+}
+
+header a:hover, .gx-header a:hover, nav a:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Form Controls with Glowing Focus */
@@ -337,9 +482,9 @@ def _render_sidebar() -> ui.Component:
             ui.accordion_item(
                 "Fundamentals",
                 ui.column(
-                    ui.link("Overview & Hero", "/"),
-                    ui.link("Getting Started", "/getting-started"),
-                    ui.link("System Architecture", "/architecture"),
+                    ui.link("Overview & Hero", "index.html"),
+                    ui.link("Getting Started", "getting-started.html"),
+                    ui.link("System Architecture", "architecture.html"),
                     gap=8,
                 ),
                 open=True,
@@ -347,11 +492,11 @@ def _render_sidebar() -> ui.Component:
             ui.accordion_item(
                 "Framework Systems",
                 ui.column(
-                    ui.link("Component Explorer (68)", "/components"),
-                    ui.link("Reactive State & DAG", "/state"),
-                    ui.link("Real-Time SSE Broker", "/transport"),
-                    ui.link("Background Jobs", "/jobs"),
-                    ui.link("AI & MCP Protocols", "/ai"),
+                    ui.link("Component Explorer (68)", "components.html"),
+                    ui.link("Reactive State & DAG", "state.html"),
+                    ui.link("Real-Time SSE Broker", "transport.html"),
+                    ui.link("Background Jobs", "jobs.html"),
+                    ui.link("AI & MCP Protocols", "ai.html"),
                     gap=8,
                 ),
                 open=True,
@@ -359,9 +504,9 @@ def _render_sidebar() -> ui.Component:
             ui.accordion_item(
                 "Reference & Specs",
                 ui.column(
-                    ui.link("CLI Reference (45)", "/cli"),
-                    ui.link("12 Architecture Records", "/adrs"),
-                    ui.link("Live Event Trace", "/event-trace"),
+                    ui.link("CLI Reference (45)", "cli.html"),
+                    ui.link("12 Architecture Records", "adrs.html"),
+                    ui.link("Live Event Trace", "event-trace.html"),
                     gap=8,
                 ),
                 open=True,
@@ -393,10 +538,10 @@ def _render_header() -> ui.Component:
             align="center",
         ),
         ui.row(
-            ui.link("Quickstart", "/getting-started"),
-            ui.link("Components", "/components"),
-            ui.link("Architecture", "/architecture"),
-            ui.link("CLI", "/cli"),
+            ui.link("Quickstart", "getting-started.html"),
+            ui.link("Components", "components.html"),
+            ui.link("Architecture", "architecture.html"),
+            ui.link("CLI", "cli.html"),
             ui.theme_toggle("Toggle Theme"),
             ui.link("GitHub", "https://github.com/flux-py/radui", external=True),
             gap=16,
@@ -425,9 +570,9 @@ def docs_layout(outlet: ui.Component) -> ui.Component:
         ui.row(
             ui.text("RADUI is open-source under the Apache License 2.0. Copyright (c) 2026 Flux-Py / RADUI Contributors.", variant="caption"),
             ui.row(
-                ui.link("ADRs", "/adrs"),
-                ui.link("Benchmarks", "/architecture"),
-                ui.link("Event Trace", "/event-trace"),
+                ui.link("ADRs", "adrs.html"),
+                ui.link("Benchmarks", "architecture.html"),
+                ui.link("Event Trace", "event-trace.html"),
                 gap=16,
             ),
             justify="between",
@@ -459,9 +604,9 @@ def home_page():
                 variant="lead",
             ),
             ui.row(
-                ui.link("Get Started in 60s", "/getting-started"),
-                ui.link("Explore 68 Components", "/components"),
-                ui.link("System Architecture", "/architecture"),
+                ui.link("Get Started in 60s", "getting-started.html"),
+                ui.link("Explore 68 Components", "components.html"),
+                ui.link("System Architecture", "architecture.html"),
                 gap=16,
             ),
             gap=12,
