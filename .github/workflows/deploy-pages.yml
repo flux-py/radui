@@ -2,7 +2,7 @@ name: Deploy Documentation to GitHub Pages
 
 on:
   push:
-    branches: ["gh-pages"]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -36,10 +36,7 @@ jobs:
 
       - name: Export RADUI-Native Static Documentation
         run: |
-          python -m radui export docs_site/app.py --static --output ./dist_docs
-          mkdir -p ./dist_docs/assets
-          cp -R ./docs_site/assets/. ./dist_docs/assets/
-          touch ./dist_docs/.nojekyll
+          python scripts/build_docs.py
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
