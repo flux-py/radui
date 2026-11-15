@@ -724,19 +724,25 @@ def cmd_export(args: argparse.Namespace) -> int:
 
     if is_static:
         custom_css = app_instance.theme.to_css() if app_instance.theme else ""
-        for path, page_def in app_instance._pages.items():
-            safe_name = "index.html" if path == "/" else f"{path.strip('/')}.html"
-            root = page_def.handler()
-            doc_html = app_instance.renderer.render_document(
-                page_def.title,
-                root,
-                custom_css=custom_css,
-                view_id=path,
-                direction=app_instance.theme.direction if app_instance.theme else "ltr",
-            )
-            out_file = output_dir / safe_name
-            out_file.write_text(doc_html, encoding="utf-8")
-            print(f"[OK] Exported static page '{path}' to: {out_file}")
+        state_context = app_instance.state_context(session_id="static_export_session")
+        with state_context.activate():
+            for path, page_def in app_instance._pages.items():
+                safe_name = "index.html" if path == "/" else f"{path.strip('/')}.html"
+                root = page_def.handler()
+                # Apply registered layout hierarchy if applicable
+                for layout_prefix, layout_fn in getattr(app_instance, "_layouts", []):
+                    if path == layout_prefix or path.startswith(f"{layout_prefix.rstrip('/')}/"):
+                        root = layout_fn(outlet=root)
+                doc_html = app_instance.renderer.render_document(
+                    page_def.title,
+                    root,
+                    custom_css=custom_css,
+                    view_id=path,
+                    direction=app_instance.theme.direction if app_instance.theme else "ltr",
+                )
+                out_file = output_dir / safe_name
+                out_file.write_text(doc_html, encoding="utf-8")
+                print(f"[OK] Exported static page '{path}' to: {out_file}")
     else:
         ir = app_instance.to_ir()
         out_file = output_dir / f"{app_instance.metadata.id}_ir.json"
