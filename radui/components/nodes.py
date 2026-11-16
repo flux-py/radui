@@ -772,6 +772,28 @@ class Tag(Component):
     remove_command: str | None = None
 
 
+class PresenceBar(Component):
+    kind: Literal["presence_bar"] = "presence_bar"
+    room: str
+    max_avatars: int = 5
+    show_status: bool = True
+    show_names: bool = False
+
+
+class CanvasStream(Component):
+    kind: Literal["canvas_stream"] = "canvas_stream"
+    stream_topic: str
+    width: str | int = "100%"
+    height: int = 300
+    mode: Literal["line", "scatter", "waveform", "bar"] = "line"
+    buffer_size: int = 10000
+    color: str = "var(--gx-primary)"
+    background: str = "var(--gx-surface)"
+    grid: bool = True
+    downsample: Literal["none", "lttb", "average"] = "lttb"
+    stroke_width: float = 2.0
+
+
 Element: TypeAlias = SerializeAsAny[Component]
 
 for model in (
@@ -2033,6 +2055,59 @@ def tag(
         variant=variant,
         removable=removable,
         remove_command=remove_command,
+        id=id,
+        **kwargs,
+    )
+
+
+def presence_bar(
+    room: str,
+    max_avatars: int = 5,
+    show_status: bool = True,
+    show_names: bool = False,
+    id: str | None = None,
+    **kwargs: Any,
+) -> PresenceBar:
+    return PresenceBar(
+        room=room,
+        max_avatars=max_avatars,
+        show_status=show_status,
+        show_names=show_names,
+        id=id,
+        **kwargs,
+    )
+
+
+def presence(room: str, **kwargs: Any) -> PresenceBar:
+    """Shorthand alias for presence_bar."""
+    return presence_bar(room=room, **kwargs)
+
+
+def canvas_stream(
+    stream_topic: str,
+    width: str | int = "100%",
+    height: int = 300,
+    mode: Literal["line", "scatter", "waveform", "bar"] = "line",
+    buffer_size: int = 10000,
+    color: str = "var(--gx-primary)",
+    background: str = "var(--gx-surface)",
+    grid: bool = True,
+    downsample: Literal["none", "lttb", "average"] = "lttb",
+    stroke_width: float = 2.0,
+    id: str | None = None,
+    **kwargs: Any,
+) -> CanvasStream:
+    return CanvasStream(
+        stream_topic=stream_topic,
+        width=width,
+        height=height,
+        mode=mode,
+        buffer_size=buffer_size,
+        color=color,
+        background=background,
+        grid=grid,
+        downsample=downsample,
+        stroke_width=stroke_width,
         id=id,
         **kwargs,
     )

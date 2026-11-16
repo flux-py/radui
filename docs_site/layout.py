@@ -22,7 +22,7 @@ def _render_sidebar() -> ui.Component:
                 open=True,
             ),
             ui.accordion_item(
-                "Component Library (68)",
+                "Component Library (70)",
                 ui.column(
                     ui.link("Component Explorer", "components.html"),
                     ui.link("Layout & Grids", "components-layout.html"),

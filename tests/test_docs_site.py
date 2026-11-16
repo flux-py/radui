@@ -21,8 +21,8 @@ def client():
 
 
 def test_docs_site_metadata_integrity():
-    """Verify data catalog contains all 68 components, 45 CLI commands, and 12 ADRs."""
-    assert len(COMPONENTS) == 68
+    """Verify data catalog contains all 70 components, 45 CLI commands, and 12 ADRs."""
+    assert len(COMPONENTS) == 70
     assert len(CLI_COMMANDS) == 45
     assert len(ADRS) == 12
 
@@ -69,7 +69,7 @@ def test_docs_site_component_explorer_page(client):
     """Verify component explorer renders catalog index and property inspector."""
     res = client.get("/components")
     assert res.status_code == 200
-    assert "Interactive Component Explorer (68 Built-in Primitives)" in res.text
+    assert "Interactive Component Explorer (70 Built-in Primitives)" in res.text
     assert "Property Inspector" in res.text
     assert "Synchronized Python Implementation" in res.text
 

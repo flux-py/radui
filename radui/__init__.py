@@ -11,6 +11,7 @@ from radui.components import (
     BreadcrumbItem,
     Button,
     Callout,
+    CanvasStream,
     Card,
     ChatInput,
     ChatMessage,
@@ -47,6 +48,7 @@ from radui.components import (
     Pagination,
     Plot,
     Popover,
+    PresenceBar,
     ProgressBar,
     ProgressCircle,
     RadioGroup,
@@ -84,6 +86,7 @@ from radui.components import (
     breadcrumb_item,
     button,
     callout,
+    canvas_stream,
     card,
     chat_input,
     chat_message,
@@ -119,6 +122,8 @@ from radui.components import (
     pagination,
     plot,
     popover,
+    presence,
+    presence_bar,
     progress_bar,
     progress_circle,
     radio_group,
@@ -162,12 +167,25 @@ from radui.core.auth import RBACPolicy, User
 from radui.core.theme import Theme
 from radui.testing import TestHarness
 from radui.inspector import (
+    DevTools,
+    DevToolsConfig,
     OTLPExporter,
+    StateSnapshot,
+    TimeTravelDebugger,
     TraceCategory,
     TraceCollector,
     TraceRecord,
     extract_dag_structure,
     generate_dag_svg,
+)
+from radui.core.presence import (
+    PresenceManager,
+    PresenceUser,
+    get_global_presence_manager,
+)
+from radui.renderers.wasm import (
+    WasmExportEngine,
+    export_wasm_bundle,
 )
 from radui.ai import (
     AGUIEvent,
@@ -321,6 +339,7 @@ __all__ = [
     "BreadcrumbItem",
     "Button",
     "Callout",
+    "CanvasStream",
     "Card",
     "ChatInput",
     "ChatMessage",
@@ -356,6 +375,7 @@ __all__ = [
     "Pagination",
     "Plot",
     "Popover",
+    "PresenceBar",
     "ProgressBar",
     "ProgressCircle",
     "RadioGroup",
@@ -393,6 +413,7 @@ __all__ = [
     "breadcrumb_item",
     "button",
     "callout",
+    "canvas_stream",
     "card",
     "chat_input",
     "chat_message",
@@ -428,6 +449,8 @@ __all__ = [
     "pagination",
     "plot",
     "popover",
+    "presence",
+    "presence_bar",
     "progress_bar",
     "progress_circle",
     "radio_group",
@@ -488,12 +511,25 @@ __all__ = [
     # Inspector & Telemetry
     "BenchmarkResult",
     "BenchmarkSuite",
+    "DevTools",
+    "DevToolsConfig",
     "OTLPExporter",
+    "StateSnapshot",
+    "TimeTravelDebugger",
     "TraceCategory",
     "TraceCollector",
     "TraceRecord",
     "extract_dag_structure",
     "generate_dag_svg",
+
+    # Collaborative Presence
+    "PresenceManager",
+    "PresenceUser",
+    "get_global_presence_manager",
+
+    # WebAssembly / Pyodide
+    "WasmExportEngine",
+    "export_wasm_bundle",
 
     # Events & Jobs
     "Event",

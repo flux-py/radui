@@ -130,28 +130,28 @@ def components_page():
     ]
 
     return ui.column(
-        ui.heading("Interactive Component Explorer (68 Built-in Primitives)", level=1),
-        ui.text("Instant real-time discovery, interactive live previews, property inspection, and 3D flippable implementation code for all 68 RadUI primitives."),
+        ui.heading("Interactive Component Explorer (70 Built-in Primitives)", level=1),
+        ui.text("Instant real-time discovery, interactive live previews, property inspection, and 3D flippable implementation code for all 70 RadUI primitives."),
         
         # Real-time search bar & Domain filter toolbar
         ui.card(
             ui.row(
-                ui.input("Search 68 primitives (e.g. slider, chat, modal, grid, avatar, plot)...", id="comp-search-bar"),
-                ui.badge("Showing 68 of 68 primitives", variant="primary", id="comp-results-count"),
+                ui.input("Search 70 primitives (e.g. slider, presence, canvas, chat, modal, grid)...", id="comp-search-bar"),
+                ui.badge("Showing 70 of 70 primitives", variant="primary", id="comp-results-count"),
                 justify="between",
                 align="center",
             ),
             ui.spacer(size=8),
             ui.row(
-                ui.button("All (68)", variant="primary", id="domain-filter-all"),
+                ui.button("All (70)", variant="primary", id="domain-filter-all"),
                 ui.button("Layout (12)", variant="outline", id="domain-filter-layout"),
                 ui.button("Forms (11)", variant="outline", id="domain-filter-forms"),
                 ui.button("Action (5)", variant="outline", id="domain-filter-action"),
-                ui.button("Data (5)", variant="outline", id="domain-filter-data"),
+                ui.button("Data (6)", variant="outline", id="domain-filter-data"),
                 ui.button("Feedback (7)", variant="outline", id="domain-filter-feedback"),
                 ui.button("Navigation (5)", variant="outline", id="domain-filter-nav"),
                 ui.button("Indicators (8)", variant="outline", id="domain-filter-indicators"),
-                ui.button("AI & Agent (8)", variant="outline", id="domain-filter-ai"),
+                ui.button("AI & Agent (9)", variant="outline", id="domain-filter-ai"),
                 ui.button("Diagrams (2)", variant="outline", id="domain-filter-diagrams"),
                 ui.button("Typography (5)", variant="outline", id="domain-filter-typography"),
                 gap=6,
@@ -227,7 +227,7 @@ def components_page():
         # Synchronized Python Implementation Code
         ui.heading("Synchronized Python Implementation", level=3),
         ui.code_block(gen_code, language="python", copyable=True, id="comp-code-block"),
-        ui.heading("Complete component reference (68 Primitives)", level=2),
+        ui.heading("Complete component reference (70 Primitives)", level=2),
         ui.data_grid(
             headers=["Component", "Category", "Description", "Parameters", "Example"],
             rows=component_rows,

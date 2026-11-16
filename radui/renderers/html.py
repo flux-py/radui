@@ -17,6 +17,7 @@ from radui.components.nodes import (
     BreadcrumbItem,
     Button,
     Callout,
+    CanvasStream,
     Card,
     ChatInput,
     ChatMessage,
@@ -52,6 +53,7 @@ from radui.components.nodes import (
     Pagination,
     Plot,
     Popover,
+    PresenceBar,
     ProgressBar,
     ProgressCircle,
     RadioGroup,
@@ -1077,16 +1079,16 @@ body {
 
 /* Responsive Grid Breakpoints */
 @media (min-width: 640px) {
-  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-sm, 1), minmax(0, 1fr)) !important; }
+  .gx-grid-responsive:not(#docs-layout) { grid-template-columns: repeat(var(--gx-cols-sm, 1), minmax(0, 1fr)) !important; }
 }
 @media (min-width: 768px) {
-  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-md, var(--gx-cols-sm, 2)), minmax(0, 1fr)) !important; }
+  .gx-grid-responsive:not(#docs-layout) { grid-template-columns: repeat(var(--gx-cols-md, var(--gx-cols-sm, 2)), minmax(0, 1fr)) !important; }
 }
 @media (min-width: 1024px) {
-  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-lg, var(--gx-cols-md, 2)), minmax(0, 1fr)) !important; }
+  .gx-grid-responsive:not(#docs-layout) { grid-template-columns: repeat(var(--gx-cols-lg, var(--gx-cols-md, 2)), minmax(0, 1fr)) !important; }
 }
 @media (min-width: 1280px) {
-  .gx-grid-responsive { grid-template-columns: repeat(var(--gx-cols-xl, var(--gx-cols-lg, 3)), minmax(0, 1fr)) !important; }
+  .gx-grid-responsive:not(#docs-layout) { grid-template-columns: repeat(var(--gx-cols-xl, var(--gx-cols-lg, 3)), minmax(0, 1fr)) !important; }
 }
 
 /* Skeleton & Shimmer */
@@ -1532,6 +1534,145 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Morph Highlight */
+.gx-morph-highlight {
+  outline: 2px solid #10b981 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.45) !important;
+  transition: outline 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Presence Bar */
+.gx-presence-bar {
+  display: inline-flex;
+  align-items: center;
+}
+.gx-presence-avatars {
+  display: inline-flex;
+  align-items: center;
+}
+.gx-presence-avatar {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--gx-primary);
+  background: var(--gx-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+.gx-presence-avatar:first-child { margin-left: 0; }
+.gx-presence-avatar:hover { transform: scale(1.15) translateY(-2px); z-index: 10; }
+.gx-presence-overflow {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--gx-border-strong);
+  background: var(--gx-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-left: -8px;
+  color: var(--gx-text-muted);
+}
+
+/* Canvas Stream */
+.gx-canvas-stream-wrap {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--gx-border);
+}
+.gx-canvas-stream {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* DevTools HUD */
+.gx-devtools {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999999;
+  font-family: var(--gx-font);
+}
+.gx-devtools-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #111827;
+  color: #f9fafb;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.gx-devtools-trigger:hover {
+  transform: translateY(-2px);
+  border-color: #10b981;
+}
+.gx-devtools-panel {
+  position: fixed;
+  bottom: 65px;
+  right: 20px;
+  width: 440px;
+  max-width: 90vw;
+  height: 520px;
+  max-height: 80vh;
+  background: #111827;
+  color: #f9fafb;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 999999;
+}
+.gx-devtools-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #090d16;
+}
+.gx-devtools-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0f172a;
+}
+.gx-devtools-tab {
+  flex: 1;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.gx-devtools-tab.active {
+  color: #10b981;
+  border-bottom-color: #10b981;
+}
+.gx-devtools-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+}
 """.strip()
 
 
@@ -1541,7 +1682,7 @@ STATIC_JS = r"""(() => {
     if (live) live.textContent = message;
   };
 
-  const RADUI_COMPONENTS = {"column": {"example": "ui.column(\n    ui.heading(\"User Profile\", level=2),\n    ui.text(\"Manage account security and permissions.\"),\n    ui.button(\"Save Changes\", variant=\"primary\"),\n    gap=16,\n)", "domain": "Layout & Disclosure", "desc": "Vertical flexbox container arranging child components top-to-bottom."}, "row": {"example": "ui.row(\n    ui.button(\"Cancel\", variant=\"secondary\"),\n    ui.button(\"Submit\", variant=\"primary\"),\n    gap=12,\n)", "domain": "Layout & Disclosure", "desc": "Horizontal flexbox container with alignment, spacing, and wrapping controls."}, "grid": {"example": "ui.grid(\n    ui.card(ui.text(\"Metric A\")),\n    ui.card(ui.text(\"Metric B\")),\n    ui.card(ui.text(\"Metric C\")),\n    columns=3,\n    gap=16,\n)", "domain": "Layout & Disclosure", "desc": "Responsive CSS Grid container with column counts and responsive breakpoints."}, "container": {"example": "ui.container(\n    ui.heading(\"Dashboard Overview\", level=1),\n    ui.text(\"Welcome to RADUI portal.\"),\n    max_width=\"1200px\",\n)", "domain": "Layout & Disclosure", "desc": "Centered structural page wrapper with max-width and horizontal margins."}, "stack": {"example": "ui.stack(\n    ui.badge(\"Python\"),\n    ui.badge(\"ASGI\"),\n    ui.badge(\"SSE\"),\n    gap=8,\n)", "domain": "Layout & Disclosure", "desc": "Flexible wrapping layout for button strips, tag clouds, and badge rows."}, "split_panel": {"example": "ui.split_panel(\n    left=ui.card(ui.text(\"Navigation List\")),\n    right=ui.card(ui.text(\"Detail View\")),\n    initial_ratio=0.35,\n)", "domain": "Layout & Disclosure", "desc": "Resizable two-pane layout with draggable divider for master-detail views."}, "card": {"example": "ui.card(\n    ui.metric_card(\"Throughput\", \"1,420 rps\"),\n    title=\"API Cluster Status\",\n    subtitle=\"Updated 1s ago\",\n)", "domain": "Layout & Disclosure", "desc": "Structured visual container panel with optional title, description, and footer."}, "dynamic_card": {"example": "ui.dynamic_card(\"Live State Viewer\", bind=s_count,\n    ui.text(\"Content dynamically re-evaluates on state mutation.\")\n)", "domain": "Layout & Disclosure", "desc": "Reactive card container observing a StateRef and re-rendering on mutations."}, "accordion": {"example": "ui.accordion(\n    ui.accordion_item(\"Section 1\", ui.text(\"Content 1\"), open=True),\n    ui.accordion_item(\"Section 2\", ui.text(\"Content 2\")),\n)", "domain": "Layout & Disclosure", "desc": "Collapsible disclosure container organizing vertically stacked expandable panels."}, "accordion_item": {"example": "ui.accordion_item(\"How does SSR work?\",\n    ui.text(\"Initial requests render complete HTML in under 3.1ms.\"),\n    open=True\n)", "domain": "Layout & Disclosure", "desc": "Individual collapsible section with interactive header toggle and body."}, "spacer": {"example": "ui.spacer(size=24)", "domain": "Layout & Disclosure", "desc": "Explicit layout spacing element creating vertical or horizontal margin."}, "divider": {"example": "ui.divider(direction=\"horizontal\")", "domain": "Layout & Disclosure", "desc": "Structural visual separator rule segmenting sections within columns or rows."}, "heading": {"example": "ui.heading(\"Reactive Execution Lifecycle\", level=2)", "domain": "Typography & Code", "desc": "Semantic typography element rendering h1 through h6 with hierarchy validation."}, "text": {"example": "ui.text(\"Sub-DOM diffing completes in 0.168 ms.\", variant=\"lead\")", "domain": "Typography & Code", "desc": "Text display component supporting variants: body, caption, code, lead, muted."}, "callout": {"example": "ui.callout(\"Production Ready\", \"All 6 benchmark tiers verified.\", variant=\"success\")", "domain": "Typography & Code", "desc": "Highlighted informational callout banner with status semantics."}, "code_block": {"example": "ui.code_block(\"pip install radui\", language=\"bash\", copyable=True)", "domain": "Typography & Code", "desc": "Syntax-formatted monospace code block featuring line numbers and copy button."}, "kbd": {"example": "ui.row(ui.text(\"Press\"), ui.kbd(\"Ctrl\", \"K\"), ui.text(\"for Command Palette\"), gap=6)", "domain": "Typography & Code", "desc": "Keyboard shortcut indicator styled as hardware keycaps."}, "button": {"example": "ui.button(\"Deploy Cluster\", command=\"cluster.deploy\", variant=\"primary\")", "domain": "Action & Trigger", "desc": "Interactive trigger button dispatching a registered RADUI server command."}, "link": {"example": "ui.link(\"GitHub Repository\", \"https://github.com/flux-py/radui\", external=True)", "domain": "Action & Trigger", "desc": "Hyperlink strictly validated against secure http/https schemes to prevent XSS."}, "dropdown_menu": {"example": "ui.dropdown_menu(\"Export Options\", [\n    ui.dropdown_menu_item(\"CSV Export\", command=\"export.csv\"),\n    ui.dropdown_menu_item(\"JSON Export\", command=\"export.json\"),\n])", "domain": "Action & Trigger", "desc": "Floating contextual menu revealing actions on trigger click."}, "dropdown_menu_item": {"example": "ui.dropdown_menu_item(\"Purge Cache\", command=\"cache.purge\", danger=True)", "domain": "Action & Trigger", "desc": "Action item within a dropdown menu supporting command dispatch or navigation."}, "theme_toggle": {"example": "ui.theme_toggle(\"Toggle Theme\")", "domain": "Action & Trigger", "desc": "Interactive theme switcher with dark/light mode transitions and localStorage persistence."}, "form": {"example": "ui.form(\n    ui.input(\"Workspace Name\", bind=s_name),\n    ui.button(\"Create\", variant=\"primary\"),\n    command=\"workspace.create\",\n)", "domain": "Form & Data Input", "desc": "Declarative form container automatically injecting CSRF tokens and binding child inputs."}, "input": {"example": "ui.input(\"Email Address\", bind=s_email, type=\"email\", placeholder=\"developer@flux.py\")", "domain": "Form & Data Input", "desc": "Single-line text input bound to a reactive StateRef. Supports text, email, number, url."}, "textarea": {"example": "ui.textarea(\"Prompt Instructions\", bind=s_prompt, rows=5)", "domain": "Form & Data Input", "desc": "Multi-line text entry field bound to a reactive StateRef."}, "checkbox": {"example": "ui.checkbox(\"Enable Telemetry Tracing\", bind=s_telemetry)", "domain": "Form & Data Input", "desc": "Boolean toggle checkbox bound directly to a boolean StateRef."}, "switch": {"example": "ui.switch(\"Maintenance Mode\", bind=s_maintenance)", "domain": "Form & Data Input", "desc": "Hardware-styled toggle switch component bound to boolean reactive state."}, "radio_group": {"example": "ui.radio_group(\"Database Backend\", bind=s_db, options=[\"sqlite\", \"postgres\", \"redis\"])", "domain": "Form & Data Input", "desc": "Mutually-exclusive radio selection list bound to a string StateRef."}, "select": {"example": "ui.select(\"Cluster Region\", bind=s_region, options=[(\"us-east-1\", \"US East\"), (\"eu-west-1\", \"EU West\")])", "domain": "Form & Data Input", "desc": "Single-choice dropdown select control supporting label-value option tuples."}, "slider": {"example": "ui.slider(\"Concurrent Jobs\", bind=s_concurrency, min_value=1, max_value=64, step=1)", "domain": "Form & Data Input", "desc": "Continuous or stepped numeric range input with live value readouts."}, "date_picker": {"example": "ui.date_picker(\"Deployment Date\", bind=s_date)", "domain": "Form & Data Input", "desc": "Accessible calendar date picker input formatted to ISO-8601 (YYYY-MM-DD)."}, "time_picker": {"example": "ui.time_picker(\"Daily Backup Time\", bind=s_time)", "domain": "Form & Data Input", "desc": "Accessible time selection control formatted to 24-hour time (HH:MM)."}, "file_upload": {"example": "ui.file_upload(command=\"dataset.upload\", accept=\".csv,.json\", max_size_mb=25)", "domain": "Form & Data Input", "desc": "Drag-and-drop file upload zone with client-side size validation and file listing."}, "modal": {"example": "ui.modal(\"Restart Server\", ui.text(\"Are you sure you want to restart?\"), trigger_label=\"Restart\")", "domain": "Feedback & Overlays", "desc": "Accessible dialog overlay featuring focus-trapping, Escape key dismissal, and backdrop handling."}, "drawer": {"example": "ui.drawer(\"Node Inspector\", ui.text(\"Detailed trace records\"), trigger_label=\"Inspect\")", "domain": "Feedback & Overlays", "desc": "Off-canvas sliding drawer panel supporting placements: left, right, top, bottom."}, "popover": {"example": "ui.popover(\"Lease Fencing\", \"Guarantees split-brain prevention under partitions.\")", "domain": "Feedback & Overlays", "desc": "Contextual floating popover bubble anchored to a trigger button."}, "tooltip": {"example": "ui.tooltip(\"Copy command\", ui.button(\"Copy\"))", "domain": "Feedback & Overlays", "desc": "Lightweight hover/focus indicator providing descriptive text for buttons and icons."}, "toast": {"example": "ui.toast(\"State synchronized successfully\", variant=\"success\")", "domain": "Feedback & Overlays", "desc": "Individual transient toast alert message. Variants: info, success, warning, danger."}, "toast_container": {"example": "ui.toast_container(ui.toast(\"Cache purged\", variant=\"info\"))", "domain": "Feedback & Overlays", "desc": "Fixed viewport overlay positioning toast notifications."}, "error_boundary": {"example": "ui.error_boundary(failing_widget(), fallback_message=\"Live widget temporarily unavailable.\")", "domain": "Feedback & Overlays", "desc": "Catches unhandled rendering exceptions in isolated subtrees without breaking surrounding page."}, "breadcrumb": {"example": "ui.breadcrumb(\n    ui.breadcrumb_item(\"Home\", href=\"/\"),\n    ui.breadcrumb_item(\"Components\", href=\"/components\"),\n    ui.breadcrumb_item(\"Button\", active=True),\n)", "domain": "Navigation", "desc": "Breadcrumb navigation bar indicating hierarchical path position."}, "breadcrumb_item": {"example": "ui.breadcrumb_item(\"Architecture\", href=\"/architecture\")", "domain": "Navigation", "desc": "Individual breadcrumb entry supporting hyperlinked routes or active leaf nodes."}, "pagination": {"example": "ui.pagination(current_page=2, total_pages=8, command=\"records.page\")", "domain": "Navigation", "desc": "Page selector control with Previous, Next, and numeric page buttons dispatching commands."}, "tabs": {"example": "ui.tabs(\n    ui.tab_item(\"Python API\", ui.code_block(\"import radui as ui\")),\n    ui.tab_item(\"CLI\", ui.code_block(\"radui run\")),\n)", "domain": "Navigation", "desc": "Tabbed container switching visible child panels based on active tab selection."}, "tab_item": {"example": "ui.tab_item(\"Benchmarks\", ui.text(\"AST Construction: 0.039 ms\"))", "domain": "Navigation", "desc": "Single tab section holding child components associated with a tab header."}, "table": {"example": "ui.table(\n    headers=[\"Worker\", \"Status\", \"Latency\"],\n    rows=[[\"worker-1\", \"ACTIVE\", \"0.039ms\"], [\"worker-2\", \"ACTIVE\", \"0.042ms\"]],\n)", "domain": "Data Display & Tables", "desc": "Responsive data table with striped alternating rows and hover highlighting."}, "data_grid": {"example": "ui.data_grid(\n    headers=[\"Component\", \"Category\", \"AST Overhead\"],\n    rows=[[\"button\", \"Action\", \"0.015ms\"], [\"data_grid\", \"Data\", \"0.082ms\"]],\n    searchable=True,\n)", "domain": "Data Display & Tables", "desc": "Interactive data grid featuring instant search filtering, column sorting, and pagination."}, "virtual_list": {"example": "ui.virtual_list(items=[f\"Log Entry #{i}\" for i in range(10000)], item_height=36, viewport_height=300)", "domain": "Data Display & Tables", "desc": "Windowed virtualization list rendering massive datasets via CSS translateY spacers."}, "metric_card": {"example": "ui.metric_card(\"Reconciliation Time\", \"0.168 ms\", delta=\"-42% latency\")", "domain": "Data Display & Tables", "desc": "KPI metric card with formatted values, comparison deltas, and trend status indicators."}, "plot": {"example": "ui.plot(data=[{\"x\": \"T1\", \"y\": 0.039}, {\"x\": \"T2\", \"y\": 0.038}, {\"x\": \"T3\", \"y\": 3.037}], plot_type=\"bar\")", "domain": "Data Display & Tables", "desc": "Zero-dependency pure SVG chart generator rendering bar, line, and scatter series with zero JS."}, "badge": {"example": "ui.badge(\"v1.0.0 Production\", variant=\"primary\")", "domain": "Indicators & Avatars", "desc": "Compact status pill badge. Variants: primary, secondary, success, warning, danger."}, "tag": {"example": "ui.tag(\"Python 3.12\", variant=\"secondary\")", "domain": "Indicators & Avatars", "desc": "Categorization tag element with optional dismiss button dispatching a command."}, "progress_bar": {"example": "ui.progress_bar(value=85.0, variant=\"success\")", "domain": "Indicators & Avatars", "desc": "Horizontal progress bar indicator with optional striping and animations."}, "progress_circle": {"example": "ui.progress_circle(value=98.5, size=72, variant=\"primary\")", "domain": "Indicators & Avatars", "desc": "Radial SVG progress ring with centered percentage readout."}, "avatar": {"example": "ui.avatar(name=\"Core Maintainer\", size=\"md\", status=\"online\")", "domain": "Indicators & Avatars", "desc": "User profile avatar displaying image source or automatically derived initials."}, "avatar_group": {"example": "ui.avatar_group(\n    ui.avatar(name=\"Ada Lovelace\"),\n    ui.avatar(name=\"Alan Turing\"),\n    ui.avatar(name=\"Grace Hopper\"),\n    ui.avatar(name=\"Linus Torvalds\"),\n    max_visible=3,\n)", "domain": "Indicators & Avatars", "desc": "Overlapping avatar cluster automatically truncating excess users into an +N overflow badge."}, "skeleton": {"example": "ui.skeleton(shape=\"rect\", width=\"100%\", height=\"48px\")", "domain": "Indicators & Avatars", "desc": "Shimmering placeholder loader matching content shape (rect, circle, text)."}, "empty_state": {"example": "ui.empty_state(\"No Telemetry Found\", \"Trigger command to populate event logs.\", action=ui.button(\"Start Telemetry\"))", "domain": "Indicators & Avatars", "desc": "Zero-state presentation screen with heading, explanation, and action button."}, "diagram": {"example": "ui.diagram(\n    nodes=[\n        ui.diagram_node(\"n1\", \"Client DOM\", 50, 100),\n        ui.diagram_node(\"n2\", \"ASGI Engine\", 250, 100),\n    ],\n    edges=[ui.diagram_edge(\"n1\", \"n2\", label=\"POST /command\")],\n)", "domain": "Diagrams & Trees", "desc": "Pure SVG architecture diagram and flowchart canvas supporting interactive click commands."}, "tree_view": {"example": "ui.tree_view([\n    ui.tree_node(\"radui\", \"radui/\", children=[\n        ui.tree_node(\"core\", \"core/\"),\n        ui.tree_node(\"state\", \"state/\"),\n    ], expanded=True),\n])", "domain": "Diagrams & Trees", "desc": "Hierarchical tree explorer with collapsible branches, expandable carets, and selection listeners."}, "chat_view": {"example": "ui.chat_view(\n    ui.chat_message(\"Hello from RADUI AI agent!\", sender=\"assistant\"),\n    height=\"400px\",\n)", "domain": "AI Agent & Workflow", "desc": "Conversation message scrollbox featuring auto-scroll, message bubbles, and typing indicators."}, "chat_message": {"example": "ui.chat_message(\"Can you explain transactional outboxes?\", sender=\"user\")", "domain": "AI Agent & Workflow", "desc": "Individual chat message bubble supporting markdown, code formatting, and metadata."}, "chat_input": {"example": "ui.chat_input(command=\"agent.chat\", placeholder=\"Ask RADUI agent...\")", "domain": "AI Agent & Workflow", "desc": "Conversational input box supporting Enter-to-submit and file attachments."}, "streaming_text": {"example": "ui.streaming_text(\"Tokens arriving in 0.007ms chunks...\", is_streaming=True)", "domain": "AI Agent & Workflow", "desc": "Real-time token stream text box with animated blinking cursor."}, "action_card": {"example": "ui.action_card(\n    title=\"Authorize Tool Dispatch?\",\n    description=\"Execute query on production DB.\",\n    confirm_command=\"agent.approve\",\n    cancel_command=\"agent.reject\",\n)", "domain": "AI Agent & Workflow", "desc": "Human-in-the-loop (HITL) card enabling users to authorize or reject agent tool executions."}, "step_timeline": {"example": "ui.step_timeline([\n    {\"title\": \"Request Validated\", \"status\": \"completed\", \"latency\": \"0.12ms\"},\n    {\"title\": \"State Invalidation\", \"status\": \"completed\", \"latency\": \"0.168ms\"},\n    {\"title\": \"SSE Patch Emitted\", \"status\": \"active\", \"latency\": \"0.007ms\"},\n])", "domain": "AI Agent & Workflow", "desc": "Multi-step execution audit timeline displaying tool invocations, progress state, and latency."}, "generative_slot": {"example": "ui.generative_slot(id=\"dynamic_ai_slot\", component=ui.card(ui.text(\"Agent generated view\")))", "domain": "AI Agent & Workflow", "desc": "Dynamic DOM container allowing backend AI agents to swap or generate UI component trees."}, "job_panel": {"example": "ui.job_panel(job_id=\"export-daily-kpis\")", "domain": "AI Agent & Workflow", "desc": "Real-time background job monitor with progress bar, state badge, and cancellation trigger."}};
+  const RADUI_COMPONENTS = {"column": {"example": "ui.column(\n    ui.heading(\"User Profile\", level=2),\n    ui.text(\"Manage account security and permissions.\"),\n    ui.button(\"Save Changes\", variant=\"primary\"),\n    gap=16,\n)", "domain": "Layout & Disclosure", "desc": "Vertical flexbox container arranging child components top-to-bottom."}, "row": {"example": "ui.row(\n    ui.button(\"Cancel\", variant=\"secondary\"),\n    ui.button(\"Submit\", variant=\"primary\"),\n    gap=12,\n)", "domain": "Layout & Disclosure", "desc": "Horizontal flexbox container with alignment, spacing, and wrapping controls."}, "grid": {"example": "ui.grid(\n    ui.card(ui.text(\"Metric A\")),\n    ui.card(ui.text(\"Metric B\")),\n    ui.card(ui.text(\"Metric C\")),\n    columns=3,\n    gap=16,\n)", "domain": "Layout & Disclosure", "desc": "Responsive CSS Grid container with column counts and responsive breakpoints."}, "container": {"example": "ui.container(\n    ui.heading(\"Dashboard Overview\", level=1),\n    ui.text(\"Welcome to RADUI portal.\"),\n    max_width=\"1200px\",\n)", "domain": "Layout & Disclosure", "desc": "Centered structural page wrapper with max-width and horizontal margins."}, "stack": {"example": "ui.stack(\n    ui.badge(\"Python\"),\n    ui.badge(\"ASGI\"),\n    ui.badge(\"SSE\"),\n    gap=8,\n)", "domain": "Layout & Disclosure", "desc": "Flexible wrapping layout for button strips, tag clouds, and badge rows."}, "split_panel": {"example": "ui.split_panel(\n    left=ui.card(ui.text(\"Navigation List\")),\n    right=ui.card(ui.text(\"Detail View\")),\n    initial_ratio=0.35,\n)", "domain": "Layout & Disclosure", "desc": "Resizable two-pane layout with draggable divider for master-detail views."}, "card": {"example": "ui.card(\n    ui.metric_card(\"Throughput\", \"1,420 rps\"),\n    title=\"API Cluster Status\",\n    subtitle=\"Updated 1s ago\",\n)", "domain": "Layout & Disclosure", "desc": "Structured visual container panel with optional title, description, and footer."}, "dynamic_card": {"example": "ui.dynamic_card(\"Live State Viewer\", bind=s_count,\n    ui.text(\"Content dynamically re-evaluates on state mutation.\")\n)", "domain": "Layout & Disclosure", "desc": "Reactive card container observing a StateRef and re-rendering on mutations."}, "accordion": {"example": "ui.accordion(\n    ui.accordion_item(\"Section 1\", ui.text(\"Content 1\"), open=True),\n    ui.accordion_item(\"Section 2\", ui.text(\"Content 2\")),\n)", "domain": "Layout & Disclosure", "desc": "Collapsible disclosure container organizing vertically stacked expandable panels."}, "accordion_item": {"example": "ui.accordion_item(\"How does SSR work?\",\n    ui.text(\"Initial requests render complete HTML in under 3.1ms.\"),\n    open=True\n)", "domain": "Layout & Disclosure", "desc": "Individual collapsible section with interactive header toggle and body."}, "spacer": {"example": "ui.spacer(size=24)", "domain": "Layout & Disclosure", "desc": "Explicit layout spacing element creating vertical or horizontal margin."}, "divider": {"example": "ui.divider(direction=\"horizontal\")", "domain": "Layout & Disclosure", "desc": "Structural visual separator rule segmenting sections within columns or rows."}, "heading": {"example": "ui.heading(\"Reactive Execution Lifecycle\", level=2)", "domain": "Typography & Code", "desc": "Semantic typography element rendering h1 through h6 with hierarchy validation."}, "text": {"example": "ui.text(\"Sub-DOM diffing completes in 0.168 ms.\", variant=\"lead\")", "domain": "Typography & Code", "desc": "Text display component supporting variants: body, caption, code, lead, muted."}, "callout": {"example": "ui.callout(\"Production Ready\", \"All 6 benchmark tiers verified.\", variant=\"success\")", "domain": "Typography & Code", "desc": "Highlighted informational callout banner with status semantics."}, "code_block": {"example": "ui.code_block(\"pip install radui\", language=\"bash\", copyable=True)", "domain": "Typography & Code", "desc": "Syntax-formatted monospace code block featuring line numbers and copy button."}, "kbd": {"example": "ui.row(ui.text(\"Press\"), ui.kbd(\"Ctrl\", \"K\"), ui.text(\"for Command Palette\"), gap=6)", "domain": "Typography & Code", "desc": "Keyboard shortcut indicator styled as hardware keycaps."}, "button": {"example": "ui.button(\"Deploy Cluster\", command=\"cluster.deploy\", variant=\"primary\")", "domain": "Action & Trigger", "desc": "Interactive trigger button dispatching a registered RADUI server command."}, "link": {"example": "ui.link(\"GitHub Repository\", \"https://github.com/flux-py/radui\", external=True)", "domain": "Action & Trigger", "desc": "Hyperlink strictly validated against secure http/https schemes to prevent XSS."}, "dropdown_menu": {"example": "ui.dropdown_menu(\"Export Options\", [\n    ui.dropdown_menu_item(\"CSV Export\", command=\"export.csv\"),\n    ui.dropdown_menu_item(\"JSON Export\", command=\"export.json\"),\n])", "domain": "Action & Trigger", "desc": "Floating contextual menu revealing actions on trigger click."}, "dropdown_menu_item": {"example": "ui.dropdown_menu_item(\"Purge Cache\", command=\"cache.purge\", danger=True)", "domain": "Action & Trigger", "desc": "Action item within a dropdown menu supporting command dispatch or navigation."}, "theme_toggle": {"example": "ui.theme_toggle(\"Toggle Theme\")", "domain": "Action & Trigger", "desc": "Interactive theme switcher with dark/light mode transitions and localStorage persistence."}, "form": {"example": "ui.form(\n    ui.input(\"Workspace Name\", bind=s_name),\n    ui.button(\"Create\", variant=\"primary\"),\n    command=\"workspace.create\",\n)", "domain": "Form & Data Input", "desc": "Declarative form container automatically injecting CSRF tokens and binding child inputs."}, "input": {"example": "ui.input(\"Email Address\", bind=s_email, type=\"email\", placeholder=\"developer@flux.py\")", "domain": "Form & Data Input", "desc": "Single-line text input bound to a reactive StateRef. Supports text, email, number, url."}, "textarea": {"example": "ui.textarea(\"Prompt Instructions\", bind=s_prompt, rows=5)", "domain": "Form & Data Input", "desc": "Multi-line text entry field bound to a reactive StateRef."}, "checkbox": {"example": "ui.checkbox(\"Enable Telemetry Tracing\", bind=s_telemetry)", "domain": "Form & Data Input", "desc": "Boolean toggle checkbox bound directly to a boolean StateRef."}, "switch": {"example": "ui.switch(\"Maintenance Mode\", bind=s_maintenance)", "domain": "Form & Data Input", "desc": "Hardware-styled toggle switch component bound to boolean reactive state."}, "radio_group": {"example": "ui.radio_group(\"Database Backend\", bind=s_db, options=[\"sqlite\", \"postgres\", \"redis\"])", "domain": "Form & Data Input", "desc": "Mutually-exclusive radio selection list bound to a string StateRef."}, "select": {"example": "ui.select(\"Cluster Region\", bind=s_region, options=[(\"us-east-1\", \"US East\"), (\"eu-west-1\", \"EU West\")])", "domain": "Form & Data Input", "desc": "Single-choice dropdown select control supporting label-value option tuples."}, "slider": {"example": "ui.slider(\"Concurrent Jobs\", bind=s_concurrency, min_value=1, max_value=64, step=1)", "domain": "Form & Data Input", "desc": "Continuous or stepped numeric range input with live value readouts."}, "date_picker": {"example": "ui.date_picker(\"Deployment Date\", bind=s_date)", "domain": "Form & Data Input", "desc": "Accessible calendar date picker input formatted to ISO-8601 (YYYY-MM-DD)."}, "time_picker": {"example": "ui.time_picker(\"Daily Backup Time\", bind=s_time)", "domain": "Form & Data Input", "desc": "Accessible time selection control formatted to 24-hour time (HH:MM)."}, "file_upload": {"example": "ui.file_upload(command=\"dataset.upload\", accept=\".csv,.json\", max_size_mb=25)", "domain": "Form & Data Input", "desc": "Drag-and-drop file upload zone with client-side size validation and file listing."}, "modal": {"example": "ui.modal(\"Restart Server\", ui.text(\"Are you sure you want to restart?\"), trigger_label=\"Restart\")", "domain": "Feedback & Overlays", "desc": "Accessible dialog overlay featuring focus-trapping, Escape key dismissal, and backdrop handling."}, "drawer": {"example": "ui.drawer(\"Node Inspector\", ui.text(\"Detailed trace records\"), trigger_label=\"Inspect\")", "domain": "Feedback & Overlays", "desc": "Off-canvas sliding drawer panel supporting placements: left, right, top, bottom."}, "popover": {"example": "ui.popover(\"Lease Fencing\", \"Guarantees split-brain prevention under partitions.\")", "domain": "Feedback & Overlays", "desc": "Contextual floating popover bubble anchored to a trigger button."}, "tooltip": {"example": "ui.tooltip(\"Copy command\", ui.button(\"Copy\"))", "domain": "Feedback & Overlays", "desc": "Lightweight hover/focus indicator providing descriptive text for buttons and icons."}, "toast": {"example": "ui.toast(\"State synchronized successfully\", variant=\"success\")", "domain": "Feedback & Overlays", "desc": "Individual transient toast alert message. Variants: info, success, warning, danger."}, "toast_container": {"example": "ui.toast_container(ui.toast(\"Cache purged\", variant=\"info\"))", "domain": "Feedback & Overlays", "desc": "Fixed viewport overlay positioning toast notifications."}, "error_boundary": {"example": "ui.error_boundary(failing_widget(), fallback_message=\"Live widget temporarily unavailable.\")", "domain": "Feedback & Overlays", "desc": "Catches unhandled rendering exceptions in isolated subtrees without breaking surrounding page."}, "breadcrumb": {"example": "ui.breadcrumb(\n    ui.breadcrumb_item(\"Home\", href=\"/\"),\n    ui.breadcrumb_item(\"Components\", href=\"/components\"),\n    ui.breadcrumb_item(\"Button\", active=True),\n)", "domain": "Navigation", "desc": "Breadcrumb navigation bar indicating hierarchical path position."}, "breadcrumb_item": {"example": "ui.breadcrumb_item(\"Architecture\", href=\"/architecture\")", "domain": "Navigation", "desc": "Individual breadcrumb entry supporting hyperlinked routes or active leaf nodes."}, "pagination": {"example": "ui.pagination(current_page=2, total_pages=8, command=\"records.page\")", "domain": "Navigation", "desc": "Page selector control with Previous, Next, and numeric page buttons dispatching commands."}, "tabs": {"example": "ui.tabs(\n    ui.tab_item(\"Python API\", ui.code_block(\"import radui as ui\")),\n    ui.tab_item(\"CLI\", ui.code_block(\"radui run\")),\n)", "domain": "Navigation", "desc": "Tabbed container switching visible child panels based on active tab selection."}, "tab_item": {"example": "ui.tab_item(\"Benchmarks\", ui.text(\"AST Construction: 0.039 ms\"))", "domain": "Navigation", "desc": "Single tab section holding child components associated with a tab header."}, "table": {"example": "ui.table(\n    headers=[\"Worker\", \"Status\", \"Latency\"],\n    rows=[[\"worker-1\", \"ACTIVE\", \"0.039ms\"], [\"worker-2\", \"ACTIVE\", \"0.042ms\"]],\n)", "domain": "Data Display & Tables", "desc": "Responsive data table with striped alternating rows and hover highlighting."}, "data_grid": {"example": "ui.data_grid(\n    headers=[\"Component\", \"Category\", \"AST Overhead\"],\n    rows=[[\"button\", \"Action\", \"0.015ms\"], [\"data_grid\", \"Data\", \"0.082ms\"]],\n    searchable=True,\n)", "domain": "Data Display & Tables", "desc": "Interactive data grid featuring instant search filtering, column sorting, and pagination."}, "virtual_list": {"example": "ui.virtual_list(items=[f\"Log Entry #{i}\" for i in range(10000)], item_height=36, viewport_height=300)", "domain": "Data Display & Tables", "desc": "Windowed virtualization list rendering massive datasets via CSS translateY spacers."}, "metric_card": {"example": "ui.metric_card(\"Reconciliation Time\", \"0.168 ms\", delta=\"-42% latency\")", "domain": "Data Display & Tables", "desc": "KPI metric card with formatted values, comparison deltas, and trend status indicators."}, "plot": {"example": "ui.plot(data=[{\"x\": \"T1\", \"y\": 0.039}, {\"x\": \"T2\", \"y\": 0.038}, {\"x\": \"T3\", \"y\": 3.037}], plot_type=\"bar\")", "domain": "Data Display & Tables", "desc": "Zero-dependency pure SVG chart generator rendering bar, line, and scatter series with zero JS."}, "badge": {"example": "ui.badge(\"v1.0.0 Production\", variant=\"primary\")", "domain": "Indicators & Avatars", "desc": "Compact status pill badge. Variants: primary, secondary, success, warning, danger."}, "tag": {"example": "ui.tag(\"Python 3.12\", variant=\"secondary\")", "domain": "Indicators & Avatars", "desc": "Categorization tag element with optional dismiss button dispatching a command."}, "progress_bar": {"example": "ui.progress_bar(value=85.0, variant=\"success\")", "domain": "Indicators & Avatars", "desc": "Horizontal progress bar indicator with optional striping and animations."}, "progress_circle": {"example": "ui.progress_circle(value=98.5, size=72, variant=\"primary\")", "domain": "Indicators & Avatars", "desc": "Radial SVG progress ring with centered percentage readout."}, "avatar": {"example": "ui.avatar(name=\"Core Maintainer\", size=\"md\", status=\"online\")", "domain": "Indicators & Avatars", "desc": "User profile avatar displaying image source or automatically derived initials."}, "avatar_group": {"example": "ui.avatar_group(\n    ui.avatar(name=\"Ada Lovelace\"),\n    ui.avatar(name=\"Alan Turing\"),\n    ui.avatar(name=\"Grace Hopper\"),\n    ui.avatar(name=\"Linus Torvalds\"),\n    max_visible=3,\n)", "domain": "Indicators & Avatars", "desc": "Overlapping avatar cluster automatically truncating excess users into an +N overflow badge."}, "skeleton": {"example": "ui.skeleton(shape=\"rect\", width=\"100%\", height=\"48px\")", "domain": "Indicators & Avatars", "desc": "Shimmering placeholder loader matching content shape (rect, circle, text)."}, "empty_state": {"example": "ui.empty_state(\"No Telemetry Found\", \"Trigger command to populate event logs.\", action=ui.button(\"Start Telemetry\"))", "domain": "Indicators & Avatars", "desc": "Zero-state presentation screen with heading, explanation, and action button."}, "diagram": {"example": "ui.diagram(\n    nodes=[\n        ui.diagram_node(\"n1\", \"Client DOM\", 50, 100),\n        ui.diagram_node(\"n2\", \"ASGI Engine\", 250, 100),\n    ],\n    edges=[ui.diagram_edge(\"n1\", \"n2\", label=\"POST /command\")],\n)", "domain": "Diagrams & Trees", "desc": "Pure SVG architecture diagram and flowchart canvas supporting interactive click commands."}, "tree_view": {"example": "ui.tree_view([\n    ui.tree_node(\"radui\", \"radui/\", children=[\n        ui.tree_node(\"core\", \"core/\"),\n        ui.tree_node(\"state\", \"state/\"),\n    ], expanded=True),\n])", "domain": "Diagrams & Trees", "desc": "Hierarchical tree explorer with collapsible branches, expandable carets, and selection listeners."}, "chat_view": {"example": "ui.chat_view(\n    ui.chat_message(\"Hello from RADUI AI agent!\", sender=\"assistant\"),\n    height=\"400px\",\n)", "domain": "AI Agent & Workflow", "desc": "Conversation message scrollbox featuring auto-scroll, message bubbles, and typing indicators."}, "chat_message": {"example": "ui.chat_message(\"Can you explain transactional outboxes?\", sender=\"user\")", "domain": "AI Agent & Workflow", "desc": "Individual chat message bubble supporting markdown, code formatting, and metadata."}, "chat_input": {"example": "ui.chat_input(command=\"agent.chat\", placeholder=\"Ask RADUI agent...\")", "domain": "AI Agent & Workflow", "desc": "Conversational input box supporting Enter-to-submit and file attachments."}, "streaming_text": {"example": "ui.streaming_text(\"Tokens arriving in 0.007ms chunks...\", is_streaming=True)", "domain": "AI Agent & Workflow", "desc": "Real-time token stream text box with animated blinking cursor."}, "action_card": {"example": "ui.action_card(\n    title=\"Authorize Tool Dispatch?\",\n    description=\"Execute query on production DB.\",\n    confirm_command=\"agent.approve\",\n    cancel_command=\"agent.reject\",\n)", "domain": "AI Agent & Workflow", "desc": "Human-in-the-loop (HITL) card enabling users to authorize or reject agent tool executions."}, "step_timeline": {"example": "ui.step_timeline([\n    {\"title\": \"Request Validated\", \"status\": \"completed\", \"latency\": \"0.12ms\"},\n    {\"title\": \"State Invalidation\", \"status\": \"completed\", \"latency\": \"0.168ms\"},\n    {\"title\": \"SSE Patch Emitted\", \"status\": \"active\", \"latency\": \"0.007ms\"},\n])", "domain": "AI Agent & Workflow", "desc": "Multi-step execution audit timeline displaying tool invocations, progress state, and latency."}, "generative_slot": {"example": "ui.generative_slot(id=\"dynamic_ai_slot\", component=ui.card(ui.text(\"Agent generated view\")))", "domain": "AI Agent & Workflow", "desc": "Dynamic DOM container allowing backend AI agents to swap or generate UI component trees."}, "job_panel": {"example": "ui.job_panel(job_id=\"export-daily-kpis\")", "domain": "AI Agent & Workflow", "desc": "Real-time background job monitor with progress bar, state badge, and cancellation trigger."}, "presence_bar": {"example": "ui.presence_bar(users=[\n    ui.presence_user(\"u1\", \"Carlos\", \"online\"),\n    ui.presence_user(\"u2\", \"Elena\", \"busy\"),\n])", "domain": "AI Agent & Workflow", "desc": "Real-time collaborative presence bar showing active users, avatars, and field lock indicators."}, "canvas_stream": {"example": "ui.canvas_stream(\n    width=640,\n    height=320,\n    stream_url=\"/_gx/telemetry/stream\",\n)", "domain": "Data Display & Tables", "desc": "High-frequency 60 FPS hardware-accelerated canvas stream for 100k points/sec real-time telemetry."}};
 
   document.addEventListener("pointermove", (event) => {
     if (event.pointerType === "touch") return;
@@ -1573,7 +1714,10 @@ STATIC_JS = r"""(() => {
       const domain = (meta.domain || chip.dataset.domain || "").toLowerCase();
       const desc = (meta.desc || chip.dataset.desc || "").toLowerCase();
 
-      const matchesQuery = !query || name.includes(query) || domain.includes(query) || desc.includes(query);
+      const matchesName = name.includes(query);
+      const matchesDomainQuery = domain.includes(query);
+      const matchesDesc = query.length >= 3 && desc.includes(query);
+      const matchesQuery = !query || matchesName || matchesDomainQuery || matchesDesc;
       const matchesDomain = activeDomain === "all" || (
         activeDomain === "data" ? (domain.includes("data display") || domain.includes("tables")) :
         activeDomain === "form" ? domain.includes("form") :
@@ -1583,13 +1727,13 @@ STATIC_JS = r"""(() => {
       );
 
       const visible = matchesQuery && matchesDomain;
-      chip.style.display = visible ? "inline-flex" : "none";
+      chip.style.setProperty("display", visible ? "inline-flex" : "none", "important");
       if (visible) matched++;
     });
 
     if (countBadge) {
-      countBadge.textContent = `Showing ${matched} of 68 primitives`;
-      countBadge.className = matched === 0 ? "gx-badge gx-badge-danger" : (matched < 68 ? "gx-badge gx-badge-warning" : "gx-badge gx-badge-primary");
+      countBadge.textContent = `Showing ${matched} of 70 primitives`;
+      countBadge.className = matched === 0 ? "gx-badge gx-badge-danger" : (matched < 70 ? "gx-badge gx-badge-warning" : "gx-badge gx-badge-primary");
     }
   };
 
@@ -1657,6 +1801,12 @@ STATIC_JS = r"""(() => {
     } else if (currentCompName === "job_panel") {
       widgetHtml = `<div class="gx-card" style="width:100%;padding:16px;background:var(--gx-surface-alt);border:1px solid var(--gx-border);border-radius:var(--gx-radius)"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><strong>Job: ${label}</strong><span class="gx-badge gx-badge-primary">RUNNING</span></div><div class="gx-progress" style="height:10px;background:var(--gx-border);border-radius:999px;margin-bottom:10px"><div class="gx-progress-bar gx-progress-${variant}" style="width:60%;height:100%;border-radius:999px"></div></div><button class="gx-button gx-button-sm gx-button-danger" type="button" onclick="this.textContent='Cancelled ✕'">Cancel Job</button></div>`;
       snippet = compMeta.example || `import radui as ui\n\nwidget = ui.job_panel(job_id="export-metrics")`;
+    } else if (currentCompName === "presence_bar" || currentCompName === "presence") {
+      widgetHtml = `<div style="width:100%;padding:14px;background:var(--gx-surface-alt);border:1px solid var(--gx-border);border-radius:var(--gx-radius);display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:10px"><div style="display:flex;margin-left:8px"><div class="gx-avatar" style="width:32px;height:32px;border-radius:50%;background:#10b981;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid var(--gx-surface)">AL</div><div class="gx-avatar" style="width:32px;height:32px;border-radius:50%;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid var(--gx-surface);margin-left:-8px">GH</div></div><span class="gx-text" style="font-weight:600">${label}</span></div><span class="gx-badge gx-badge-success">2 Active Peers</span></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.presence_bar(users=[ui.presence_user("u1", "${label}", "online")])`;
+    } else if (currentCompName === "canvas_stream") {
+      widgetHtml = `<div style="width:100%;padding:16px;background:var(--gx-surface-alt);border:1px solid var(--gx-border);border-radius:var(--gx-radius)"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><strong>Canvas Stream (${label})</strong><span class="gx-badge gx-badge-primary">60 FPS • 100k pts/sec</span></div><div style="width:100%;height:120px;background:#0d1117;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#34d399;font-family:monospace;font-size:13px">⚡ Live Telemetry Stream Running</div></div>`;
+      snippet = `import radui as ui\n\nwidget = ui.canvas_stream(width=640, height=320, stream_url="/_gx/telemetry/stream")`;
     } else if (currentCompName === "slider") {
       widgetHtml = `<div style="width:100%"><label class="gx-label" style="display:block;margin-bottom:8px">${label}: <span id="comp-slider-val" style="font-weight:700">65</span>%</label><input type="range" min="0" max="100" value="65" class="gx-slider" style="width:100%" oninput="document.getElementById('comp-slider-val').textContent=this.value"></div>`;
       snippet = `import radui as ui\n\nwidget = ui.slider("${label}", min=0, max=100, step=1, value=65)`;
@@ -1828,7 +1978,9 @@ STATIC_JS = r"""(() => {
           table: "Cluster Status Table",
           tag: "Production Ready",
           step_timeline: "Deployment Pipeline Phase",
-          job_panel: "Telemetry Export Worker"
+          job_panel: "Telemetry Export Worker",
+          presence_bar: "Active Collaborative Team",
+          canvas_stream: "High-Frequency Telemetry"
         };
         labelInput.value = defaultLabels[name] || ("Demo " + name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()));
       }
@@ -2002,7 +2154,7 @@ STATIC_JS = r"""(() => {
     });
   };
 
-  // 68-Primitive Search & Domain Filter Toolbar
+  // 70-Primitive Search & Domain Filter Toolbar
   const initComponentSearch = () => {
     filterChips();
 
@@ -2064,7 +2216,7 @@ STATIC_JS = r"""(() => {
     { path: "getting-started.html", title: "Getting Started with RADUI", url: "getting-started.html" },
     { path: "api-reference.html", title: "Python API Reference", url: "api-reference.html" },
     { path: "architecture.html", title: "RADUI System Architecture & Execution Lifecycle", url: "architecture.html" },
-    { path: "components.html", title: "Interactive Component Explorer (68 Built-in Primitives)", url: "components.html" },
+    { path: "components.html", title: "Interactive Component Explorer (70 Built-in Primitives)", url: "components.html" },
     { path: "components-layout.html", title: "Layout & Grid Architecture", url: "components-layout.html" },
     { path: "components-forms.html", title: "Forms, Form Validation & Reactive Input Controls", url: "components-forms.html" },
     { path: "components-data.html", title: "Data Display, DataGrids, Virtualized Lists & Vector Topology", url: "components-data.html" },
@@ -2440,6 +2592,16 @@ STATIC_JS = r"""(() => {
         return;
       }
     }
+
+    const chipBtn = event.target.closest("#component-chips-grid button");
+    if (chipBtn) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const cmd = chipBtn.dataset.gxCommand || "";
+      runDemoCommand(cmd, chipBtn);
+      return;
+    }
+
     const button = event.target.closest("button[data-gx-command]");
     if (!button || button.closest("form")) return;
     event.preventDefault();
@@ -2720,6 +2882,10 @@ CLIENT_JS = r"""(() => {
 
         target.replaceWith(newEl);
         initMotion(newEl);
+        if (newEl && newEl.classList) {
+          newEl.classList.add("gx-morph-highlight");
+          setTimeout(() => newEl.classList.remove("gx-morph-highlight"), 400);
+        }
 
         if (oldNum !== null && !isNaN(oldNum)) {
           const newNumEl = newEl.querySelector("[data-gx-animate-number]") || (newEl.matches("[data-gx-animate-number]") ? newEl : null);
@@ -3805,6 +3971,54 @@ CLIENT_JS = r"""(() => {
       setTimeout(executeReplay, 500);
     }
   });
+
+  // Interactive Component Discovery & Filtering for documentation
+  const initCompDiscovery = () => {
+    let activeDomain = "all";
+    const filterChips = () => {
+      const searchContainer = document.getElementById("comp-search-bar");
+      const searchInput = document.getElementById("comp-search-bar-control") || document.querySelector("#comp-search-bar input") || searchContainer;
+      const countBadge = document.getElementById("comp-results-count");
+      const chipsGrid = document.getElementById("component-chips-grid");
+      if (!chipsGrid) return;
+
+      const rawVal = searchInput ? (searchInput.value !== undefined ? searchInput.value : (searchInput.querySelector?.("input")?.value || "")) : "";
+      const query = (rawVal || "").trim().toLowerCase();
+      const chips = [...chipsGrid.querySelectorAll("button")];
+      let matched = 0;
+
+      chips.forEach(chip => {
+        const name = (chip.dataset.gxComp || chip.textContent).trim().toLowerCase();
+        const matchesName = name.includes(query);
+        const visible = !query || matchesName;
+        chip.style.setProperty("display", visible ? "inline-flex" : "none", "important");
+        if (visible) matched++;
+      });
+
+      if (countBadge) {
+        countBadge.textContent = `Showing ${matched} of 70 primitives`;
+        countBadge.className = matched === 0 ? "gx-badge gx-badge-danger" : (matched < 70 ? "gx-badge gx-badge-warning" : "gx-badge gx-badge-primary");
+      }
+    };
+
+    document.addEventListener("input", (e) => {
+      if (e.target.id === "comp-search-bar-control" || e.target.closest("#comp-search-bar")) {
+        filterChips();
+      }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.target.id === "comp-search-bar-control" || e.target.closest("#comp-search-bar")) {
+        filterChips();
+      }
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initCompDiscovery);
+  } else {
+    initCompDiscovery();
+  }
 })();"""
 
 
@@ -5443,4 +5657,57 @@ def render_tag(
         f'<span class="gx-tag gx-tag-{component.variant}"{_attrs(component)}>'
         f'<span>{escape(component.label)}</span>{remove_btn}'
         f'</span>'
+    )
+
+
+def render_presence_bar(
+    component: Component, registry: ComponentRegistry, state_context: object | None, csrf_token: str | None
+) -> str:
+    assert isinstance(component, PresenceBar)
+    room = escape(component.room, quote=True)
+    from radui.core.presence import get_global_presence_manager
+    pm = get_global_presence_manager()
+    users = pm.get_active_users(component.room)
+    
+    avatars_html = []
+    display_users = users[:component.max_avatars]
+    for u in display_users:
+        status_dot = f'<span class="gx-presence-dot" style="background:{escape(u.color, quote=True)};width:8px;height:8px;border-radius:50%;display:inline-block;position:absolute;bottom:0;right:0;border:1px solid var(--gx-bg);"></span>' if component.show_status else ""
+        initial = escape(u.username[0].upper()) if u.username else "U"
+        avatar_content = f'<img src="{escape(u.avatar_url, quote=True)}" alt="{escape(u.username)}" class="gx-avatar-img" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>' if u.avatar_url else f'<span style="font-size:0.75rem;font-weight:700;">{initial}</span>'
+        name_tag = f'<span class="gx-presence-name" style="font-size:0.8rem;color:var(--gx-text);margin-left:4px;">{escape(u.username)}</span>' if component.show_names else ""
+        avatars_html.append(
+            f'<div class="gx-presence-avatar" title="{escape(u.username)} ({u.status})" style="position:relative;width:28px;height:28px;border-radius:50%;background:var(--gx-surface-alt);border:2px solid {escape(u.color, quote=True)};display:inline-flex;align-items:center;justify-content:center;margin-left:-6px;">'
+            f'{avatar_content}{status_dot}{name_tag}'
+            f'</div>'
+        )
+    
+    overflow = len(users) - len(display_users)
+    overflow_badge = f'<div class="gx-presence-overflow" style="position:relative;width:28px;height:28px;border-radius:50%;background:var(--gx-surface-alt);border:2px solid var(--gx-border);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;margin-left:-6px;">+{overflow}</div>' if overflow > 0 else ""
+
+    return (
+        f'<div class="gx-presence-bar"{_attrs(component)} data-gx-presence-room="{room}" style="display:inline-flex;align-items:center;padding:4px 8px;">'
+        f'<div class="gx-presence-avatars" style="display:flex;align-items:center;padding-left:6px;">{"".join(avatars_html)}{overflow_badge}</div>'
+        f'</div>'
+    )
+
+
+def render_canvas_stream(
+    component: Component, registry: ComponentRegistry, state_context: object | None, csrf_token: str | None
+) -> str:
+    assert isinstance(component, CanvasStream)
+    topic = escape(component.stream_topic, quote=True)
+    w = component.width if isinstance(component.width, str) else f"{component.width}px"
+    h = f"{component.height}px"
+    return (
+        f'<div class="gx-canvas-stream-wrap"{_attrs(component)} style="width:{escape(w, quote=True)};height:{h};position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--gx-border);">'
+        f'<canvas class="gx-canvas-stream" data-gx-stream-topic="{topic}" data-gx-mode="{component.mode}" '
+        f'data-gx-buffer="{component.buffer_size}" data-gx-color="{escape(component.color, quote=True)}" '
+        f'data-gx-bg="{escape(component.background, quote=True)}" data-gx-grid="{str(component.grid).lower()}" '
+        f'data-gx-downsample="{component.downsample}" data-gx-stroke="{component.stroke_width}" '
+        f'style="width:100%;height:100%;display:block;background:{escape(component.background, quote=True)};"></canvas>'
+        f'<div class="gx-canvas-stream-hud" style="position:absolute;top:8px;right:10px;font-size:0.75rem;color:var(--gx-text-muted);pointer-events:none;background:rgba(0,0,0,0.6);padding:2px 6px;border-radius:4px;">'
+        f'<span class="gx-canvas-stream-rate">60 FPS • 100k pts/s</span>'
+        f'</div>'
+        f'</div>'
     )

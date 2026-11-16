@@ -129,7 +129,7 @@ def cli_workflows_page():
             ui.code_block(
                 "[*] Checking Python environment... Python 3.12.3 [OK]\n"
                 "[*] Checking ASGI backend... uvicorn 0.30.1 [OK]\n"
-                "[*] Verifying 68 built-in component AST schemas... [OK]\n"
+                "[*] Verifying 70 built-in component AST schemas... [OK]\n"
                 "[*] Auditing tenant fencing rules (ADR-002)... 0 leaks detected [PASS]\n"
                 "[*] Monotonic lease check (ADR-001)... [PASS]\n"
                 "All 7 diagnostic gates verified successfully.",

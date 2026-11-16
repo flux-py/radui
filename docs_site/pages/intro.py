@@ -195,7 +195,7 @@ def _render_why_radui_section() -> ui.Component:
                         title="Enterprise Hardening",
                         hover=ui.motion.hover(scale=1.02, translate_y=-3.0),
                     ),
-                    columns={"sm": 1, "md": 2, "lg": 2, "xl": 3},
+                    columns={"sm": 1, "md": 2, "lg": 2, "xl": 2},
                     gap=16,
                     stagger_children=0.05,
                 ),
@@ -847,7 +847,7 @@ def api_reference_page():
         ),
         ui.spacer(size=14),
         ui.card(
-            ui.heading("19. Complete AST Node Class Hierarchy (40 Primitive Classes)", level=3),
+            ui.heading("19. Complete AST Node Class Hierarchy (42 Primitive Classes)", level=3),
             ui.text(
                 "Direct instantiation of PascalCase AST Node classes for metaprogramming, dynamic component "
                 "factories, tree visitors, and strongly-typed compiler transforms:"
@@ -856,10 +856,10 @@ def api_reference_page():
                 "# Available node classes in radui:\n"
                 "from radui import (\n"
                 "    AccordionItem, ActionCard, AvatarGroup, BreadcrumbItem,\n"
-                "    ChatInput, ChatMessage, ChatView, CodeBlock, DatePicker,\n"
+                "    CanvasStream, ChatInput, ChatMessage, ChatView, CodeBlock, DatePicker,\n"
                 "    DiagramEdge, DiagramNode, DropdownMenu, DropdownMenuItem,\n"
                 "    DynamicCard, EmptyState, ErrorBoundary, FileUpload,\n"
-                "    GenerativeSlot, JobPanel, Kbd, MetricCard, Plot,\n"
+                "    GenerativeSlot, JobPanel, Kbd, MetricCard, Plot, PresenceBar,\n"
                 "    ProgressBar, ProgressCircle, RadioGroup, Skeleton, Spacer,\n"
                 "    SplitPanel, Stack, StepTimeline, StreamingText, TabItem,\n"
                 "    Tabs, ThemeToggle, TimePicker, Toast, ToastContainer,\n"
@@ -879,6 +879,114 @@ def api_reference_page():
                 "    ),\n"
                 "    orientation='horizontal',\n"
                 ")",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("20. In-Browser Live DevTools & Time-Travel Debugger (`ui.DevTools`)", level=3),
+            ui.text(
+                "Zero-config floating developer HUD (`DevToolsConfig`, `TimeTravelDebugger`, `StateSnapshot`) providing live reactive DAG inspection, "
+                "wall-clock microsecond latency watermarks, surgical SSE morph glow animations, and reverse-diff time-travel state rollbacks:"
+            ),
+            ui.code_block(
+                "from radui import DevTools, DevToolsConfig, TimeTravelDebugger, StateSnapshot\n"
+                "import radui as ui\n\n"
+                "# 1. Activate DevTools during development\n"
+                "app = ui.App(\n"
+                "    title='Enterprise Analytics',\n"
+                "    devtools=DevToolsConfig(\n"
+                "        enabled=True,\n"
+                "        time_travel=True,\n"
+                "        highlight_morphs=True,\n"
+                "        max_journal_entries=50,\n"
+                "        dock_position='bottom-right',\n"
+                "    )\n"
+                ")\n\n"
+                "# 2. Programmatic time-travel rollback inside command handlers\n"
+                "@app.command('debug.rollback')\n"
+                "def rollback_action(ctx: ui.CommandContext):\n"
+                "    # Steps back 1 transaction in state history and restores state values\n"
+                "    restored_keys = ctx.devtools.rollback_steps(steps=1)\n"
+                "    ui.notify(f'Rolled back mutations: {restored_keys}', variant='warning')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("21. Collaborative Multi-User State & Live Presence (`ui.presence_bar`)", level=3),
+            ui.text(
+                "Built-in multi-user presence strip, collaborative occupant tracking (`PresenceManager`, `PresenceUser`), and cooperative field locking "
+                "to prevent simultaneous write conflicts across multiple connected browser sessions:"
+            ),
+            ui.code_block(
+                "import radui as ui\n"
+                "from radui import PresenceManager, PresenceUser, get_global_presence_manager\n\n"
+                "# 1. Place a real-time presence bar in any document or room\n"
+                "@app.page('/doc/{doc_id}')\n"
+                "def document_editor(doc_id: str):\n"
+                "    return ui.column(\n"
+                "        ui.row(\n"
+                "            ui.heading(f'Collaborative Document #{doc_id}', level=2),\n"
+                "            ui.presence_bar(room=f'doc:{doc_id}', max_avatars=5, show_status=True),\n"
+                "            justify='between',\n"
+                "            align='center',\n"
+                "        ),\n"
+                "        ui.textarea('Shared Notes', placeholder='Type with live presence...'),\n"
+                "    )\n\n"
+                "# 2. Programmatic cooperative field locking\n"
+                "pm: PresenceManager = get_global_presence_manager()\n"
+                "locked = pm.lock_field(room='doc:101', field_id='notes_input', user_id='usr_elena', timeout_seconds=15.0)\n"
+                "if not locked:\n"
+                "    raise ValueError('Input field currently locked by another collaborator')",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("22. High-Frequency Telemetry Canvas (`ui.canvas_stream`)", level=3),
+            ui.text(
+                "Hardware-accelerated 60 FPS HTML5 / WebGL canvas rendering streaming time-series data at up to 100,000 points/sec "
+                "with Largest-Triangle-Three-Buckets (LTTB) downsampling, bypassing DOM thrashing completely:"
+            ),
+            ui.code_block(
+                "import radui as ui\n\n"
+                "@app.page('/telemetry')\n"
+                "def telemetry_dashboard():\n"
+                "    return ui.column(\n"
+                "        ui.heading('High-Frequency Sensor Waveform (100k pts/sec)'),\n"
+                "        ui.canvas_stream(\n"
+                "            stream_topic='sensor.vibration',\n"
+                "            width='100%',\n"
+                "            height=380,\n"
+                "            mode='waveform',      # 'line', 'scatter', 'waveform', 'bar'\n"
+                "            buffer_size=50000,\n"
+                "            downsample='lttb',    # LTTB decimation keeps visual peaks intact\n"
+                "            color='var(--gx-primary)',\n"
+                "            grid=True,\n"
+                "        ),\n"
+                "    )",
+                language="python",
+                copyable=True,
+            ),
+        ),
+        ui.spacer(size=14),
+        ui.card(
+            ui.heading("23. WebAssembly & Pyodide Serverless Offline Engine (`radui export --wasm`)", level=3),
+            ui.text(
+                "Bundle complete pure-Python RADUI applications into standalone WebAssembly distributions running 100% inside the browser "
+                "via Pyodide and WebWorkers with offline PWA CacheStorage and zero backend servers:"
+            ),
+            ui.code_block(
+                "# 1. Compile application via CLI\n"
+                "$ radui export app.py --wasm --output ./dist_wasm\n\n"
+                "# 2. Or programmatically via Python API\n"
+                "from radui import WasmExportEngine, export_wasm_bundle\n\n"
+                "out_dir = export_wasm_bundle(app_path='app.py', output_dir='dist_wasm')\n"
+                "# Emits index.html, wasm-worker.js, and service-worker.js ready to deploy on GitHub Pages",
                 language="python",
                 copyable=True,
             ),

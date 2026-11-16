@@ -708,9 +708,33 @@ COMPONENTS: list[dict[str, Any]] = [
         ],
         "example": 'ui.job_panel(job_id="export-daily-kpis")',
     },
+    {
+        "name": "presence_bar",
+        "domain": "AI Agent & Workflow",
+        "description": "Collaborative presence avatar strip showing real-time active room occupants, status dots, and +N overflow count.",
+        "params": [
+            {"name": "room", "type": "str", "default": "lobby", "description": "Collaborative room name."},
+            {"name": "max_avatars", "type": "int", "default": 5, "description": "Maximum avatars visible before overflow."},
+            {"name": "show_status", "type": "bool", "default": True, "description": "Render online/idle status indicators."},
+        ],
+        "example": 'ui.presence_bar(room="document:101", max_avatars=5, show_status=True)',
+    },
+    {
+        "name": "canvas_stream",
+        "domain": "Data Display",
+        "description": "High-frequency 60 FPS WebGL/HTML5 telemetry canvas streaming up to 100k points/sec with LTTB downsampling.",
+        "params": [
+            {"name": "stream_topic", "type": "str", "default": "telemetry.ticks", "description": "SSE or WebSocket stream channel."},
+            {"name": "width", "type": "str", "default": "100%", "description": "Canvas width constraint."},
+            {"name": "height", "type": "int", "default": 300, "description": "Canvas height in pixels."},
+            {"name": "mode", "type": "str", "default": "line", "options": ["line", "scatter", "waveform", "bar"], "description": "Plot rendering mode."},
+            {"name": "buffer_size", "type": "int", "default": 10000, "description": "Maximum datapoints in memory ring buffer."},
+        ],
+        "example": 'ui.canvas_stream(stream_topic="telemetry.ticks", mode="line", buffer_size=10000)',
+    },
 ]
 
-assert len(COMPONENTS) == 68, f"Expected 68 components, got {len(COMPONENTS)}"
+assert len(COMPONENTS) == 70, f"Expected 70 components, got {len(COMPONENTS)}"
 
 
 # =========================================================================

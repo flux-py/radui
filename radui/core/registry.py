@@ -14,6 +14,7 @@ from radui.components.nodes import (
     BreadcrumbItem,
     Button,
     Callout,
+    CanvasStream,
     Card,
     ChatInput,
     ChatMessage,
@@ -47,6 +48,7 @@ from radui.components.nodes import (
     Pagination,
     Plot,
     Popover,
+    PresenceBar,
     ProgressBar,
     ProgressCircle,
     RadioGroup,
@@ -189,6 +191,7 @@ class ComponentRegistry:
             render_breadcrumb_item,
             render_button,
             render_callout,
+            render_canvas_stream,
             render_card,
             render_chat_input,
             render_chat_message,
@@ -221,6 +224,7 @@ class ComponentRegistry:
             render_pagination,
             render_plot,
             render_popover,
+            render_presence_bar,
             render_progress_bar,
             render_progress_circle,
             render_radio_group,
@@ -318,4 +322,6 @@ class ComponentRegistry:
         registry.register("container", Container, render_container)
         registry.register("stack", Stack, render_stack)
         registry.register("tag", Tag, render_tag)
+        registry.register("presence_bar", PresenceBar, render_presence_bar)
+        registry.register("canvas_stream", CanvasStream, render_canvas_stream)
         return registry

@@ -724,6 +724,16 @@ def cmd_export(args: argparse.Namespace) -> int:
 
     output_dir = Path(getattr(args, "output", "./dist"))
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    if getattr(args, "wasm", False):
+        from radui.renderers.wasm import export_wasm_bundle
+        out_path = export_wasm_bundle(
+            app_path=getattr(args, "target", "app.py"),
+            output_dir=str(output_dir),
+        )
+        print(f"[OK] Exported WebAssembly / Pyodide application bundle to: {out_path.resolve()}")
+        return 0
+
     fmt = getattr(args, "format", "json").lower()
     is_static = getattr(args, "static", False) or fmt == "html" or fmt == "static"
 
@@ -1158,6 +1168,7 @@ def main(argv: list[str] | None = None) -> int:
     export_p.add_argument("target", nargs="?", default="app.py", help="App target")
     export_p.add_argument("--format", "-f", choices=["html", "json", "static"], default="json", help="Format")
     export_p.add_argument("--static", action="store_true", help="Export full static HTML document bundles")
+    export_p.add_argument("--wasm", action="store_true", help="Export standalone client-side WebAssembly / Pyodide bundle")
     export_p.add_argument("--output", "-o", default="./dist", help="Output directory")
     export_p.set_defaults(func=cmd_export)
 

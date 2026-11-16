@@ -191,10 +191,15 @@ body {
 /* =========================================================================
    4. SIDEBAR NAVIGATION
    ========================================================================= */
+#docs-shell > #docs-layout,
+#docs-layout.gx-grid,
 #docs-layout {
-  align-items: start;
-  grid-template-columns: 224px minmax(0,1fr) !important;
-  gap: 62px !important;
+  display: grid !important;
+  align-items: start !important;
+  grid-template-columns: 240px minmax(0, 1fr) !important;
+  gap: 48px !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 #docs-sidebar {
   position: sticky; top: 102px; padding: 4px 0 20px;
@@ -280,6 +285,16 @@ body {
   border-radius: 16px !important; padding: 22px !important;
   box-shadow: 0 6px 22px rgba(0,0,0,.04) !important;
   transition: transform .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease, border-color .24s ease, background-color .24s ease !important;
+  min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important;
+}
+.gx-grid > * {
+  min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important;
+}
+.gx-card pre,
+.gx-card code,
+.gx-card .gx-code-container {
+  max-width: 100% !important;
+  overflow-x: auto;
 }
 .gx-card::after, .gx-metric::after, .gx-code-block::after {
   content: ""; position: absolute; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none;

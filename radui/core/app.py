@@ -159,7 +159,38 @@ class CommandContext:
         return self.state.read(ref)
 
     def write(self, ref: Any, value: Any) -> StateChange:
-        return self.state.write(ref, value)
+        old_val = self.state.read(ref) if hasattr(self.state, "read") else None
+        change = self.state.write(ref, value)
+        try:
+            if hasattr(self, "devtools") and self.devtools:
+                ref_key = getattr(ref, "key", str(ref))
+                ref_scope = getattr(ref, "scope", "session")
+                self.devtools.record_change(
+                    key=ref_key,
+                    old_val=old_val,
+                    new_val=value,
+                    command_name=self.command_id,
+                    scope=ref_scope,
+                )
+        except Exception:
+            pass
+        return change
+
+    @property
+    def devtools(self):
+        """Access the runtime TimeTravelDebugger instance for state rollbacks and inspections."""
+        app = getattr(self.request, "app", None)
+        manager = getattr(app, "devtools_manager", None) if app else None
+        if manager is None:
+            from radui.inspector.devtools import TimeTravelDebugger
+            manager = TimeTravelDebugger()
+        return manager
+
+    @property
+    def presence(self):
+        """Access the collaborative room PresenceManager."""
+        from radui.core.presence import get_global_presence_manager
+        return get_global_presence_manager()
 
     def batch(self):
         return self.state.batch()
@@ -200,6 +231,7 @@ class App:
         tenant_membership_validator: Callable[[Request, str | None, str | None], bool | Any] | None = None,
         allow_untrusted_tenant_headers: bool = True,
         multi_tenant: bool = False,
+        devtools: Any = None,
     ) -> None:
         effective_name = title or name
         normalized_id = app_id or _PAGE_ID_RE.sub("-", effective_name.strip().lower()).strip("-") or "RADUI-app"
@@ -209,6 +241,13 @@ class App:
         self.multi_tenant = multi_tenant
         self.theme = theme
         self.command_palette = command_palette
+        self.devtools = devtools
+        if devtools is not None or debug:
+            from radui.inspector.devtools import DevToolsConfig, TimeTravelDebugger
+            cfg = devtools if isinstance(devtools, DevToolsConfig) else DevToolsConfig(enabled=True)
+            self.devtools_manager = TimeTravelDebugger(max_entries=cfg.max_journal_entries)
+        else:
+            self.devtools_manager = None
         self.inspector = TraceCollector()
         if telemetry_endpoint:
             from radui.inspector.otlp import OTLPExporter
@@ -1336,7 +1375,71 @@ th {{ background: #1f2937; color: #94a3b8; font-weight: 600; }}
 </div>
 </body></html>"""
         return HTMLResponse(html)
-        return HTMLResponse(html)
+
+    async def _devtools_status_endpoint(self, request: Request) -> Response:
+        mgr = self.devtools_manager
+        return _json_response({
+            "ok": True,
+            "enabled": mgr is not None,
+            "can_undo": mgr.can_undo if mgr else False,
+            "can_redo": mgr.can_redo if mgr else False,
+            "count": len(mgr._history) if mgr else 0,
+        })
+
+    async def _devtools_history_endpoint(self, request: Request) -> Response:
+        mgr = self.devtools_manager
+        history = mgr.get_history() if mgr else []
+        return _json_response({"ok": True, "history": history})
+
+    async def _devtools_rollback_endpoint(self, request: Request) -> Response:
+        mgr = self.devtools_manager
+        if not mgr:
+            return _json_response({"ok": False, "error": "DevTools not enabled"}, status_code=400)
+        form = await request.form()
+        steps = int(form.get("steps", 1))
+        restorations = mgr.rollback_steps(steps)
+        session_id, _ = self._session(request)
+        ctx = self.state_context(session_id=session_id)
+        for k, v in restorations:
+            ctx.set(k, v)
+        return _json_response({"ok": True, "restored": restorations})
+
+    async def _presence_heartbeat_endpoint(self, request: Request) -> Response:
+        from radui.core.presence import get_global_presence_manager
+        pm = get_global_presence_manager()
+        form = await request.form()
+        room = form.get("room", "default")
+        user_id = form.get("user_id", "anon")
+        field_id = form.get("field")
+        active = pm.heartbeat(room, user_id, current_field=field_id)
+        return _json_response({"ok": True, "users": [u.__dict__ for u in active]})
+
+    async def _presence_join_endpoint(self, request: Request) -> Response:
+        from radui.core.presence import get_global_presence_manager, PresenceUser
+        pm = get_global_presence_manager()
+        form = await request.form()
+        room = form.get("room", "default")
+        user = PresenceUser(
+            user_id=form.get("user_id", secrets.token_hex(4)),
+            username=form.get("username", "Anonymous"),
+            color=form.get("color", "#10b981"),
+        )
+        active = pm.join(room, user)
+        return _json_response({"ok": True, "user_id": user.user_id, "users": [u.__dict__ for u in active]})
+
+    async def _presence_leave_endpoint(self, request: Request) -> Response:
+        from radui.core.presence import get_global_presence_manager
+        pm = get_global_presence_manager()
+        form = await request.form()
+        pm.leave(form.get("room", "default"), form.get("user_id", ""))
+        return _json_response({"ok": True})
+
+    async def _presence_users_endpoint(self, request: Request) -> Response:
+        from radui.core.presence import get_global_presence_manager
+        pm = get_global_presence_manager()
+        room = request.query_params.get("room", "default")
+        active = pm.get_active_users(room)
+        return _json_response({"ok": True, "users": [u.__dict__ for u in active]})
 
     def to_ir(self, version: str = "0.4") -> ApplicationIR:
         route_specs = []
@@ -1388,6 +1491,13 @@ th {{ background: #1f2937; color: #94a3b8; font-weight: 600; }}
             Route("/_gx/inspect/traces", self._inspect_traces_endpoint, methods=["GET"]),
             Route("/_gx/inspect/stats", self._inspect_stats_endpoint, methods=["GET"]),
             Route("/_gx/inspect/dag", self._inspect_dag_endpoint, methods=["GET"]),
+            Route("/_gx/devtools/status", self._devtools_status_endpoint, methods=["GET"]),
+            Route("/_gx/devtools/history", self._devtools_history_endpoint, methods=["GET"]),
+            Route("/_gx/devtools/rollback", self._devtools_rollback_endpoint, methods=["POST"]),
+            Route("/_gx/presence/heartbeat", self._presence_heartbeat_endpoint, methods=["POST"]),
+            Route("/_gx/presence/join", self._presence_join_endpoint, methods=["POST"]),
+            Route("/_gx/presence/leave", self._presence_leave_endpoint, methods=["POST"]),
+            Route("/_gx/presence/users", self._presence_users_endpoint, methods=["GET"]),
             Route("/_gx/health", self._health_endpoint, methods=["GET"]),
         ]
         for page in self._pages.values():

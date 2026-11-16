@@ -73,7 +73,7 @@ def on_agent_approve(ctx: ui.CommandContext):
 def on_agent_reject(ctx: ui.CommandContext):
     ui.notify("Agent action declined by operator.", variant="danger")
 
-# Register dynamic component selector commands for all 68 primitives
+# Register dynamic component selector commands for all 70 primitives
 for _comp in COMPONENTS:
     _name = _comp["name"]
     _cmd_key = f"comp.select_{_name}"
