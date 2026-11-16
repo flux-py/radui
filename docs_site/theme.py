@@ -591,4 +591,25 @@ body {
     transition-duration: .01ms !important;
   }
 }
+
+/* =========================================================================
+   7. RENDERING PERFORMANCE, CONTAINMENT & HARDWARE ACCELERATION
+   ========================================================================= */
+#docs-header {
+  transform: translateZ(0);
+  will-change: transform;
+}
+.gx-card {
+  contain: layout style;
+}
+.gx-table-wrap {
+  contain: layout;
+}
+.gx-continuous-chapter {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
+}
+#component-chips-grid {
+  contain: content;
+}
 """

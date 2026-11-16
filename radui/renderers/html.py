@@ -1684,13 +1684,25 @@ STATIC_JS = r"""(() => {
 
   const RADUI_COMPONENTS = {"column": {"example": "ui.column(\n    ui.heading(\"User Profile\", level=2),\n    ui.text(\"Manage account security and permissions.\"),\n    ui.button(\"Save Changes\", variant=\"primary\"),\n    gap=16,\n)", "domain": "Layout & Disclosure", "desc": "Vertical flexbox container arranging child components top-to-bottom."}, "row": {"example": "ui.row(\n    ui.button(\"Cancel\", variant=\"secondary\"),\n    ui.button(\"Submit\", variant=\"primary\"),\n    gap=12,\n)", "domain": "Layout & Disclosure", "desc": "Horizontal flexbox container with alignment, spacing, and wrapping controls."}, "grid": {"example": "ui.grid(\n    ui.card(ui.text(\"Metric A\")),\n    ui.card(ui.text(\"Metric B\")),\n    ui.card(ui.text(\"Metric C\")),\n    columns=3,\n    gap=16,\n)", "domain": "Layout & Disclosure", "desc": "Responsive CSS Grid container with column counts and responsive breakpoints."}, "container": {"example": "ui.container(\n    ui.heading(\"Dashboard Overview\", level=1),\n    ui.text(\"Welcome to RADUI portal.\"),\n    max_width=\"1200px\",\n)", "domain": "Layout & Disclosure", "desc": "Centered structural page wrapper with max-width and horizontal margins."}, "stack": {"example": "ui.stack(\n    ui.badge(\"Python\"),\n    ui.badge(\"ASGI\"),\n    ui.badge(\"SSE\"),\n    gap=8,\n)", "domain": "Layout & Disclosure", "desc": "Flexible wrapping layout for button strips, tag clouds, and badge rows."}, "split_panel": {"example": "ui.split_panel(\n    left=ui.card(ui.text(\"Navigation List\")),\n    right=ui.card(ui.text(\"Detail View\")),\n    initial_ratio=0.35,\n)", "domain": "Layout & Disclosure", "desc": "Resizable two-pane layout with draggable divider for master-detail views."}, "card": {"example": "ui.card(\n    ui.metric_card(\"Throughput\", \"1,420 rps\"),\n    title=\"API Cluster Status\",\n    subtitle=\"Updated 1s ago\",\n)", "domain": "Layout & Disclosure", "desc": "Structured visual container panel with optional title, description, and footer."}, "dynamic_card": {"example": "ui.dynamic_card(\"Live State Viewer\", bind=s_count,\n    ui.text(\"Content dynamically re-evaluates on state mutation.\")\n)", "domain": "Layout & Disclosure", "desc": "Reactive card container observing a StateRef and re-rendering on mutations."}, "accordion": {"example": "ui.accordion(\n    ui.accordion_item(\"Section 1\", ui.text(\"Content 1\"), open=True),\n    ui.accordion_item(\"Section 2\", ui.text(\"Content 2\")),\n)", "domain": "Layout & Disclosure", "desc": "Collapsible disclosure container organizing vertically stacked expandable panels."}, "accordion_item": {"example": "ui.accordion_item(\"How does SSR work?\",\n    ui.text(\"Initial requests render complete HTML in under 3.1ms.\"),\n    open=True\n)", "domain": "Layout & Disclosure", "desc": "Individual collapsible section with interactive header toggle and body."}, "spacer": {"example": "ui.spacer(size=24)", "domain": "Layout & Disclosure", "desc": "Explicit layout spacing element creating vertical or horizontal margin."}, "divider": {"example": "ui.divider(direction=\"horizontal\")", "domain": "Layout & Disclosure", "desc": "Structural visual separator rule segmenting sections within columns or rows."}, "heading": {"example": "ui.heading(\"Reactive Execution Lifecycle\", level=2)", "domain": "Typography & Code", "desc": "Semantic typography element rendering h1 through h6 with hierarchy validation."}, "text": {"example": "ui.text(\"Sub-DOM diffing completes in 0.168 ms.\", variant=\"lead\")", "domain": "Typography & Code", "desc": "Text display component supporting variants: body, caption, code, lead, muted."}, "callout": {"example": "ui.callout(\"Production Ready\", \"All 6 benchmark tiers verified.\", variant=\"success\")", "domain": "Typography & Code", "desc": "Highlighted informational callout banner with status semantics."}, "code_block": {"example": "ui.code_block(\"pip install radui\", language=\"bash\", copyable=True)", "domain": "Typography & Code", "desc": "Syntax-formatted monospace code block featuring line numbers and copy button."}, "kbd": {"example": "ui.row(ui.text(\"Press\"), ui.kbd(\"Ctrl\", \"K\"), ui.text(\"for Command Palette\"), gap=6)", "domain": "Typography & Code", "desc": "Keyboard shortcut indicator styled as hardware keycaps."}, "button": {"example": "ui.button(\"Deploy Cluster\", command=\"cluster.deploy\", variant=\"primary\")", "domain": "Action & Trigger", "desc": "Interactive trigger button dispatching a registered RADUI server command."}, "link": {"example": "ui.link(\"GitHub Repository\", \"https://github.com/flux-py/radui\", external=True)", "domain": "Action & Trigger", "desc": "Hyperlink strictly validated against secure http/https schemes to prevent XSS."}, "dropdown_menu": {"example": "ui.dropdown_menu(\"Export Options\", [\n    ui.dropdown_menu_item(\"CSV Export\", command=\"export.csv\"),\n    ui.dropdown_menu_item(\"JSON Export\", command=\"export.json\"),\n])", "domain": "Action & Trigger", "desc": "Floating contextual menu revealing actions on trigger click."}, "dropdown_menu_item": {"example": "ui.dropdown_menu_item(\"Purge Cache\", command=\"cache.purge\", danger=True)", "domain": "Action & Trigger", "desc": "Action item within a dropdown menu supporting command dispatch or navigation."}, "theme_toggle": {"example": "ui.theme_toggle(\"Toggle Theme\")", "domain": "Action & Trigger", "desc": "Interactive theme switcher with dark/light mode transitions and localStorage persistence."}, "form": {"example": "ui.form(\n    ui.input(\"Workspace Name\", bind=s_name),\n    ui.button(\"Create\", variant=\"primary\"),\n    command=\"workspace.create\",\n)", "domain": "Form & Data Input", "desc": "Declarative form container automatically injecting CSRF tokens and binding child inputs."}, "input": {"example": "ui.input(\"Email Address\", bind=s_email, type=\"email\", placeholder=\"developer@flux.py\")", "domain": "Form & Data Input", "desc": "Single-line text input bound to a reactive StateRef. Supports text, email, number, url."}, "textarea": {"example": "ui.textarea(\"Prompt Instructions\", bind=s_prompt, rows=5)", "domain": "Form & Data Input", "desc": "Multi-line text entry field bound to a reactive StateRef."}, "checkbox": {"example": "ui.checkbox(\"Enable Telemetry Tracing\", bind=s_telemetry)", "domain": "Form & Data Input", "desc": "Boolean toggle checkbox bound directly to a boolean StateRef."}, "switch": {"example": "ui.switch(\"Maintenance Mode\", bind=s_maintenance)", "domain": "Form & Data Input", "desc": "Hardware-styled toggle switch component bound to boolean reactive state."}, "radio_group": {"example": "ui.radio_group(\"Database Backend\", bind=s_db, options=[\"sqlite\", \"postgres\", \"redis\"])", "domain": "Form & Data Input", "desc": "Mutually-exclusive radio selection list bound to a string StateRef."}, "select": {"example": "ui.select(\"Cluster Region\", bind=s_region, options=[(\"us-east-1\", \"US East\"), (\"eu-west-1\", \"EU West\")])", "domain": "Form & Data Input", "desc": "Single-choice dropdown select control supporting label-value option tuples."}, "slider": {"example": "ui.slider(\"Concurrent Jobs\", bind=s_concurrency, min_value=1, max_value=64, step=1)", "domain": "Form & Data Input", "desc": "Continuous or stepped numeric range input with live value readouts."}, "date_picker": {"example": "ui.date_picker(\"Deployment Date\", bind=s_date)", "domain": "Form & Data Input", "desc": "Accessible calendar date picker input formatted to ISO-8601 (YYYY-MM-DD)."}, "time_picker": {"example": "ui.time_picker(\"Daily Backup Time\", bind=s_time)", "domain": "Form & Data Input", "desc": "Accessible time selection control formatted to 24-hour time (HH:MM)."}, "file_upload": {"example": "ui.file_upload(command=\"dataset.upload\", accept=\".csv,.json\", max_size_mb=25)", "domain": "Form & Data Input", "desc": "Drag-and-drop file upload zone with client-side size validation and file listing."}, "modal": {"example": "ui.modal(\"Restart Server\", ui.text(\"Are you sure you want to restart?\"), trigger_label=\"Restart\")", "domain": "Feedback & Overlays", "desc": "Accessible dialog overlay featuring focus-trapping, Escape key dismissal, and backdrop handling."}, "drawer": {"example": "ui.drawer(\"Node Inspector\", ui.text(\"Detailed trace records\"), trigger_label=\"Inspect\")", "domain": "Feedback & Overlays", "desc": "Off-canvas sliding drawer panel supporting placements: left, right, top, bottom."}, "popover": {"example": "ui.popover(\"Lease Fencing\", \"Guarantees split-brain prevention under partitions.\")", "domain": "Feedback & Overlays", "desc": "Contextual floating popover bubble anchored to a trigger button."}, "tooltip": {"example": "ui.tooltip(\"Copy command\", ui.button(\"Copy\"))", "domain": "Feedback & Overlays", "desc": "Lightweight hover/focus indicator providing descriptive text for buttons and icons."}, "toast": {"example": "ui.toast(\"State synchronized successfully\", variant=\"success\")", "domain": "Feedback & Overlays", "desc": "Individual transient toast alert message. Variants: info, success, warning, danger."}, "toast_container": {"example": "ui.toast_container(ui.toast(\"Cache purged\", variant=\"info\"))", "domain": "Feedback & Overlays", "desc": "Fixed viewport overlay positioning toast notifications."}, "error_boundary": {"example": "ui.error_boundary(failing_widget(), fallback_message=\"Live widget temporarily unavailable.\")", "domain": "Feedback & Overlays", "desc": "Catches unhandled rendering exceptions in isolated subtrees without breaking surrounding page."}, "breadcrumb": {"example": "ui.breadcrumb(\n    ui.breadcrumb_item(\"Home\", href=\"/\"),\n    ui.breadcrumb_item(\"Components\", href=\"/components\"),\n    ui.breadcrumb_item(\"Button\", active=True),\n)", "domain": "Navigation", "desc": "Breadcrumb navigation bar indicating hierarchical path position."}, "breadcrumb_item": {"example": "ui.breadcrumb_item(\"Architecture\", href=\"/architecture\")", "domain": "Navigation", "desc": "Individual breadcrumb entry supporting hyperlinked routes or active leaf nodes."}, "pagination": {"example": "ui.pagination(current_page=2, total_pages=8, command=\"records.page\")", "domain": "Navigation", "desc": "Page selector control with Previous, Next, and numeric page buttons dispatching commands."}, "tabs": {"example": "ui.tabs(\n    ui.tab_item(\"Python API\", ui.code_block(\"import radui as ui\")),\n    ui.tab_item(\"CLI\", ui.code_block(\"radui run\")),\n)", "domain": "Navigation", "desc": "Tabbed container switching visible child panels based on active tab selection."}, "tab_item": {"example": "ui.tab_item(\"Benchmarks\", ui.text(\"AST Construction: 0.039 ms\"))", "domain": "Navigation", "desc": "Single tab section holding child components associated with a tab header."}, "table": {"example": "ui.table(\n    headers=[\"Worker\", \"Status\", \"Latency\"],\n    rows=[[\"worker-1\", \"ACTIVE\", \"0.039ms\"], [\"worker-2\", \"ACTIVE\", \"0.042ms\"]],\n)", "domain": "Data Display & Tables", "desc": "Responsive data table with striped alternating rows and hover highlighting."}, "data_grid": {"example": "ui.data_grid(\n    headers=[\"Component\", \"Category\", \"AST Overhead\"],\n    rows=[[\"button\", \"Action\", \"0.015ms\"], [\"data_grid\", \"Data\", \"0.082ms\"]],\n    searchable=True,\n)", "domain": "Data Display & Tables", "desc": "Interactive data grid featuring instant search filtering, column sorting, and pagination."}, "virtual_list": {"example": "ui.virtual_list(items=[f\"Log Entry #{i}\" for i in range(10000)], item_height=36, viewport_height=300)", "domain": "Data Display & Tables", "desc": "Windowed virtualization list rendering massive datasets via CSS translateY spacers."}, "metric_card": {"example": "ui.metric_card(\"Reconciliation Time\", \"0.168 ms\", delta=\"-42% latency\")", "domain": "Data Display & Tables", "desc": "KPI metric card with formatted values, comparison deltas, and trend status indicators."}, "plot": {"example": "ui.plot(data=[{\"x\": \"T1\", \"y\": 0.039}, {\"x\": \"T2\", \"y\": 0.038}, {\"x\": \"T3\", \"y\": 3.037}], plot_type=\"bar\")", "domain": "Data Display & Tables", "desc": "Zero-dependency pure SVG chart generator rendering bar, line, and scatter series with zero JS."}, "badge": {"example": "ui.badge(\"v1.0.0 Production\", variant=\"primary\")", "domain": "Indicators & Avatars", "desc": "Compact status pill badge. Variants: primary, secondary, success, warning, danger."}, "tag": {"example": "ui.tag(\"Python 3.12\", variant=\"secondary\")", "domain": "Indicators & Avatars", "desc": "Categorization tag element with optional dismiss button dispatching a command."}, "progress_bar": {"example": "ui.progress_bar(value=85.0, variant=\"success\")", "domain": "Indicators & Avatars", "desc": "Horizontal progress bar indicator with optional striping and animations."}, "progress_circle": {"example": "ui.progress_circle(value=98.5, size=72, variant=\"primary\")", "domain": "Indicators & Avatars", "desc": "Radial SVG progress ring with centered percentage readout."}, "avatar": {"example": "ui.avatar(name=\"Core Maintainer\", size=\"md\", status=\"online\")", "domain": "Indicators & Avatars", "desc": "User profile avatar displaying image source or automatically derived initials."}, "avatar_group": {"example": "ui.avatar_group(\n    ui.avatar(name=\"Ada Lovelace\"),\n    ui.avatar(name=\"Alan Turing\"),\n    ui.avatar(name=\"Grace Hopper\"),\n    ui.avatar(name=\"Linus Torvalds\"),\n    max_visible=3,\n)", "domain": "Indicators & Avatars", "desc": "Overlapping avatar cluster automatically truncating excess users into an +N overflow badge."}, "skeleton": {"example": "ui.skeleton(shape=\"rect\", width=\"100%\", height=\"48px\")", "domain": "Indicators & Avatars", "desc": "Shimmering placeholder loader matching content shape (rect, circle, text)."}, "empty_state": {"example": "ui.empty_state(\"No Telemetry Found\", \"Trigger command to populate event logs.\", action=ui.button(\"Start Telemetry\"))", "domain": "Indicators & Avatars", "desc": "Zero-state presentation screen with heading, explanation, and action button."}, "diagram": {"example": "ui.diagram(\n    nodes=[\n        ui.diagram_node(\"n1\", \"Client DOM\", 50, 100),\n        ui.diagram_node(\"n2\", \"ASGI Engine\", 250, 100),\n    ],\n    edges=[ui.diagram_edge(\"n1\", \"n2\", label=\"POST /command\")],\n)", "domain": "Diagrams & Trees", "desc": "Pure SVG architecture diagram and flowchart canvas supporting interactive click commands."}, "tree_view": {"example": "ui.tree_view([\n    ui.tree_node(\"radui\", \"radui/\", children=[\n        ui.tree_node(\"core\", \"core/\"),\n        ui.tree_node(\"state\", \"state/\"),\n    ], expanded=True),\n])", "domain": "Diagrams & Trees", "desc": "Hierarchical tree explorer with collapsible branches, expandable carets, and selection listeners."}, "chat_view": {"example": "ui.chat_view(\n    ui.chat_message(\"Hello from RADUI AI agent!\", sender=\"assistant\"),\n    height=\"400px\",\n)", "domain": "AI Agent & Workflow", "desc": "Conversation message scrollbox featuring auto-scroll, message bubbles, and typing indicators."}, "chat_message": {"example": "ui.chat_message(\"Can you explain transactional outboxes?\", sender=\"user\")", "domain": "AI Agent & Workflow", "desc": "Individual chat message bubble supporting markdown, code formatting, and metadata."}, "chat_input": {"example": "ui.chat_input(command=\"agent.chat\", placeholder=\"Ask RADUI agent...\")", "domain": "AI Agent & Workflow", "desc": "Conversational input box supporting Enter-to-submit and file attachments."}, "streaming_text": {"example": "ui.streaming_text(\"Tokens arriving in 0.007ms chunks...\", is_streaming=True)", "domain": "AI Agent & Workflow", "desc": "Real-time token stream text box with animated blinking cursor."}, "action_card": {"example": "ui.action_card(\n    title=\"Authorize Tool Dispatch?\",\n    description=\"Execute query on production DB.\",\n    confirm_command=\"agent.approve\",\n    cancel_command=\"agent.reject\",\n)", "domain": "AI Agent & Workflow", "desc": "Human-in-the-loop (HITL) card enabling users to authorize or reject agent tool executions."}, "step_timeline": {"example": "ui.step_timeline([\n    {\"title\": \"Request Validated\", \"status\": \"completed\", \"latency\": \"0.12ms\"},\n    {\"title\": \"State Invalidation\", \"status\": \"completed\", \"latency\": \"0.168ms\"},\n    {\"title\": \"SSE Patch Emitted\", \"status\": \"active\", \"latency\": \"0.007ms\"},\n])", "domain": "AI Agent & Workflow", "desc": "Multi-step execution audit timeline displaying tool invocations, progress state, and latency."}, "generative_slot": {"example": "ui.generative_slot(id=\"dynamic_ai_slot\", component=ui.card(ui.text(\"Agent generated view\")))", "domain": "AI Agent & Workflow", "desc": "Dynamic DOM container allowing backend AI agents to swap or generate UI component trees."}, "job_panel": {"example": "ui.job_panel(job_id=\"export-daily-kpis\")", "domain": "AI Agent & Workflow", "desc": "Real-time background job monitor with progress bar, state badge, and cancellation trigger."}, "presence_bar": {"example": "ui.presence_bar(users=[\n    ui.presence_user(\"u1\", \"Carlos\", \"online\"),\n    ui.presence_user(\"u2\", \"Elena\", \"busy\"),\n])", "domain": "AI Agent & Workflow", "desc": "Real-time collaborative presence bar showing active users, avatars, and field lock indicators."}, "canvas_stream": {"example": "ui.canvas_stream(\n    width=640,\n    height=320,\n    stream_url=\"/_gx/telemetry/stream\",\n)", "domain": "Data Display & Tables", "desc": "High-frequency 60 FPS hardware-accelerated canvas stream for 100k points/sec real-time telemetry."}};
 
+  let pointerTicking = false;
+  let lastPointerEvt = null;
   document.addEventListener("pointermove", (event) => {
     if (event.pointerType === "touch") return;
-    const surface = event.target.closest(".gx-card, .gx-metric, .gx-code-block");
-    if (!surface) return;
-    const rect = surface.getBoundingClientRect();
-    surface.style.setProperty("--gx-pointer-x", `${event.clientX - rect.left}px`);
-    surface.style.setProperty("--gx-pointer-y", `${event.clientY - rect.top}px`);
+    lastPointerEvt = event;
+    if (!pointerTicking) {
+      pointerTicking = true;
+      requestAnimationFrame(() => {
+        if (lastPointerEvt) {
+          const surface = lastPointerEvt.target.closest(".gx-card, .gx-metric, .gx-code-block");
+          if (surface) {
+            const rect = surface.getBoundingClientRect();
+            surface.style.setProperty("--gx-pointer-x", `${lastPointerEvt.clientX - rect.left}px`);
+            surface.style.setProperty("--gx-pointer-y", `${lastPointerEvt.clientY - rect.top}px`);
+          }
+        }
+        pointerTicking = false;
+      });
+    }
   }, { passive: true });
 
   let currentCompName = "button";
@@ -1716,7 +1728,7 @@ STATIC_JS = r"""(() => {
 
       const matchesName = name.includes(query);
       const matchesDomainQuery = domain.includes(query);
-      const matchesDesc = query.length >= 3 && desc.includes(query);
+      const matchesDesc = query.length >= 4 && desc.split(/\s+/).some(w => w.startsWith(query));
       const matchesQuery = !query || matchesName || matchesDomainQuery || matchesDesc;
       const matchesDomain = activeDomain === "all" || (
         activeDomain === "data" ? (domain.includes("data display") || domain.includes("tables")) :
@@ -2436,43 +2448,50 @@ STATIC_JS = r"""(() => {
       }
     };
 
+    let scrollTicking = false;
     window.addEventListener("scroll", () => {
-      const scrollPos = window.innerHeight + window.scrollY;
-      const threshold = document.documentElement.scrollHeight - 600;
-      if (scrollPos >= threshold) {
-        loadNextChapter();
-      }
-
-      const chapters = [
-        { elem: content.firstElementChild, url: DOCS_NAV_SEQUENCE[currentIdx].url, title: DOCS_NAV_SEQUENCE[currentIdx].title },
-        ...[...document.querySelectorAll(".gx-continuous-chapter")].map(sec => ({
-          elem: sec,
-          url: sec.dataset.chapterUrl,
-          title: sec.dataset.chapterTitle
-        }))
-      ];
-
-      for (let i = chapters.length - 1; i >= 0; i--) {
-        const ch = chapters[i];
-        if (!ch.elem) continue;
-        const rect = ch.elem.getBoundingClientRect();
-        if (rect.top <= 200) {
-          if (window.location.pathname.split("/").pop() !== ch.url) {
-            try {
-              history.replaceState(null, "", basePath + ch.url);
-              document.title = `${ch.title} — RADUI Documentation`;
-              updatePill(ch.title);
-
-              document.querySelectorAll("#docs-sidebar a").forEach(a => {
-                const href = a.getAttribute("href") || "";
-                const matches = href === ch.url || href.endsWith("/" + ch.url);
-                a.style.color = matches ? "var(--gx-primary)" : "";
-                a.style.fontWeight = matches ? "700" : "";
-              });
-            } catch(e) {}
+      if (!scrollTicking) {
+        scrollTicking = true;
+        requestAnimationFrame(() => {
+          const scrollPos = window.innerHeight + window.scrollY;
+          const threshold = document.documentElement.scrollHeight - 600;
+          if (scrollPos >= threshold) {
+            loadNextChapter();
           }
-          break;
-        }
+
+          const chapters = [
+            { elem: content.firstElementChild, url: DOCS_NAV_SEQUENCE[currentIdx].url, title: DOCS_NAV_SEQUENCE[currentIdx].title },
+            ...[...document.querySelectorAll(".gx-continuous-chapter")].map(sec => ({
+              elem: sec,
+              url: sec.dataset.chapterUrl,
+              title: sec.dataset.chapterTitle
+            }))
+          ];
+
+          for (let i = chapters.length - 1; i >= 0; i--) {
+            const ch = chapters[i];
+            if (!ch.elem) continue;
+            const rect = ch.elem.getBoundingClientRect();
+            if (rect.top <= 200) {
+              if (window.location.pathname.split("/").pop() !== ch.url) {
+                try {
+                  history.replaceState(null, "", basePath + ch.url);
+                  document.title = `${ch.title} — RADUI Documentation`;
+                  updatePill(ch.title);
+
+                  document.querySelectorAll("#docs-sidebar a").forEach(a => {
+                    const href = a.getAttribute("href") || "";
+                    const matches = href === ch.url || href.endsWith("/" + ch.url);
+                    a.style.color = matches ? "var(--gx-primary)" : "";
+                    a.style.fontWeight = matches ? "700" : "";
+                  });
+                } catch(e) {}
+              }
+              break;
+            }
+          }
+          scrollTicking = false;
+        });
       }
     }, { passive: true });
   };
@@ -2755,12 +2774,170 @@ STATIC_JS = r"""(() => {
     });
   };
 
+  // =========================================================================
+  // Instant Soft Navigation & Predictive Background Prefetching
+  // =========================================================================
+  const pageCache = new Map();
+
+  const getCleanHref = (rawHref) => {
+    if (!rawHref) return null;
+    if (rawHref.startsWith("http://") || rawHref.startsWith("https://") || rawHref.startsWith("//") || rawHref.startsWith("mailto:") || rawHref.startsWith("javascript:")) {
+      return null;
+    }
+    return rawHref;
+  };
+
+  const prefetchUrl = async (url) => {
+    const clean = getCleanHref(url);
+    if (!clean || clean.startsWith("#") || pageCache.has(clean)) return;
+
+    try {
+      const isGh = window.location.pathname.startsWith("/radui");
+      const fetchUrl = (isGh && !clean.startsWith("/radui") && !clean.startsWith("http")) ? `/radui/${clean.replace(/^\//, "")}` : clean;
+      const res = await fetch(fetchUrl);
+      if (!res.ok) return;
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const fetchedContent = doc.getElementById("docs-content");
+      if (fetchedContent) {
+        pageCache.set(clean, {
+          title: doc.title,
+          contentHtml: fetchedContent.innerHTML,
+          url: clean
+        });
+      }
+    } catch (_) {}
+  };
+
+  const navigateSoft = async (targetHref, pushHistory = true) => {
+    const clean = getCleanHref(targetHref);
+    if (!clean) {
+      window.location.href = targetHref;
+      return;
+    }
+
+    const hashIdx = clean.indexOf("#");
+    const targetHash = hashIdx !== -1 ? clean.substring(hashIdx) : "";
+    const pageUrl = hashIdx !== -1 ? clean.substring(0, hashIdx) : clean;
+
+    const currentFile = window.location.pathname.split("/").filter(Boolean).pop() || "index.html";
+    const targetFile = pageUrl.split("/").filter(Boolean).pop() || "index.html";
+
+    if (pageUrl === "" || currentFile === targetFile) {
+      if (targetHash) {
+        const el = document.querySelector(targetHash);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+        if (pushHistory) history.pushState(null, "", targetHref);
+      }
+      return;
+    }
+
+    let cached = pageCache.get(pageUrl) || pageCache.get(targetFile);
+    if (!cached) {
+      const isGh = window.location.pathname.startsWith("/radui");
+      const fetchUrl = (isGh && !pageUrl.startsWith("/radui")) ? `/radui/${pageUrl.replace(/^\//, "")}` : pageUrl;
+      try {
+        const res = await fetch(fetchUrl);
+        if (!res.ok) throw new Error("Fetch failed");
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const fetchedContent = doc.getElementById("docs-content");
+        if (!fetchedContent) throw new Error("No content found");
+        cached = {
+          title: doc.title,
+          contentHtml: fetchedContent.innerHTML,
+          url: pageUrl
+        };
+        pageCache.set(pageUrl, cached);
+      } catch (e) {
+        window.location.href = targetHref;
+        return;
+      }
+    }
+
+    const content = document.getElementById("docs-content");
+    if (!content) {
+      window.location.href = targetHref;
+      return;
+    }
+
+    content.innerHTML = cached.contentHtml;
+    if (cached.title) document.title = cached.title;
+
+    if (pushHistory) {
+      const isGh = window.location.pathname.startsWith("/radui");
+      const finalUrl = (isGh && !targetHref.startsWith("/radui") && !targetHref.startsWith("http")) ? `/radui/${targetHref.replace(/^\//, "")}` : targetHref;
+      history.pushState({ href: targetHref }, "", finalUrl);
+    }
+
+    const normalizedTarget = targetFile.replace(".html", "");
+    document.querySelectorAll("#docs-sidebar a, #docs-header a").forEach(a => {
+      const href = a.getAttribute("href") || "";
+      const normHref = href.split("/").pop().replace(".html", "");
+      const isMatch = normHref === normalizedTarget || href === targetHref;
+      a.style.color = isMatch ? "var(--gx-primary)" : "";
+      a.style.fontWeight = isMatch ? "700" : "";
+    });
+
+    initGrids();
+    initFlipCards(content);
+    initComponentSearch();
+    initArchitectureDiagram(content);
+
+    if (targetHash) {
+      const el = document.querySelector(targetHash);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    announce(`Navigated to ${cached.title}`);
+  };
+
+  const initInstantNavigation = () => {
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest('a[href]:not([target="_blank"]):not([download])');
+      if (!link) return;
+      const href = link.getAttribute("href");
+      const clean = getCleanHref(href);
+      if (!clean || clean.startsWith("#")) return;
+
+      e.preventDefault();
+      navigateSoft(href);
+    });
+
+    document.addEventListener("pointerover", (e) => {
+      const link = e.target.closest('a[href]:not([target="_blank"]):not([download])');
+      if (link) prefetchUrl(link.getAttribute("href"));
+    }, { passive: true });
+
+    document.addEventListener("touchstart", (e) => {
+      const link = e.target.closest('a[href]:not([target="_blank"]):not([download])');
+      if (link) prefetchUrl(link.getAttribute("href"));
+    }, { passive: true });
+
+    window.addEventListener("popstate", () => {
+      const target = window.location.pathname.split("/").pop() || "index.html";
+      navigateSoft(target + window.location.hash, false);
+    });
+
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(() => {
+        ["getting-started.html", "components.html", "architecture.html", "api-reference.html", "auth.html"].forEach(prefetchUrl);
+      }, { timeout: 2000 });
+    } else {
+      setTimeout(() => {
+        ["getting-started.html", "components.html", "architecture.html"].forEach(prefetchUrl);
+      }, 1000);
+    }
+  };
+
   const initAll = () => {
     initGrids();
     initFlipCards();
     initComponentSearch();
     initContinuousScroll();
     initArchitectureDiagram();
+    initInstantNavigation();
 
     const logoLink = document.getElementById("docs-logo-link");
     if (logoLink && !logoLink._hasNav) {
@@ -3078,13 +3255,25 @@ CLIENT_JS = r"""(() => {
   // Pointer & Micro-interaction handlers (hover & tap)
   // Keep the pointer origin on native RadUI surfaces so themes can render a
   // subtle cursor-following highlight without adding per-component scripts.
+  let pointerTicking = false;
+  let lastPointerEvt = null;
   document.addEventListener("pointermove", (event) => {
     if (event.pointerType === "touch") return;
-    const surface = event.target.closest(".gx-card, .gx-metric, .gx-code-block");
-    if (!surface) return;
-    const rect = surface.getBoundingClientRect();
-    surface.style.setProperty("--gx-pointer-x", `${event.clientX - rect.left}px`);
-    surface.style.setProperty("--gx-pointer-y", `${event.clientY - rect.top}px`);
+    lastPointerEvt = event;
+    if (!pointerTicking) {
+      pointerTicking = true;
+      requestAnimationFrame(() => {
+        if (lastPointerEvt) {
+          const surface = lastPointerEvt.target.closest(".gx-card, .gx-metric, .gx-code-block");
+          if (surface) {
+            const rect = surface.getBoundingClientRect();
+            surface.style.setProperty("--gx-pointer-x", `${lastPointerEvt.clientX - rect.left}px`);
+            surface.style.setProperty("--gx-pointer-y", `${lastPointerEvt.clientY - rect.top}px`);
+          }
+        }
+        pointerTicking = false;
+      });
+    }
   }, { passive: true });
 
   document.addEventListener("pointerdown", (e) => {
