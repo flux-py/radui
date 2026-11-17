@@ -27,6 +27,8 @@ from radui.components.nodes import (
     Column,
     Component,
     Container,
+    CustomElement,
+    Suspense,
     DataGrid,
     DatePicker,
     Diagram,
@@ -3028,6 +3030,7 @@ CLIENT_JS = r"""(() => {
           if (current) {
             current.innerHTML = patch.html;
             initMotion(current);
+            if (window.RadUIInteractions) window.RadUIInteractions.syncTree(current);
           }
           continue;
         }
@@ -3059,6 +3062,7 @@ CLIENT_JS = r"""(() => {
 
         target.replaceWith(newEl);
         initMotion(newEl);
+        if (window.RadUIInteractions) window.RadUIInteractions.syncTree(newEl);
         if (newEl && newEl.classList) {
           newEl.classList.add("gx-morph-highlight");
           setTimeout(() => newEl.classList.remove("gx-morph-highlight"), 400);
@@ -3106,18 +3110,47 @@ CLIENT_JS = r"""(() => {
     }
   };
 
-  // Tab switching
+  // Tab switching + ARIA + Keyboard navigation
   document.addEventListener("click", (e) => {
     const tabBtn = e.target.closest("[data-gx-tab-target]");
     if (!tabBtn) return;
     const container = tabBtn.closest("[data-gx-tabs]");
     if (!container) return;
     const targetId = tabBtn.dataset.gxTabTarget;
-    container.querySelectorAll(".gx-tab-btn").forEach(b => b.classList.remove("active"));
-    container.querySelectorAll(".gx-tab-pane").forEach(p => p.classList.remove("active"));
+    container.querySelectorAll(".gx-tab-btn").forEach(b => {
+      b.classList.remove("active");
+      b.setAttribute("aria-selected", "false");
+    });
+    container.querySelectorAll(".gx-tab-pane").forEach(p => {
+      p.classList.remove("active");
+      p.hidden = true;
+    });
     tabBtn.classList.add("active");
+    tabBtn.setAttribute("aria-selected", "true");
     const pane = container.querySelector(`[data-gx-tab-pane="${targetId}"]`);
-    if (pane) pane.classList.add("active");
+    if (pane) {
+      pane.classList.add("active");
+      pane.hidden = false;
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    const tabBtn = e.target.closest('[role="tab"][data-gx-tab-target]');
+    if (!tabBtn) return;
+    const container = tabBtn.closest("[data-gx-tabs]");
+    if (!container) return;
+    const tabs = [...container.querySelectorAll('[role="tab"][data-gx-tab-target]')];
+    const idx = tabs.indexOf(tabBtn);
+    if (idx < 0) return;
+    let nextIdx = -1;
+    if (e.key === "ArrowRight") nextIdx = (idx + 1) % tabs.length;
+    else if (e.key === "ArrowLeft") nextIdx = (idx - 1 + tabs.length) % tabs.length;
+    else if (e.key === "Home") nextIdx = 0;
+    else if (e.key === "End") nextIdx = tabs.length - 1;
+    if (nextIdx >= 0) {
+      e.preventDefault();
+      tabs[nextIdx].focus();
+      tabs[nextIdx].click();
+    }
   });
 
   // Modal open/close & Accessible Focus Trapping
@@ -3129,6 +3162,7 @@ CLIENT_JS = r"""(() => {
       if (modal) {
         lastActiveModalTrigger = trigger;
         modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
         const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
         if (focusables.length) focusables[0].focus();
       }
@@ -3139,6 +3173,7 @@ CLIENT_JS = r"""(() => {
       const modal = close.closest(".gx-modal-backdrop");
       if (modal) {
         modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
         if (lastActiveModalTrigger) {
           lastActiveModalTrigger.focus();
           lastActiveModalTrigger = null;
@@ -3152,6 +3187,7 @@ CLIENT_JS = r"""(() => {
     if (!openModal) return;
     if (e.key === "Escape") {
       openModal.classList.remove("open");
+      openModal.setAttribute("aria-hidden", "true");
       if (lastActiveModalTrigger) {
         lastActiveModalTrigger.focus();
         lastActiveModalTrigger = null;
@@ -3403,10 +3439,9 @@ CLIENT_JS = r"""(() => {
     }
   });
 
-  // EventSource stream & targeted invalidations
+  // EventSource stream & targeted invalidations (lazy on island-only pages)
   const cursor = document.querySelector('meta[name="gx-event-cursor"]')?.content || "0";
-  const source = new EventSource("/_gx/events?since=" + encodeURIComponent(cursor));
-  source.addEventListener("reset", () => location.reload());
+  let source = null;
   const pendingInvalidations = new Set();
   let refreshRunning = false;
   const drainInvalidations = async () => {
@@ -3433,19 +3468,6 @@ CLIENT_JS = r"""(() => {
     }
   };
 
-  source.addEventListener("invalidate", (event) => {
-    try {
-      const detail = JSON.parse(event.data);
-      if (detail.view_id !== view) return;
-      for (const id of detail.component_ids || []) pendingInvalidations.add(id);
-      if (!pendingInvalidations.size) return;
-      void drainInvalidations();
-    } catch (err) {
-      console.error("Invalid RADUI event", err);
-      location.reload();
-    }
-  });
-
   // Offline & Reconnection Status Indicator
   const banner = document.createElement("div");
   banner.className = "gx-connection-banner";
@@ -3456,7 +3478,144 @@ CLIENT_JS = r"""(() => {
 
   window.addEventListener("offline", () => banner.classList.add("visible"));
   window.addEventListener("online", () => banner.classList.remove("visible"));
-  source.addEventListener("open", () => banner.classList.remove("visible"));
+
+  const ensureEventSource = () => {
+    if (source) return source;
+    source = new EventSource("/_gx/events?since=" + encodeURIComponent(cursor));
+    source.addEventListener("reset", () => location.reload());
+    source.addEventListener("invalidate", (event) => {
+      try {
+        const detail = JSON.parse(event.data);
+        if (detail.view_id !== view) return;
+        for (const id of detail.component_ids || []) pendingInvalidations.add(id);
+        if (!pendingInvalidations.size) return;
+        void drainInvalidations();
+      } catch (err) {
+        console.error("Invalid RADUI event", err);
+        location.reload();
+      }
+    });
+    source.addEventListener("open", () => banner.classList.remove("visible"));
+    source.addEventListener("error", () => {
+      if (source.readyState === EventSource.CONNECTING) {
+        banner.classList.add("visible");
+      }
+    });
+    return source;
+  };
+
+  const hasIslands = !!document.querySelector("[data-gx-island]");
+  const hasNonIslandReactive = (() => {
+    if (!hasIslands) return true;
+    const reactiveNodes = document.querySelectorAll("[data-gx-bind], form.gx-form, [data-gx-job], [data-gx-presence], [data-gx-canvas]");
+    for (const node of reactiveNodes) {
+      if (!node.closest("[data-gx-island]")) return true;
+    }
+    return false;
+  })();
+  if (hasNonIslandReactive) {
+    ensureEventSource();
+  }
+
+  // Hybrid Islands: Independent Hydration & Activation
+  const activateIsland = async (el) => {
+    if (!el || !el.isConnected) return;
+    const status = el.getAttribute("data-gx-island-status");
+    if (status === "hydrating" || status === "hydrated") return;
+    const hydration = el.getAttribute("data-gx-hydration") || "fetch";
+    if (hydration === "none") return;
+
+    const islandId = el.getAttribute("data-gx-id") || el.id;
+    const islandName = el.getAttribute("data-gx-island");
+    if (!islandId || !islandName) return;
+
+    if (hydration === "sse") {
+      el.setAttribute("data-gx-island-status", "hydrated");
+      ensureEventSource();
+      return;
+    }
+
+    el.setAttribute("data-gx-island-status", "hydrating");
+    try {
+      const url = new URL("/_gx/islands/" + encodeURIComponent(islandId), location.origin);
+      url.searchParams.set("name", islandName);
+      url.searchParams.set("view_id", view);
+      const rawProps = el.getAttribute("data-gx-props");
+      if (rawProps) url.searchParams.set("props", rawProps);
+      const resp = await fetch(url, {
+        cache: "no-store",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" },
+      });
+      if (!resp.ok) throw new Error("Island hydration HTTP " + resp.status);
+      const payload = await resp.json();
+      if (!el.isConnected) return;
+      if (typeof payload.html === "string") {
+        el.innerHTML = payload.html;
+      }
+      if (payload.state && typeof payload.state === "object") {
+        el.setAttribute("data-gx-state", JSON.stringify(payload.state));
+      }
+      el.setAttribute("data-gx-island-status", "hydrated");
+      if (window.RadUIInteractions) window.RadUIInteractions.syncTree(el);
+      initIslands(el);
+    } catch (err) {
+      console.error("RADUI island hydration failed", islandId, err);
+      if (el.isConnected) el.setAttribute("data-gx-island-status", "error");
+    }
+  };
+
+  let islandObserver = null;
+  const getIslandObserver = () => {
+    if (islandObserver || !("IntersectionObserver" in window)) return islandObserver;
+    islandObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.target.isConnected) {
+          islandObserver.unobserve(entry.target);
+          continue;
+        }
+        if (entry.isIntersecting) {
+          islandObserver.unobserve(entry.target);
+          void activateIsland(entry.target);
+        }
+      }
+    }, { rootMargin: "100px" });
+    return islandObserver;
+  };
+
+  const initIslands = (root = document) => {
+    const islands = root.querySelectorAll("[data-gx-island]");
+    if (!islands.length) return;
+    const observer = getIslandObserver();
+    islands.forEach((el) => {
+      if (el.getAttribute("data-gx-island-bound") === "1") return;
+      el.setAttribute("data-gx-island-bound", "1");
+      const hydration = el.getAttribute("data-gx-hydration") || "fetch";
+      if (hydration === "none") return;
+      const trigger = el.getAttribute("data-gx-trigger") || "eager";
+      if (trigger === "eager") {
+        void activateIsland(el);
+      } else if (trigger === "visible") {
+        if (observer) observer.observe(el);
+        else void activateIsland(el);
+      } else if (trigger === "interaction") {
+        const once = () => {
+          el.removeEventListener("pointerdown", once);
+          el.removeEventListener("keydown", once);
+          el.removeEventListener("focusin", once);
+          void activateIsland(el);
+        };
+        el.addEventListener("pointerdown", once, { passive: true });
+        el.addEventListener("keydown", once);
+        el.addEventListener("focusin", once);
+      }
+    });
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => initIslands(document));
+  } else {
+    initIslands(document);
+  }
   source.addEventListener("error", () => {
     if (source.readyState === 0 || source.readyState === 2) {
       banner.classList.add("visible");
@@ -3777,28 +3936,65 @@ CLIENT_JS = r"""(() => {
     });
   }
 
-  // Drawer handlers
+  // Drawer handlers with focus management & ARIA
+  let lastActiveDrawerTrigger = null;
   document.addEventListener("click", (e) => {
     const openBtn = e.target.closest("[data-gx-drawer-open]");
     if (openBtn) {
       const drawerWrap = openBtn.closest(".gx-drawer-container");
       const backdrop = drawerWrap?.querySelector(".gx-drawer-backdrop");
-      if (backdrop) backdrop.classList.add("open");
+      if (backdrop) {
+        lastActiveDrawerTrigger = openBtn;
+        openBtn.setAttribute("aria-expanded", "true");
+        backdrop.classList.add("open");
+        backdrop.setAttribute("aria-hidden", "false");
+        const focusables = backdrop.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusables.length) focusables[0].focus();
+      }
       return;
     }
     const closeBtn = e.target.closest(".gx-drawer-close");
     if (closeBtn) {
       const backdrop = closeBtn.closest(".gx-drawer-backdrop");
-      if (backdrop) backdrop.classList.remove("open");
+      if (backdrop) {
+        backdrop.classList.remove("open");
+        backdrop.setAttribute("aria-hidden", "true");
+        const trigger = backdrop.closest(".gx-drawer-container")?.querySelector("[data-gx-drawer-open]");
+        if (trigger) trigger.setAttribute("aria-expanded", "false");
+        if (lastActiveDrawerTrigger) {
+          lastActiveDrawerTrigger.focus();
+          lastActiveDrawerTrigger = null;
+        }
+      }
       return;
     }
     if (e.target.classList && e.target.classList.contains("gx-drawer-backdrop")) {
       e.target.classList.remove("open");
+      e.target.setAttribute("aria-hidden", "true");
+      const trigger = e.target.closest(".gx-drawer-container")?.querySelector("[data-gx-drawer-open]");
+      if (trigger) trigger.setAttribute("aria-expanded", "false");
+      if (lastActiveDrawerTrigger) {
+        lastActiveDrawerTrigger.focus();
+        lastActiveDrawerTrigger = null;
+      }
     }
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      document.querySelectorAll(".gx-drawer-backdrop.open").forEach(b => b.classList.remove("open"));
+      document.querySelectorAll(".gx-drawer-backdrop.open").forEach(b => {
+        b.classList.remove("open");
+        b.setAttribute("aria-hidden", "true");
+        const trigger = b.closest(".gx-drawer-container")?.querySelector("[data-gx-drawer-open]");
+        if (trigger) trigger.setAttribute("aria-expanded", "false");
+      });
+      if (lastActiveDrawerTrigger) {
+        lastActiveDrawerTrigger.focus();
+        lastActiveDrawerTrigger = null;
+      }
+      document.querySelectorAll("details.gx-dropdown[open], details.gx-popover[open]").forEach(d => {
+        d.removeAttribute("open");
+        d.querySelector("summary")?.focus();
+      });
     }
   });
 
@@ -4208,6 +4404,825 @@ CLIENT_JS = r"""(() => {
   } else {
     initCompDiscovery();
   }
+
+  // M1.8 Declarative Client-Side Interaction Engine (Zero eval, O(1) delegation, WeakMap state)
+  const _localStates = new WeakMap();
+  const _SAFE_ATTRS = new Set([
+    "hidden", "disabled", "title", "placeholder", "tabindex", "role",
+    "aria-label", "aria-labelledby", "aria-describedby", "aria-expanded",
+    "aria-selected", "aria-pressed", "aria-hidden", "aria-live",
+    "aria-busy", "aria-controls", "aria-current", "data-gx-state"
+  ]);
+  const _isSafeAttr = (name) => {
+    if (!name) return false;
+    const low = String(name).toLowerCase();
+    if (low.startsWith("on")) return false;
+    return _SAFE_ATTRS.has(low) || low.startsWith("aria-") || low.startsWith("data-gx-state-");
+  };
+
+  const ensureLiveRegion = () => {
+    let region = document.getElementById("gx-live-region");
+    if (!region && document.body) {
+      region = document.createElement("div");
+      region.id = "gx-live-region";
+      region.setAttribute("aria-live", "polite");
+      region.setAttribute("aria-atomic", "true");
+      region.style.cssText = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;";
+      document.body.appendChild(region);
+    }
+    return region;
+  };
+
+  const announce = (msg) => {
+    const region = ensureLiveRegion();
+    if (!region) return;
+    region.textContent = "";
+    requestAnimationFrame(() => { region.textContent = String(msg ?? ""); });
+  };
+
+  const getLocalState = (el) => {
+    if (!el) return {};
+    if (_localStates.has(el)) return _localStates.get(el);
+    let initial = {};
+    const raw = el.getAttribute("data-gx-local-state");
+    if (raw) {
+      try { initial = JSON.parse(raw) || {}; } catch (_e) { initial = {}; }
+    }
+    _localStates.set(el, initial);
+    return initial;
+  };
+
+  const findStateOwner = (startEl, key) => {
+    let cur = startEl;
+    while (cur && cur.nodeType === 1) {
+      if (cur.hasAttribute("data-gx-local-state")) {
+        const st = getLocalState(cur);
+        if (!key || Object.prototype.hasOwnProperty.call(st, key)) return cur;
+      }
+      cur = cur.parentElement;
+    }
+    return startEl.closest("[data-gx-local-state]") || startEl;
+  };
+
+  const resolveTarget = (sourceEl, targetId) => {
+    if (!targetId) return sourceEl;
+    return document.getElementById(targetId) || document.querySelector(`[data-gx-id="${CSS.escape(targetId)}"]`);
+  };
+
+  const applyBindLocal = (el, stateObj) => {
+    const raw = el.getAttribute("data-gx-bind-local");
+    if (!raw) return;
+    let map;
+    try { map = JSON.parse(raw); } catch (_e) { return; }
+    for (const [prop, key] of Object.entries(map)) {
+      if (!Object.prototype.hasOwnProperty.call(stateObj, key)) continue;
+      const val = stateObj[key];
+      if (prop === "text") el.textContent = val === null || val === undefined ? "" : String(val);
+      else if (prop === "visible") el.hidden = !Boolean(val);
+      else if (prop === "hidden") el.hidden = Boolean(val);
+      else if (prop === "disabled") el.disabled = Boolean(val);
+      else if (prop === "open") {
+        if ("open" in el) el.open = Boolean(val);
+        el.classList.toggle("open", Boolean(val));
+      } else if (prop === "pressed") el.setAttribute("aria-pressed", val ? "true" : "false");
+      else if (prop === "expanded") el.setAttribute("aria-expanded", val ? "true" : "false");
+    }
+  };
+
+  const syncScopeBindings = (owner) => {
+    if (!owner) return;
+    const st = getLocalState(owner);
+    if (owner.hasAttribute("data-gx-bind-local")) applyBindLocal(owner, st);
+    owner.querySelectorAll("[data-gx-bind-local]").forEach(el => {
+      if (findStateOwner(el) === owner) applyBindLocal(el, st);
+    });
+  };
+
+  const syncAllBindings = (root = document) => {
+    if (!root || !root.querySelectorAll) return;
+    if (root !== document && root.hasAttribute && root.hasAttribute("data-gx-local-state")) {
+      getLocalState(root);
+      syncScopeBindings(root);
+    }
+    root.querySelectorAll("[data-gx-local-state]").forEach(owner => {
+      getLocalState(owner);
+      syncScopeBindings(owner);
+    });
+    root.querySelectorAll("[data-gx-bind-local]").forEach(el => {
+      const owner = findStateOwner(el);
+      if (owner && owner.hasAttribute("data-gx-local-state")) applyBindLocal(el, getLocalState(owner));
+    });
+  };
+
+  const execAction = (sourceEl, action) => {
+    if (!action || typeof action.op !== "string") return;
+    const targetEl = resolveTarget(sourceEl, action.target);
+    if (!targetEl && action.op !== "announce" && action.op !== "dispatch_command") return;
+    const op = action.op;
+    if (op === "toggle" || op === "set" || op === "increment" || op === "decrement") {
+      const owner = action.target ? targetEl : findStateOwner(sourceEl, action.key);
+      const st = getLocalState(owner);
+      const k = action.key;
+      if (op === "toggle") st[k] = !Boolean(st[k]);
+      else if (op === "set") st[k] = action.value;
+      else if (op === "increment") st[k] = (Number(st[k]) || 0) + (Number(action.value ?? 1) || 1);
+      else if (op === "decrement") st[k] = (Number(st[k]) || 0) - (Number(action.value ?? 1) || 1);
+      syncScopeBindings(owner);
+    } else if (op === "show") {
+      targetEl.hidden = false;
+      targetEl.removeAttribute("hidden");
+    } else if (op === "hide") {
+      targetEl.hidden = true;
+    } else if (op === "open") {
+      if ("open" in targetEl) targetEl.open = true;
+      targetEl.classList.add("open");
+      targetEl.setAttribute("aria-hidden", "false");
+    } else if (op === "close") {
+      if ("open" in targetEl) targetEl.open = false;
+      targetEl.classList.remove("open");
+      targetEl.setAttribute("aria-hidden", "true");
+    } else if (op === "enable") {
+      targetEl.disabled = false;
+      targetEl.removeAttribute("disabled");
+      targetEl.setAttribute("aria-disabled", "false");
+    } else if (op === "disable") {
+      targetEl.disabled = true;
+      targetEl.setAttribute("aria-disabled", "true");
+    } else if (op === "add_class" && action.key) {
+      targetEl.classList.add(action.key);
+    } else if (op === "remove_class" && action.key) {
+      targetEl.classList.remove(action.key);
+    } else if (op === "toggle_class" && action.key) {
+      targetEl.classList.toggle(action.key);
+    } else if (op === "set_text") {
+      targetEl.textContent = action.value === null || action.value === undefined ? "" : String(action.value);
+    } else if (op === "set_attr" && _isSafeAttr(action.key)) {
+      targetEl.setAttribute(action.key, action.value === null || action.value === undefined ? "" : String(action.value));
+    } else if (op === "remove_attr" && _isSafeAttr(action.key)) {
+      targetEl.removeAttribute(action.key);
+    } else if (op === "announce") {
+      announce(action.value);
+    } else if (op === "focus") {
+      const focusable = targetEl.matches("input,select,textarea,button,a[href],[tabindex]")
+        ? targetEl
+        : (targetEl.querySelector("input,select,textarea,button,a[href],[tabindex]") || targetEl);
+      focusable.focus();
+    } else if (op === "dispatch_command" && action.key) {
+      const csrf = sourceEl.getAttribute("data-csrf")
+        || document.querySelector('meta[name="gx-csrf"]')?.getAttribute("content")
+        || document.querySelector("[data-csrf]")?.getAttribute("data-csrf")
+        || "";
+      const viewId = document.querySelector('meta[name="gx-view"]')?.getAttribute("content") || window.location.pathname;
+      const actId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `act-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const body = new URLSearchParams();
+      body.set("_gx_view_id", viewId);
+      body.set("_gx_action_id", actId);
+      body.set("_csrf", csrf);
+      fetch(`/_gx/commands/${encodeURIComponent(action.key)}`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "X-GX-CSRF": csrf },
+        body: body.toString(),
+      }).then(r => r.ok ? r.json() : null).then(d => {
+        if (d && d.patches) applyPatches(d.patches);
+      }).catch(() => {});
+    }
+  };
+
+  const matchKeyFilter = (e, filter) => {
+    if (!filter) return true;
+    const parts = String(filter).toLowerCase().split("+");
+    const keyPart = parts[parts.length - 1];
+    if (parts.includes("ctrl") && !e.ctrlKey) return false;
+    if (parts.includes("shift") && !e.shiftKey) return false;
+    if (parts.includes("alt") && !e.altKey) return false;
+    if (parts.includes("meta") && !e.metaKey) return false;
+    return String(e.key || "").toLowerCase() === keyPart;
+  };
+
+  const dispatchDelegated = (eventType, e) => {
+    let cur = e.target && e.target.nodeType === 1 ? e.target : e.target?.parentElement;
+    while (cur && cur !== document) {
+      const raw = cur.getAttribute && cur.getAttribute("data-gx-interactions");
+      if (raw) {
+        let list;
+        try { list = JSON.parse(raw); } catch (_err) { list = null; }
+        if (Array.isArray(list)) {
+          for (const binding of list) {
+            if (binding.event !== eventType) continue;
+            if ((eventType === "keydown" || eventType === "keyup") && !matchKeyFilter(e, binding.key_filter)) continue;
+            if (binding.prevent_default) e.preventDefault();
+            if (binding.stop_propagation) e.stopPropagation();
+            if (Array.isArray(binding.actions)) {
+              for (const act of binding.actions) execAction(cur, act);
+            }
+          }
+        }
+      }
+      if (e.cancelBubble) break;
+      cur = cur.parentElement;
+    }
+  };
+
+  if (!window.__gxInteractionsBootstrapped) {
+    window.__gxInteractionsBootstrapped = true;
+    const _DELEGATED_EVENTS = [
+      "click", "dblclick", "input", "change", "keydown", "keyup",
+      "submit", "dragstart", "dragover", "drop"
+    ];
+    for (const evName of _DELEGATED_EVENTS) {
+      document.addEventListener(evName, (e) => dispatchDelegated(evName, e));
+    }
+    document.addEventListener("focusin", (e) => dispatchDelegated("focus", e));
+    document.addEventListener("focusout", (e) => dispatchDelegated("blur", e));
+    document.addEventListener("pointerover", (e) => {
+      const el = e.target && e.target.closest ? e.target.closest("[data-gx-interactions]") : null;
+      if (el && (!e.relatedTarget || !el.contains(e.relatedTarget))) {
+        dispatchDelegated("mouseenter", e);
+        dispatchDelegated("pointerenter", e);
+      }
+    });
+    document.addEventListener("pointerout", (e) => {
+      const el = e.target && e.target.closest ? e.target.closest("[data-gx-interactions]") : null;
+      if (el && (!e.relatedTarget || !el.contains(e.relatedTarget))) {
+        dispatchDelegated("mouseleave", e);
+        dispatchDelegated("pointerleave", e);
+      }
+    });
+    document.addEventListener("click", (e) => {
+      const rm = e.target && e.target.closest ? e.target.closest("[data-gx-tag-remove]") : null;
+      if (rm) rm.closest(".gx-tag")?.remove();
+    });
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => syncAllBindings(document));
+    } else {
+      syncAllBindings(document);
+    }
+    if (typeof MutationObserver !== "undefined") {
+      const mo = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          for (const node of m.addedNodes) {
+            if (node.nodeType === 1) syncAllBindings(node);
+          }
+        }
+      });
+      if (document.body) mo.observe(document.body, { childList: true, subtree: true });
+      else document.addEventListener("DOMContentLoaded", () => {
+        if (document.body) mo.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+  }
+  window.RadUIInteractions = { syncTree: syncAllBindings, getState: getLocalState, announce };
+
+  // M1.9 Native SPA Navigation Engine (History, Prefetch, Guards, Scroll Restoration, Server Fallback)
+  const _navCache = new Map();
+  const _navInflight = new Map();
+  const _beforeGuards = [];
+  const _afterHooks = [];
+  let _navSeq = 0;
+  let _activeNavController = null;
+  let _lastAuthKey = null;
+
+  const _isSpaEligibleLink = (a) => {
+    if (!a || !a.getAttribute) return false;
+    const rawHref = a.getAttribute("href");
+    if (!rawHref || rawHref.startsWith("#")) return false;
+    if (/^(mailto:|tel:|javascript:|data:|blob:)/i.test(rawHref)) return false;
+    if (a.getAttribute("data-gx-spa") === "false") return false;
+    if (a.target && a.target !== "_self") return false;
+    if (a.hasAttribute("download")) return false;
+    try {
+      const u = new URL(a.href, window.location.origin);
+      if (u.origin !== window.location.origin) return false;
+      if (u.pathname === window.location.pathname && u.search === window.location.search && u.hash) return false;
+      return !u.pathname.startsWith("/_gx");
+    } catch (_e) {
+      return false;
+    }
+  };
+
+  const _fetchRoute = (targetPath, { useCache = true, signal = null } = {}) => {
+    if (useCache && _navCache.has(targetPath)) {
+      const entry = _navCache.get(targetPath);
+      if (Date.now() - entry.ts < 15000) return Promise.resolve({ status: 200, data: entry.data });
+      _navCache.delete(targetPath);
+    }
+    if (!signal && _navInflight.has(targetPath)) return _navInflight.get(targetPath);
+    const p = fetch("/_gx/navigate?to=" + encodeURIComponent(targetPath), {
+      credentials: "same-origin",
+      headers: { "Accept": "application/json", "X-GX-SPA": "1" },
+      ...(signal ? { signal } : {}),
+    }).then(async (resp) => {
+      let data = null;
+      try { data = await resp.json(); } catch (_e) { data = null; }
+      if (resp.status === 401 || resp.status === 403) {
+        _navCache.clear();
+      }
+      if (resp.ok && data && data.ok) {
+        if (data.auth_key) {
+          if (_lastAuthKey && _lastAuthKey !== data.auth_key) _navCache.clear();
+          _lastAuthKey = data.auth_key;
+        }
+        if (data.cacheable !== false) {
+          if (_navCache.size >= 16) _navCache.delete(_navCache.keys().next().value);
+          _navCache.set(targetPath, { ts: Date.now(), data });
+        }
+      }
+      return { status: resp.status, data };
+    }).catch((err) => {
+      if (err && err.name === "AbortError") return { status: 0, aborted: true, data: null };
+      return { status: 0, data: { ok: false, fallback: true } };
+    }).finally(() => {
+      if (!signal) _navInflight.delete(targetPath);
+    });
+    if (!signal) _navInflight.set(targetPath, p);
+    return p;
+  };
+
+  const prefetchRoute = (url) => {
+    if (window.location.protocol === "file:") return Promise.resolve(null);
+    try {
+      const u = new URL(url, window.location.origin);
+      if (u.origin !== window.location.origin || u.pathname.startsWith("/_gx")) return Promise.resolve(null);
+      return _fetchRoute(u.pathname + u.search, { useCache: true });
+    } catch (_e) {
+      return Promise.resolve(null);
+    }
+  };
+
+  const initPrefetchLinks = (root = document) => {
+    if (!("IntersectionObserver" in window) || !root || !root.querySelectorAll) return;
+    const obs = window.__gxPrefetchObs || (window.__gxPrefetchObs = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          obs.unobserve(entry.target);
+          void prefetchRoute(entry.target.href);
+        }
+      }
+    }, { rootMargin: "80px" }));
+    root.querySelectorAll('a[data-gx-prefetch="viewport"]').forEach((a) => {
+      if (_isSpaEligibleLink(a)) obs.observe(a);
+    });
+  };
+
+  const navigate = async (to, opts = {}) => {
+    const { replace = false, scroll = true, pushHistory = true, restoreScrollY = null, _hops = 0 } = opts;
+    if (window.location.protocol === "file:") {
+      window.location.assign(to);
+      return { ok: false, fallback: true };
+    }
+    let targetUrl;
+    try {
+      targetUrl = new URL(to, window.location.origin);
+    } catch (_e) {
+      window.location.assign(to);
+      return { ok: false, fallback: true };
+    }
+    if (targetUrl.origin !== window.location.origin || targetUrl.pathname.startsWith("/_gx")) {
+      window.location.assign(targetUrl.href);
+      return { ok: false, fallback: true };
+    }
+    const fromPath = window.location.pathname + window.location.search;
+    const targetPath = targetUrl.pathname + targetUrl.search;
+
+    for (const guard of _beforeGuards) {
+      let gRes = true;
+      try { gRes = await guard(targetPath, fromPath); } catch (_e) { gRes = false; }
+      if (gRes === false) return { ok: false, cancelled: true };
+      if (typeof gRes === "string" && gRes) {
+        if (_hops >= 4) return { ok: false, error: true, redirectLoop: true };
+        return navigate(gRes, { ...opts, replace: true, _hops: _hops + 1 });
+      }
+    }
+
+    if (pushHistory && window.history && window.history.replaceState) {
+      window.history.replaceState(
+        { ...(window.history.state || {}), gxSpa: true, path: fromPath, scrollY: window.scrollY || 0 },
+        "",
+        window.location.href
+      );
+    }
+
+    if (_activeNavController) {
+      try { _activeNavController.abort(); } catch (_e) {}
+    }
+    _activeNavController = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const seq = ++_navSeq;
+    const root = document.querySelector("[data-gx-root]");
+    if (root) {
+      root.setAttribute("aria-busy", "true");
+      root.classList.add("gx-nav-loading");
+      const cached = _navCache.get(targetPath);
+      if (cached && cached.data && cached.data.loading_html) {
+        root.innerHTML = cached.data.loading_html;
+      }
+    }
+
+    const res = await _fetchRoute(targetPath, {
+      useCache: true,
+      signal: _activeNavController ? _activeNavController.signal : null,
+    });
+    if (res.aborted || seq !== _navSeq) return { ok: false, superseded: true };
+    _activeNavController = null;
+    if (root) {
+      root.removeAttribute("aria-busy");
+      root.classList.remove("gx-nav-loading");
+    }
+
+    const data = res && res.data;
+    if (data && typeof data.redirect === "string") {
+      if (_hops >= 4) return { ok: false, error: true, redirectLoop: true };
+      return navigate(data.redirect, { ...opts, replace: true, _hops: _hops + 1 });
+    }
+    if (data && !data.ok && data.error_html && root) {
+      root.innerHTML = data.error_html;
+      initMotion(root);
+      initIslands(root);
+      syncAllBindings(root);
+      return { ok: false, error: true, status: res.status };
+    }
+    if (!data || !data.ok || data.fallback) {
+      window.location.assign(targetUrl.href);
+      return { ok: false, fallback: true };
+    }
+
+    if (root && typeof data.html === "string") {
+      root.innerHTML = data.html;
+    }
+    if (data.title) document.title = data.title;
+    const viewMeta = document.querySelector('meta[name="gx-view"]');
+    if (viewMeta && data.view_id) viewMeta.setAttribute("content", data.view_id);
+    const csrfMeta = document.querySelector('meta[name="gx-csrf"]');
+    if (csrfMeta && data.csrf_token) csrfMeta.setAttribute("content", data.csrf_token);
+
+    if (pushHistory && window.history) {
+      const fullUrl = targetUrl.pathname + targetUrl.search + targetUrl.hash;
+      const st = { gxSpa: true, path: targetPath, scrollY: 0 };
+      if (replace) window.history.replaceState(st, data.title || "", fullUrl);
+      else window.history.pushState(st, data.title || "", fullUrl);
+    }
+
+    if (root) {
+      if (window.RadUIResumability && Array.isArray(data.resumable)) {
+        window.RadUIResumability.loadSnapshots(data.resumable);
+      }
+      if (window.RadUIWebComponents) {
+        window.RadUIWebComponents.upgradeTree(root);
+      }
+      initMotion(root);
+      initIslands(root);
+      syncAllBindings(root);
+      initPrefetchLinks(root);
+    }
+
+    if (typeof restoreScrollY === "number") {
+      window.scrollTo(0, restoreScrollY);
+    } else if (targetUrl.hash) {
+      const hashTarget = document.getElementById(targetUrl.hash.slice(1));
+      if (hashTarget && hashTarget.scrollIntoView) {
+        hashTarget.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth" });
+      }
+    } else {
+      if (scroll !== false) window.scrollTo(0, 0);
+      if (root) {
+        const focusEl = root.querySelector("h1, [data-gx-autofocus], [role='main']") || root;
+        if (!focusEl.hasAttribute("tabindex") && !focusEl.matches("a[href],button,input,select,textarea")) {
+          focusEl.setAttribute("tabindex", "-1");
+        }
+        try { focusEl.focus({ preventScroll: true }); } catch (_e) {}
+      }
+    }
+
+    announce("Navigated to " + (data.title || targetPath));
+    for (const hook of _afterHooks) {
+      try { hook(targetPath, fromPath, data); } catch (_e) {}
+    }
+    return { ok: true, path: targetPath, title: data.title };
+  };
+
+  if (!window.__gxNavigatorBootstrapped) {
+    window.__gxNavigatorBootstrapped = true;
+    document.addEventListener("click", (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+      if (!_isSpaEligibleLink(a)) return;
+      e.preventDefault();
+      void navigate(a.href, {
+        replace: a.getAttribute("data-gx-replace") === "true",
+        scroll: a.getAttribute("data-gx-scroll") !== "false",
+      });
+    });
+    document.addEventListener("pointerover", (e) => {
+      const a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+      if (_isSpaEligibleLink(a) && a.getAttribute("data-gx-prefetch") !== "none") {
+        void prefetchRoute(a.href);
+      }
+    });
+    document.addEventListener("focusin", (e) => {
+      const a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+      if (_isSpaEligibleLink(a) && a.getAttribute("data-gx-prefetch") !== "none") {
+        void prefetchRoute(a.href);
+      }
+    });
+    window.addEventListener("popstate", (e) => {
+      if (window.location.protocol === "file:") return;
+      const sy = e.state && typeof e.state.scrollY === "number" ? e.state.scrollY : 0;
+      void navigate(window.location.href, { pushHistory: false, restoreScrollY: sy });
+    });
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => initPrefetchLinks(document));
+    } else {
+      initPrefetchLinks(document);
+    }
+  }
+
+  window.RadUINavigator = {
+    navigate,
+    prefetch: prefetchRoute,
+    beforeEach: (fn) => {
+      if (typeof fn === "function") _beforeGuards.push(fn);
+      return () => {
+        const idx = _beforeGuards.indexOf(fn);
+        if (idx >= 0) _beforeGuards.splice(idx, 1);
+      };
+    },
+    afterEach: (fn) => {
+      if (typeof fn === "function") _afterHooks.push(fn);
+      return () => {
+        const idx = _afterHooks.indexOf(fn);
+        if (idx >= 0) _afterHooks.splice(idx, 1);
+      };
+    },
+    clearCache: () => _navCache.clear(),
+  };
+
+  // M2.0 Resumable Application Runtime (Lazy Boundary Activation, Zero Eager Hydration)
+  const _resumableSnapshots = new Map();
+  let _resumedCount = 0;
+
+  const _readInitialSnapshots = () => {
+    const tag = document.getElementById("gx-resumable-state");
+    if (!tag) return;
+    try {
+      const list = JSON.parse(tag.textContent || "[]");
+      if (Array.isArray(list)) {
+        for (const snap of list) {
+          if (snap && snap.boundary_id) _resumableSnapshots.set(snap.boundary_id, snap);
+        }
+      }
+    } catch (_e) {}
+  };
+
+  const resumeBoundary = (el) => {
+    const boundary = el && el.closest ? el.closest("[data-gx-resumable]") : null;
+    if (!boundary) return false;
+    if (boundary.getAttribute("data-gx-resumed") === "1") return true;
+    const bid = boundary.getAttribute("data-gx-resume-id") || boundary.id;
+    const snap = bid ? _resumableSnapshots.get(bid) : null;
+    if (snap) {
+      if (snap.local_state && !boundary.hasAttribute("data-gx-local-state")) {
+        boundary.setAttribute("data-gx-local-state", JSON.stringify(snap.local_state));
+      }
+      if (snap.bind_local && Object.keys(snap.bind_local).length && !boundary.hasAttribute("data-gx-bind-local")) {
+        boundary.setAttribute("data-gx-bind-local", JSON.stringify(snap.bind_local));
+      }
+      getLocalState(boundary);
+      syncScopeBindings(boundary);
+    } else {
+      syncAllBindings(boundary);
+    }
+    boundary.setAttribute("data-gx-resumed", "1");
+    _resumedCount += 1;
+    return true;
+  };
+
+  const restoreFromServer = async (boundaryId, expectedRoute) => {
+    const snap = _resumableSnapshots.get(boundaryId);
+    if (!snap) return { ok: false, error: "Unknown boundary" };
+    const csrf = document.querySelector('meta[name="gx-csrf"]')?.getAttribute("content") || "";
+    const resp = await fetch("/_gx/resume", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-GX-CSRF": csrf },
+      body: JSON.stringify({ snapshot: snap, expected_route: expectedRoute || window.location.pathname }),
+    });
+    const data = await resp.json().catch(() => ({ ok: false }));
+    if (resp.ok && data.ok && data.snapshot) {
+      _resumableSnapshots.set(boundaryId, data.snapshot);
+    }
+    return data;
+  };
+
+  if (!window.__gxResumabilityBootstrapped) {
+    window.__gxResumabilityBootstrapped = true;
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", _readInitialSnapshots);
+    } else {
+      _readInitialSnapshots();
+    }
+    for (const ev of ["pointerdown", "click", "keydown", "focusin", "input", "change"]) {
+      document.addEventListener(ev, (e) => {
+        if (e.target && e.target.closest && e.target.closest("[data-gx-resumable]")) {
+          resumeBoundary(e.target);
+        }
+      }, true);
+    }
+  }
+
+  window.RadUIResumability = {
+    resumeBoundary,
+    restoreFromServer,
+    getSnapshot: (id) => _resumableSnapshots.get(id) || null,
+    loadSnapshots: (list) => {
+      if (!Array.isArray(list)) return;
+      for (const snap of list) {
+        if (snap && snap.boundary_id) _resumableSnapshots.set(snap.boundary_id, snap);
+      }
+    },
+    stats: () => ({ registeredCount: _resumableSnapshots.size, activatedCount: _resumedCount }),
+  };
+
+  // M2.2 Native Web Components & Shadow DOM Interoperability Bridge
+  const _ceSpecs = new Map();
+  const _ceCleanups = new WeakMap();
+
+  const _dispatchCustomCommand = (hostEl, commandId, detail) => {
+    if (!commandId) return;
+    const csrf = document.querySelector('meta[name="gx-csrf"]')?.getAttribute("content") || "";
+    const viewId = document.querySelector('meta[name="gx-view"]')?.getAttribute("content") || window.location.pathname;
+    const actId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `ce-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const body = new URLSearchParams();
+    body.set("_gx_view_id", viewId);
+    body.set("_gx_action_id", actId);
+    body.set("_csrf", csrf);
+    if (detail && typeof detail === "object") {
+      for (const [k, v] of Object.entries(detail)) {
+        if (k === "__proto__" || k === "constructor" || k === "prototype") continue;
+        if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+          body.set(k, String(v));
+        }
+      }
+    }
+    fetch(`/_gx/commands/${encodeURIComponent(commandId)}`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-GX-CSRF": csrf },
+      body: body.toString(),
+    }).then(r => r.ok ? r.json() : null).then(d => {
+      if (d && d.patches) applyPatches(d.patches);
+    }).catch(() => {});
+  };
+
+  const _bindElementEvents = (el) => {
+    if (!el || _ceCleanups.has(el)) return;
+    const rawMap = el.getAttribute("data-gx-ce-events");
+    if (!rawMap) return;
+    let map;
+    try { map = JSON.parse(rawMap); } catch (_e) { return; }
+    const handlers = [];
+    for (const [evName, cmdId] of Object.entries(map)) {
+      const fn = (ev) => {
+        if (window.RadUIResumability) window.RadUIResumability.resumeBoundary(el);
+        _dispatchCustomCommand(el, cmdId, ev && ev.detail ? ev.detail : {});
+      };
+      el.addEventListener(evName, fn);
+      handlers.push([evName, fn]);
+    }
+    _ceCleanups.set(el, handlers);
+  };
+
+  const defineWebComponent = (spec) => {
+    if (!spec || !spec.tag_name || !window.customElements) return;
+    const tag = String(spec.tag_name).toLowerCase();
+    _ceSpecs.set(tag, spec);
+    if (customElements.get(tag)) return;
+    class RadUICustomElement extends HTMLElement {
+      static get observedAttributes() {
+        return Array.isArray(spec.observed_attributes) ? spec.observed_attributes : [];
+      }
+      connectedCallback() {
+        const mode = spec.shadow_mode || this.getAttribute("data-gx-shadow") || "open";
+        if (mode !== "none" && !this.shadowRoot && !this.__gxShadow) {
+          const sr = this.attachShadow({ mode });
+          this.__gxShadow = sr;
+          const styleTxt = spec.styles ? `<style>${spec.styles}</style>` : "";
+          const tplTxt = spec.template_html || "<slot></slot>";
+          sr.innerHTML = styleTxt + tplTxt;
+        }
+        _bindElementEvents(this);
+      }
+      disconnectedCallback() {
+        const list = _ceCleanups.get(this);
+        if (list) {
+          for (const [evName, fn] of list) this.removeEventListener(evName, fn);
+          _ceCleanups.delete(this);
+        }
+      }
+      attributeChangedCallback(name, oldVal, newVal) {
+        if (oldVal !== newVal && this.__gxShadow) {
+          const target = this.__gxShadow.querySelector(`[data-gx-prop="${name}"]`);
+          if (target) target.textContent = newVal === null ? "" : String(newVal);
+        }
+      }
+    }
+    customElements.define(tag, RadUICustomElement);
+  };
+
+  const upgradeTree = (root = document) => {
+    if (!root || !root.querySelectorAll) return;
+    const regTag = document.getElementById("gx-web-components");
+    if (regTag) {
+      try {
+        const specs = JSON.parse(regTag.textContent || "[]");
+        if (Array.isArray(specs)) specs.forEach(defineWebComponent);
+      } catch (_e) {}
+    }
+    root.querySelectorAll("[data-gx-ce]").forEach((el) => {
+      _bindElementEvents(el);
+    });
+  };
+
+  if (!window.__gxWebComponentsBootstrapped) {
+    window.__gxWebComponentsBootstrapped = true;
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => upgradeTree(document));
+    } else {
+      upgradeTree(document);
+    }
+  }
+
+  window.RadUIWebComponents = {
+    define: defineWebComponent,
+    upgradeTree,
+    specs: () => [..._ceSpecs.keys()],
+  };
+
+  // M2.3 Progressive & Streaming SSR Client Handler (Zero inline scripts, nonce-verified)
+  const applyStreamTemplate = (tpl) => {
+    if (!tpl || tpl.tagName !== "TEMPLATE") return false;
+    const bid = tpl.getAttribute("data-gx-stream-target");
+    const tplNonce = tpl.getAttribute("data-gx-stream-nonce") || "";
+    const pageNonce = document.querySelector('meta[name="gx-stream-nonce"]')?.getAttribute("content") || "";
+    if (!bid || !pageNonce || tplNonce !== pageNonce) {
+      tpl.remove();
+      return false;
+    }
+    const target = [...document.querySelectorAll("[data-gx-suspense]")].find(
+      (n) => n.getAttribute("data-gx-suspense") === bid
+    );
+    if (!target || !target.isConnected) {
+      tpl.remove();
+      return false;
+    }
+    const frag = tpl.content.cloneNode(true);
+    const parent = target.parentNode;
+    const inserted = [...frag.childNodes].filter((n) => n.nodeType === 1);
+    target.replaceWith(frag);
+    tpl.remove();
+    for (const el of inserted) {
+      initMotion(el);
+      initIslands(el);
+      syncAllBindings(el);
+      upgradeTree(el);
+      initPrefetchLinks(el);
+    }
+    if (inserted.length) announce("Section loaded");
+    return true;
+  };
+
+  if (!window.__gxStreamBootstrapped) {
+    window.__gxStreamBootstrapped = true;
+    const scanStreamTemplates = () => {
+      document.querySelectorAll("template[data-gx-stream-target]").forEach(applyStreamTemplate);
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", scanStreamTemplates);
+    } else {
+      scanStreamTemplates();
+    }
+    if (typeof MutationObserver !== "undefined") {
+      const streamMo = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          for (const node of m.addedNodes) {
+            if (node.nodeType === 1) {
+              if (node.tagName === "TEMPLATE" && node.hasAttribute("data-gx-stream-target")) {
+                applyStreamTemplate(node);
+              } else if (node.querySelectorAll) {
+                node.querySelectorAll("template[data-gx-stream-target]").forEach(applyStreamTemplate);
+              }
+            }
+          }
+        }
+      });
+      if (document.body) streamMo.observe(document.body, { childList: true, subtree: true });
+      else document.addEventListener("DOMContentLoaded", () => {
+        if (document.body) streamMo.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+  }
+
+  window.RadUIStream = { applyTemplate: applyStreamTemplate };
 })();"""
 
 
@@ -4290,6 +5305,25 @@ def _attrs(component: Component) -> str:
     if code:
         parts.append(f'data-gx-code="{escape(str(code), quote=True)}"')
 
+    local_state = getattr(component, "local_state", None)
+    if local_state is not None:
+        parts.append(f'data-gx-local-state="{escape(json.dumps(local_state, separators=(",", ":")), quote=True)}"')
+
+    interactions = getattr(component, "interactions", ())
+    if interactions:
+        wire = [b.to_wire() if hasattr(b, "to_wire") else b for b in interactions]
+        parts.append(f'data-gx-interactions="{escape(json.dumps(wire, separators=(",", ":")), quote=True)}"')
+
+    bind_local = getattr(component, "bind_local", None)
+    if bind_local:
+        parts.append(f'data-gx-bind-local="{escape(json.dumps(bind_local, separators=(",", ":")), quote=True)}"')
+
+    if getattr(component, "resumable", False):
+        act_pol = getattr(component, "resumable_activation", "lazy") or "lazy"
+        parts.append(f'data-gx-resumable="{escape(str(act_pol), quote=True)}"')
+        if getattr(component, "id", None):
+            parts.append(f'data-gx-resume-id="{escape(str(component.id), quote=True)}"')
+
     if not parts:
         return ""
     return " " + " ".join(parts)
@@ -4329,6 +5363,15 @@ class HTMLRenderer:
         command_palette: bool = True,
         direction: str = "ltr",
         static_export: bool = False,
+        description: str | None = None,
+        canonical_url: str | None = None,
+        og_tags: Mapping[str, str] | None = None,
+        twitter_tags: Mapping[str, str] | None = None,
+        meta_tags: Mapping[str, str] | None = None,
+        stylesheet_href: str | None = None,
+        script_src: str | None = None,
+        resumable_snapshots: list[dict[str, Any]] | None = None,
+        web_components: list[dict[str, Any]] | None = None,
     ) -> str:
         self.registry.validate(root)
         safe_title = escape(title)
@@ -4381,19 +5424,62 @@ class HTMLRenderer:
             """
         live_region = '<div class="gx-aria-live" aria-live="polite" aria-atomic="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>'
         extra_css = f"<style>{custom_css}</style>" if custom_css else ""
-        runtime_script = f"<script>{STATIC_JS}</script>" if static_export else '<script src="/_gx/client.js" defer></script>'
+        has_runtime_islands = static_export and ('data-gx-hydration="fetch"' in body or 'data-gx-hydration="sse"' in body)
+        if static_export and not has_runtime_islands:
+            runtime_script = (
+                f'<script src="{escape(script_src, quote=True)}" defer></script>'
+                if script_src is not None
+                else f"<script>{STATIC_JS}</script>"
+            )
+        else:
+            runtime_script = '<script src="/_gx/client.js" defer></script>'
         theme_init_script = '<script>(function(){try{var s=localStorage.getItem("gx-theme")||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");if(s)document.documentElement.dataset.theme=s;}catch(e){}})();</script>'
         favicon_tag = '<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">'
+
+        seo_parts: list[str] = []
+        if description is not None:
+            seo_parts.append(f'<meta name="description" content="{escape(str(description), quote=True)}">')
+        if canonical_url is not None:
+            seo_parts.append(f'<link rel="canonical" href="{escape(str(canonical_url), quote=True)}">')
+        if meta_tags:
+            for k, v in sorted(meta_tags.items()):
+                seo_parts.append(f'<meta name="{escape(str(k), quote=True)}" content="{escape(str(v), quote=True)}">')
+        if og_tags:
+            for k, v in sorted(og_tags.items()):
+                prop = k if k.startswith("og:") else f"og:{k}"
+                seo_parts.append(f'<meta property="{escape(str(prop), quote=True)}" content="{escape(str(v), quote=True)}">')
+        if twitter_tags:
+            for k, v in sorted(twitter_tags.items()):
+                name = k if k.startswith("twitter:") else f"twitter:{k}"
+                seo_parts.append(f'<meta name="{escape(str(name), quote=True)}" content="{escape(str(v), quote=True)}">')
+        seo_html = "".join(seo_parts)
+
+        css_tag = (
+            f'<link rel="stylesheet" href="{escape(stylesheet_href, quote=True)}">'
+            if stylesheet_href is not None
+            else f"<style>{BASE_CSS}</style>"
+        )
+
+        csrf_meta = f'<meta name="gx-csrf" content="{escape(csrf_token, quote=True)}">' if (csrf_token and not static_export) else ""
+        resumable_script = ""
+        if resumable_snapshots:
+            safe_res_json = json.dumps(resumable_snapshots, separators=(",", ":")).replace("</", "<\\/")
+            resumable_script = f'<script type="application/json" id="gx-resumable-state">{safe_res_json}</script>'
+        wc_script = ""
+        if web_components:
+            safe_wc_json = json.dumps(web_components, separators=(",", ":")).replace("</", "<\\/")
+            wc_script = f'<script type="application/json" id="gx-web-components">{safe_wc_json}</script>'
         return (
             "<!doctype html>"
             f'<html lang="en" dir="{direction}"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
             f'<meta name="gx-view" content="{safe_view}">'
             f'<meta name="gx-event-cursor" content="{event_cursor}">'
-            f"{theme_init_script}{favicon_tag}"
-            f"<title>{safe_title}</title><style>{BASE_CSS}</style>{extra_css}"
+            f"{csrf_meta}"
+            f"{seo_html}{theme_init_script}{favicon_tag}"
+            f"<title>{safe_title}</title>{css_tag}{extra_css}"
             f"{runtime_script}"
-            f'</head><body><main class="gx-shell" id="gx-root" data-gx-root>{body}</main>{inspector_html}{palette_html}{live_region}</body></html>'
+            f'</head><body><main class="gx-shell" id="gx-root" data-gx-root>{body}</main>{resumable_script}{wc_script}{inspector_html}{palette_html}{live_region}</body></html>'
         )
 
     def render_patch(
@@ -4471,7 +5557,14 @@ def render_link(
 ) -> str:
     assert isinstance(component, Link)
     href = escape(component.href, quote=True)
-    return f'<a class="gx-link" href="{href}"{_attrs(component)}>{escape(component.label)}</a>'
+    extra = f' data-gx-prefetch="{escape(component.prefetch, quote=True)}"'
+    if not component.spa:
+        extra += ' data-gx-spa="false"'
+    if component.replace:
+        extra += ' data-gx-replace="true"'
+    if not component.scroll:
+        extra += ' data-gx-scroll="false"'
+    return f'<a class="gx-link" href="{href}"{extra}{_attrs(component)}>{escape(component.label)}</a>'
 
 
 def render_divider(
@@ -4592,17 +5685,20 @@ def render_tabs(
     tabs_header = []
     tabs_panes = []
     for idx, item in enumerate(component.children):
-        active_cls = " active" if idx == component.active_index else ""
+        is_active = idx == component.active_index
+        active_cls = " active" if is_active else ""
+        selected_str = "true" if is_active else "false"
+        hidden_attr = "" if is_active else " hidden"
         tab_id = f"tab-{idx}"
         tabs_header.append(
-            f'<button type="button" class="gx-tab-btn{active_cls}" data-gx-tab-target="{tab_id}">{escape(item.label)}</button>'
+            f'<button type="button" role="tab" aria-selected="{selected_str}" class="gx-tab-btn{active_cls}" data-gx-tab-target="{tab_id}">{escape(item.label)}</button>'
         )
         content = "".join(_render_child(child, registry, state_context, csrf_token) for child in item.children)
-        tabs_panes.append(f'<div class="gx-tab-pane{active_cls}" data-gx-tab-pane="{tab_id}">{content}</div>')
+        tabs_panes.append(f'<div role="tabpanel" class="gx-tab-pane{active_cls}" data-gx-tab-pane="{tab_id}"{hidden_attr}>{content}</div>')
 
     return (
         f'<div class="gx-tabs" data-gx-tabs{_attrs(component)}>'
-        f'<div class="gx-tabs-header">{"".join(tabs_header)}</div>'
+        f'<div class="gx-tabs-header" role="tablist">{"".join(tabs_header)}</div>'
         f'<div class="gx-tabs-content">{"".join(tabs_panes)}</div>'
         "</div>"
     )
@@ -4617,11 +5713,11 @@ def render_modal(
     return (
         f'<div class="gx-modal-wrap"{_attrs(component)}>'
         f'<button type="button" class="gx-button gx-button-primary" data-gx-modal-open="{safe_modal_id}">{escape(component.trigger_label)}</button>'
-        f'<div class="gx-modal-backdrop" data-gx-modal="{safe_modal_id}">'
-        f'<div class="gx-modal-box">'
+        f'<div class="gx-modal-backdrop" data-gx-modal="{safe_modal_id}" aria-hidden="true">'
+        f'<div class="gx-modal-box" role="dialog" aria-modal="true" aria-label="{escape(component.title, quote=True)}">'
         f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
         f'<h3 style="margin:0;">{escape(component.title)}</h3>'
-        f'<button type="button" class="gx-button gx-button-secondary" data-gx-modal-close style="padding:4px 10px;">&times;</button>'
+        f'<button type="button" class="gx-button gx-button-secondary" data-gx-modal-close aria-label="Close" style="padding:4px 10px;">&times;</button>'
         f"</div><div>{children}</div></div></div></div>"
     )
 
@@ -5575,9 +6671,9 @@ def render_drawer(
     )
     return (
         f'<div class="gx-drawer-container"{_attrs(component)}>'
-        f'<button type="button" class="gx-button gx-button-secondary" data-gx-drawer-open>{escape(component.trigger_label)}</button>'
-        f'<div class="gx-drawer-backdrop gx-drawer-{component.placement}">'
-        f'<div class="gx-drawer-panel" role="dialog" aria-modal="true">'
+        f'<button type="button" class="gx-button gx-button-secondary" data-gx-drawer-open aria-expanded="false">{escape(component.trigger_label)}</button>'
+        f'<div class="gx-drawer-backdrop gx-drawer-{component.placement}" aria-hidden="true">'
+        f'<div class="gx-drawer-panel" role="dialog" aria-modal="true" aria-label="{escape(component.title, quote=True)}">'
         f'<div class="gx-drawer-header"><h3>{escape(component.title)}</h3><button type="button" class="gx-drawer-close" aria-label="Close">&times;</button></div>'
         f'<div class="gx-drawer-body">{children_html}</div>'
         f'</div></div></div>'
@@ -5840,7 +6936,7 @@ def render_tag(
     assert isinstance(component, Tag)
     remove_btn = ""
     if component.removable:
-        cmd_attr = f' data-gx-cmd="{escape(component.remove_command, quote=True)}"' if component.remove_command else ' onclick="this.closest(\'.gx-tag\').remove()"'
+        cmd_attr = f' data-gx-cmd="{escape(component.remove_command, quote=True)}"' if component.remove_command else ' data-gx-tag-remove="true"'
         remove_btn = f'<button type="button" class="gx-tag-remove"{cmd_attr} aria-label="Remove">&times;</button>'
     return (
         f'<span class="gx-tag gx-tag-{component.variant}"{_attrs(component)}>'
@@ -5900,3 +6996,39 @@ def render_canvas_stream(
         f'</div>'
         f'</div>'
     )
+
+
+def render_custom_element(
+    component: Component, registry: ComponentRegistry, state_context: object | None, csrf_token: str | None
+) -> str:
+    assert isinstance(component, CustomElement)
+    tag = escape(component.tag_name, quote=True)
+    prop_attrs = []
+    for k, v in (component.props or {}).items():
+        if str(k).lower().startswith("on"):
+            continue
+        safe_k = escape(str(k), quote=True)
+        safe_v = escape("" if v is None else str(v), quote=True)
+        prop_attrs.append(f'{safe_k}="{safe_v}"')
+    props_str = (" " + " ".join(prop_attrs)) if prop_attrs else ""
+    ev_attr = ""
+    if component.event_commands:
+        ev_attr = f' data-gx-ce-events="{escape(json.dumps(component.event_commands, separators=(",", ":")), quote=True)}"'
+    children_html = "".join(_render_child(c, registry, state_context, csrf_token) for c in component.children)
+    shadow_tpl = ""
+    if component.shadow_mode in ("open", "closed") and component.shadow_styles:
+        safe_css = component.shadow_styles.replace("</style>", "<\\/style>")
+        shadow_tpl = f'<template shadowrootmode="{component.shadow_mode}"><style>{safe_css}</style><slot></slot></template>'
+    return (
+        f'<{tag} data-gx-ce="1" data-gx-shadow="{component.shadow_mode}"{props_str}{ev_attr}{_attrs(component)}>'
+        f'{shadow_tpl}{children_html}</{tag}>'
+    )
+
+
+def render_suspense(
+    component: Component, registry: ComponentRegistry, state_context: object | None, csrf_token: str | None
+) -> str:
+    assert isinstance(component, Suspense)
+    bid = escape(component.boundary_id, quote=True)
+    fb_html = _render_child(component.fallback, registry, state_context, csrf_token)
+    return f'<div class="gx-suspense" data-gx-suspense="{bid}"{_attrs(component)}>{fb_html}</div>'

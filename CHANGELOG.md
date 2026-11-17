@@ -1,5 +1,43 @@
 # RADUI Framework Changelog
 
+## [2.3.0] - 2026-11-17
+
+### Added (M2.0–M2.3 Next-Generation Runtime)
+- **M2.0 — Resumable Application Runtime (`radui/resumability/`, `window.RadUIResumability`)**: Added `ExecutionDescriptor`, `ResumableBoundarySnapshot` (`schema_version="1.0"`), `StateMigrationRegistry`, `resumable=True` on components, `POST /_gx/resume` with CSRF + `auth_scope` validation, and zero-eager-hydration lazy boundary activation.
+- **M2.1 — Compiler-Assisted Reactive Optimization (`radui/compiler/`, `radui compile`, `radui build --optimize`)**: Added Python AST + Component AST static dependency analysis, circular dependency detection, pure-static HTML fragment caching (`render_with_plan`), and content-addressed incremental manifest caching.
+- **M2.2 — Native Web Components Interoperability (`radui/web_components/`, `@app.web_component`, `gx.custom_element`, `window.RadUIWebComponents`)**: Added standards-compliant Custom Elements with `open`/`closed`/`none` Shadow DOM, `<slot>` projection, CSS variable inheritance, and CSRF-protected custom event command dispatch.
+- **M2.3 — Progressive & Streaming SSR (`radui/streaming/`, `gx.suspense`, `@app.page(..., stream=True)`, `window.RadUIStream`)**: Added immediate HTML shell streaming, concurrent out-of-order `Suspense` resolution, per-boundary timeouts & error fallbacks, backpressure/disconnect cancellation, and nonce-verified `<template>` replacement without inline scripts.
+
+## [1.9.2] - 2026-11-17
+
+### Verified & Hardened
+- Marked protected/guarded SPA routes `cacheable: false` and rotated cache invalidation on `auth_key` / `401` / `403`, preventing stale private HTML caching; verified `1,050` consecutive SPA navigations in headless Chrome (`listeners 62->59`, `nodes=74`, `heap 0.79MB->0.71MB`).
+
+## [1.9.1] - 2026-11-17
+
+### Hardened & Verified
+- **SPA Navigation Concurrency & Cancellation (M1.9.1)**: Added `AbortController` + monotonic `_navSeq` cancellation in `RadUINavigator` so rapid route transitions and out-of-order responses never overwrite newer routes, plus explicit 4-hop redirect loop termination.
+- **Prefetch Security & Edge Cases**: Added `auth_key` session/user cache invalidation and `401`/`403` cache clearing on `/_gx/navigate`, trailing-slash route resolution in `_resolve_page_for_path`, and verified URL encoding, query strings, `target="_blank"`, `download`, modifier-key clicks, and auth expiry fallback.
+- **Accessibility & Benchmarks**: Added heading/main focus management (`preventScroll: true`) and `prefers-reduced-motion` hash scrolling; measured `CLIENT_JS` at `79,995 B` raw (`18,607 B` gzip) with Chrome uncached `p50=6.300 ms` / `p95=10.700 ms` and prefetched `p50=0.800 ms` / `p95=1.200 ms`.
+
+## [1.9.0] - 2026-11-17
+
+### Added
+- **Native SPA Navigation Engine (`window.RadUINavigator` + `GET /_gx/navigate`)**: Zero-reload client navigation, `history.pushState`/`popstate` scroll restoration, hover/focus/viewport prefetching, `loading`/`error_boundary`/`guard` per-route options, `Link` `prefetch`/`spa`/`replace`/`scroll` attributes, and automatic server fallback.
+
+## [1.8.1] - 2026-11-17
+
+### Hardened & Verified
+- **Full Component Builder Coverage (M1.8.1)**: Updated all 71 public `Component`-returning builders in `radui/components/nodes.py` to accept `local_state`, `interactions`, and `bind_local` consistently (`70/71` emit attributes directly in standalone HTML; `tab_item` is a structural sub-item of `Tabs`).
+- **Security & Prototype Pollution Defense**: Explicitly rejected `constructor`, `prototype`, and `__proto__` in `validate_local_state` and `validate_bind_local` (`radui/interactions.py`), alongside allowlisted attributes and CSRF/view-scoped `dispatch_command` checks.
+- **Lifecycle, SSE & Island Sync**: Added idempotent global listener/observer bootstrap (`__gxInteractionsBootstrapped`), synchronous `RadUIInteractions.syncTree(...)` in `applyPatches` and `activateIsland`, wrapper-aware `act.focus` targeting inner form controls, and `aria-hidden` toggling on modal open/close/Escape.
+- **Browser Hardening & Budget Verification**: Verified all 16 events, 19 actions, 7 `bind_local` properties, 100-cycle dynamic DOM mount/unmount stress, `prefers-reduced-motion`, ARIA semantics, and `CLIENT_JS` size (`69,187 B` raw / `16,189 B` gzip, Chrome `p50=0.200 ms`, `p95=0.400 ms`).
+
+## [1.8.0] - 2026-11-17
+
+### Added
+- **Declarative Client-Side Interaction Engine (`radui.interactions`)**: Introduced `on()`, `act.*`, `InteractionBinding`, `InteractionAction`, `local_state`, and `bind_local` with an `O(1)` delegated `WeakMap` browser runtime (`RadUIInteractions`).
+
 ## [0.9.0] - 2026-11-15
 
 ### Added

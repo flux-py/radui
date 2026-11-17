@@ -34,6 +34,7 @@ class DependencyTracker:
         ] = {}
         self._computed_by_state: dict[Hashable, set[Hashable]] = defaultdict(set)
         self._state_by_computed: dict[Hashable, set[Hashable]] = {}
+        self._has_path_deps: bool = False
 
     def register_computed_dependencies(
         self, computed_key: Hashable, upstream_keys: set[Hashable]
@@ -102,6 +103,8 @@ class DependencyTracker:
                 self._by_component[component_key] = clean_dependencies
                 for state_key in clean_dependencies:
                     self._by_state[state_key].setdefault(context, set()).add(component_id)
+                    if isinstance(state_key, tuple) and len(state_key) == 2 and isinstance(state_key[1], tuple):
+                        self._has_path_deps = True
 
     def remap_component_id(
         self,
@@ -123,6 +126,16 @@ class DependencyTracker:
                         contexts[context].add(new_id)
                 new_key = (context, new_id)
                 self._by_component.setdefault(new_key, set()).update(deps)
+
+    def path_keys_for(self, state_key: Hashable) -> list[tuple[Hashable, tuple[Any, ...]]]:
+        """Return registered nested path dependency keys for a base state_key."""
+        if not self._has_path_deps:
+            return []
+        with self._lock:
+            return [
+                k for k in self._by_state
+                if isinstance(k, tuple) and len(k) == 2 and k[0] == state_key and isinstance(k[1], tuple)
+            ]
 
     def dependents(self, state_key: Hashable) -> dict[ContextIdentity, tuple[str, ...]]:
         with self._lock:

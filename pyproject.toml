@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling>=1.27"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "radui"
@@ -15,7 +15,6 @@ classifiers = [
   "Framework :: AsyncIO",
   "Framework :: Pydantic",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -60,8 +59,11 @@ dev = [
 radui = "radui.cli:main"
 genesis = "radui.cli:main"
 
-[tool.hatch.build.targets.wheel]
-packages = ["radui", "genesis"]
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["radui*", "genesis*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

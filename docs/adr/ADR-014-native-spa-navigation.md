@@ -1,0 +1,11 @@
+# ADR-014: Native SPA Navigation Engine (M1.9 / M1.9.1)
+
+- **Status:** Accepted & Hardened (M1.9 / M1.9.1)
+- **Context:** Multi-page RadUI applications previously performed full document reloads on link clicks, tearing down `CLIENT_JS`, `EventSource`, `WeakMap` interaction state, and scroll/focus continuity.
+- **Decision:** Add a zero-dependency native SPA navigation engine (`window.RadUINavigator` in `CLIENT_JS` + `GET /_gx/navigate` in `radui/core/app.py`):
+  - **Server-Authoritative Rendering:** `/_gx/navigate?to=<path>` resolves Starlette dynamic routes (with trailing-slash normalization), enforces `require_auth`/`require_role`/`require_permission` and `page.guard`, builds the component tree through `@app.layout` and `@app.page`, and returns `{ ok, path, route, title, view_id, csrf_token, auth_key, layouts, loading_html, html }` (or `error_html` / `fallback: true`).
+  - **Concurrency & Cancellation:** Uses monotonic `_navSeq` + `AbortController` so superseded requests abort cleanly without overwriting newer routes or triggering fallback redirects.
+  - **Prefetch & Auth Cache Invalidation:** Deduplicates in-flight prefetches (`hover`/`focus`/`viewport`), caps cache at `16` entries with `15s` TTL, and clears cached entries automatically on `401`/`403` or `auth_key` changes.
+  - **Nested Layout Persistence Trade-off:** `CLIENT_JS`, `<head>`, `EventSource`, `RadUINavigator` cache/guards, and `window` state persist across transitions; `[data-gx-root]` replaces its inner HTML so `@app.layout(...)` handlers remain 100% consistent with server-side route-dependent state (such as active nav links) without requiring a separate client-side VDOM layout differ.
+  - **Accessibility & Fallback:** Manages `aria-busy`, announces route changes to `#gx-live-region`, moves focus to `h1` / `[data-gx-autofocus]` / `[role='main']`, restores `scrollY` on `popstate`, respects `prefers-reduced-motion`, and falls back to `window.location.assign(...)` for `spa=False`, external origins, `401`/`403`/`404`, `file://`, or network errors.
+- **Consequences:** `CLIENT_JS` measures `79,995 B` (`78.12 KiB`) raw and `18,607 B` (`18.17 KiB`) gzip (level 9; Brotli not measured — `brotli` package not installed). Headless Chrome latencies: uncached `p50=6.300 ms` / `p95=10.700 ms`, prefetched `p50=0.800 ms` / `p95=1.200 ms`.

@@ -9,6 +9,7 @@ from .backend import (
 from .dependencies import ContextIdentity, DependencyTracker
 from .middleware import StateMiddleware
 from .refs import ComputedRef, CyclicDependencyError, StateRef, StateScope, TenantRequiredError, UserRequiredError, computed, state
+from .signals import RenderContext, get_active_render_context, render_context, signal
 from .runtime import (
     BatchContext,
     Invalidation,
@@ -17,6 +18,8 @@ from .runtime import (
     StateRuntime,
     TransactionContext,
 )
+
+state.signal = signal  # type: ignore[attr-defined]
 
 __all__ = [
     "BatchContext",
@@ -28,6 +31,7 @@ __all__ = [
     "Invalidation",
     "PostgreSQLStateBackend",
     "RedisStateBackend",
+    "RenderContext",
     "SQLiteStateBackend",
     "StateBackend",
     "StateBackendUnavailableError",
@@ -41,5 +45,8 @@ __all__ = [
     "TransactionContext",
     "UserRequiredError",
     "computed",
+    "get_active_render_context",
+    "render_context",
+    "signal",
     "state",
 ]

@@ -18,6 +18,13 @@ import time
 from typing import Any, AsyncIterator, Protocol, runtime_checkable
 import uuid
 
+from radui.observability import LatencyTracker
+from radui.transport.governance import (
+    InMemorySSEGovernance,
+    RedisSSEGovernance,
+    SSEGovernanceBackend,
+)
+
 _LOGGER = logging.getLogger("radui.events")
 
 
@@ -394,35 +401,101 @@ class SQLiteEventBackend:
 
 
 class RedisEventBackend:
-    """Distributed Redis event backend using Redis Streams/SortedSets and cross-worker pub/sub."""
+    """Distributed Redis event backend using bounded SortedSet history and Pub/Sub fan-out.
+
+    Delivery semantics:
+    - Live cross-worker Pub/Sub fan-out is at-most-once if a subscriber is disconnected.
+    - Replay via Last-Event-ID is durable within `history_size` (bounded ZSET).
+    """
 
     def __init__(
         self,
         redis_url: str = "redis://localhost:6379/0",
         *,
         prefix: str = "gx:events:",
+        history_size: int = 128,
         allow_fallback: bool = False,
+        socket_timeout: float = 1.0,
+        max_connections: int = 32,
+        client: Any | None = None,
     ) -> None:
         self.redis_url = redis_url
         self.prefix = prefix
+        self.history_size = history_size
         self.allow_fallback = allow_fallback
-        self._client = None
-        self._fallback = InMemoryEventBackend() if allow_fallback else None
+        self.socket_timeout = socket_timeout
+        self.max_connections = max_connections
+        self._pool: Any | None = None
+        self._client: Any | None = client
+        self._fallback = InMemoryEventBackend(history_size=history_size) if allow_fallback else None
+        self._lock = threading.RLock()
+        self._backend_errors = 0
+        self._published = 0
+        self._replayed = 0
+        self._replay_calls = 0
+        self._pubsub_delivered = 0
+        self._lat_publish = LatencyTracker()
+        self._lat_replay = LatencyTracker()
+        if self._client is None:
+            self.reconnect()
+
+    def reconnect(self) -> bool:
         try:
             import redis  # type: ignore
-            self._client = redis.from_url(
-                redis_url,
+
+            if self._pool is not None:
+                try:
+                    self._pool.disconnect()
+                except Exception:
+                    pass
+            self._pool = redis.ConnectionPool.from_url(
+                self.redis_url,
                 decode_responses=True,
-                socket_connect_timeout=0.2,
-                socket_timeout=0.2,
+                socket_connect_timeout=self.socket_timeout,
+                socket_timeout=self.socket_timeout,
+                health_check_interval=30,
+                max_connections=self.max_connections,
             )
+            self._client = redis.Redis(connection_pool=self._pool)
             self._client.ping()
+            return True
         except Exception as exc:
             self._client = None
+            with self._lock:
+                self._backend_errors += 1
             if not self.allow_fallback:
-                _LOGGER.error("RedisEventBackend unavailable at %s: %s", redis_url, exc)
+                _LOGGER.error("RedisEventBackend unavailable: %s", type(exc).__name__)
             else:
-                _LOGGER.warning("RedisEventBackend operating in degraded fallback mode for %s: %s", redis_url, exc)
+                _LOGGER.warning("RedisEventBackend operating in degraded fallback mode: %s", type(exc).__name__)
+            return False
+
+    def ping(self) -> bool:
+        if self._client is None:
+            return self.allow_fallback
+        try:
+            return bool(self._client.ping())
+        except Exception:
+            with self._lock:
+                self._backend_errors += 1
+            return False
+
+    def close(self) -> None:
+        if self._pool is not None:
+            try:
+                self._pool.disconnect()
+            except Exception:
+                pass
+            self._pool = None
+        self._client = None
+
+    def metrics(self) -> dict[str, int]:
+        with self._lock:
+            return {
+                "connected": 1 if self._client is not None else 0,
+                "published": self._published,
+                "replayed": self._replayed,
+                "backend_errors": self._backend_errors,
+            }
 
     def current_sequence(self, session_id: str) -> int:
         if self._client is None:
@@ -445,24 +518,77 @@ class RedisEventBackend:
             assert self._fallback is not None
             return self._fallback.append_sync(session_id, payload, event_type)
 
-        seq = int(self._client.incr(f"{self.prefix}seq:{session_id}"))
-        ev_id = str(uuid.uuid4())
-        created_at = datetime.now(timezone.utc).isoformat()
-        event = Event(
-            event_id=ev_id,
-            session_id=session_id,
-            sequence=seq,
-            event_type=event_type,
-            payload=dict(payload),
-            created_at=created_at,
-        )
-        zset_key = f"{self.prefix}hist:{session_id}"
-        serialized = json.dumps(event.to_dict())
-        pipeline = self._client.pipeline()
-        pipeline.zadd(zset_key, {serialized: seq})
-        pipeline.publish(f"{self.prefix}pub:{session_id}", serialized)
-        pipeline.execute()
-        return event
+        t0 = time.perf_counter()
+        try:
+            seq = int(self._client.incr(f"{self.prefix}seq:{session_id}"))
+            ev_id = str(uuid.uuid4())
+            created_at = datetime.now(timezone.utc).isoformat()
+            event = Event(
+                event_id=ev_id,
+                session_id=session_id,
+                sequence=seq,
+                event_type=event_type,
+                payload=dict(payload),
+                created_at=created_at,
+            )
+            zset_key = f"{self.prefix}hist:{session_id}"
+            serialized = json.dumps(event.to_dict(), allow_nan=False, separators=(",", ":"))
+            pipeline = self._client.pipeline()
+            pipeline.zadd(zset_key, {serialized: seq})
+            if self.history_size > 0:
+                pipeline.zremrangebyrank(zset_key, 0, -(self.history_size + 1))
+            pipeline.publish(f"{self.prefix}pub:{session_id}", serialized)
+            pipeline.execute()
+            with self._lock:
+                self._published += 1
+            self._lat_publish.record((time.perf_counter() - t0) * 1000.0)
+            return event
+        except Exception:
+            self._lat_publish.record((time.perf_counter() - t0) * 1000.0, error=True)
+            with self._lock:
+                self._backend_errors += 1
+            raise
+
+    def subscribe_remote(self, session_id: str, on_event: Any) -> Any:
+        """Subscribe to cross-worker Redis Pub/Sub events for session_id."""
+        if self._client is None:
+            return lambda: None
+        stop_flag = threading.Event()
+        channel = f"{self.prefix}pub:{session_id}"
+        pubsub = self._client.pubsub(ignore_subscribe_messages=True)
+        pubsub.subscribe(channel)
+
+        def _reader() -> None:
+            try:
+                while not stop_flag.is_set():
+                    msg = pubsub.get_message(timeout=0.25)
+                    if msg and msg.get("type") == "message":
+                        try:
+                            data = json.loads(msg["data"])
+                            with self._lock:
+                                self._pubsub_delivered += 1
+                            on_event(Event(**data))
+                        except Exception:
+                            with self._lock:
+                                self._backend_errors += 1
+            except Exception:
+                with self._lock:
+                    self._backend_errors += 1
+            finally:
+                try:
+                    pubsub.unsubscribe(channel)
+                    pubsub.close()
+                except Exception:
+                    pass
+
+        thread = threading.Thread(target=_reader, daemon=True, name=f"radui-redis-sub-{session_id[:8]}")
+        thread.start()
+
+        def unsubscribe() -> None:
+            stop_flag.set()
+            thread.join(timeout=1.0)
+
+        return unsubscribe
 
     async def append(
         self,
@@ -484,17 +610,45 @@ class RedisEventBackend:
             assert self._fallback is not None
             return await self._fallback.replay_after(session_id, sequence, limit)
 
+        t0 = time.perf_counter()
         zset_key = f"{self.prefix}hist:{session_id}"
         # Fetch members with score > sequence
-        items = self._client.zrangebyscore(zset_key, f"({sequence}", "+inf", start=0, num=limit)
-        events = []
-        for item in items:
-            try:
-                d = json.loads(item)
-                events.append(Event(**d))
-            except Exception:
-                pass
-        return events
+        try:
+            items = self._client.zrangebyscore(zset_key, f"({sequence}", "+inf", start=0, num=limit)
+            events = []
+            for item in items:
+                try:
+                    d = json.loads(item)
+                    events.append(Event(**d))
+                except Exception:
+                    pass
+            with self._lock:
+                self._replay_calls += 1
+                self._replayed += len(events)
+            self._lat_replay.record((time.perf_counter() - t0) * 1000.0)
+            return events
+        except Exception:
+            self._lat_replay.record((time.perf_counter() - t0) * 1000.0, error=True)
+            with self._lock:
+                self._backend_errors += 1
+            raise
+
+    def observability_snapshot(self) -> dict[str, Any]:
+        with self._lock:
+            return {
+                "connected": self._client is not None,
+                "operations": {
+                    "published": self._published,
+                    "replayed": self._replayed,
+                    "replay_calls": self._replay_calls,
+                    "pubsub_delivered": self._pubsub_delivered,
+                    "backend_errors": self._backend_errors,
+                },
+                "latencies": {
+                    "publish": self._lat_publish.snapshot(),
+                    "replay": self._lat_replay.snapshot(),
+                },
+            }
 
     async def wait_for_events(
         self,
@@ -532,9 +686,13 @@ class RedisEventBackend:
 
 
 class PostgreSQLEventBackend(SQLiteEventBackend):
-    """PostgreSQL event backend for distributed production deployments."""
+    """Deprecated alias: real PostgreSQL event streaming is not implemented."""
 
     def __init__(self, connection_string: str = ":memory:") -> None:
+        if isinstance(connection_string, str) and connection_string.startswith(("postgres://", "postgresql://")):
+            raise NotImplementedError(
+                "PostgreSQLEventBackend is not implemented; use RedisEventBackend or SQLiteEventBackend"
+            )
         super().__init__(db_path=connection_string)
 
 
@@ -547,12 +705,174 @@ class EventBroker:
         *,
         history_size: int = 128,
         subscriber_queue_size: int = 64,
+        max_connections_per_session: int = 8,
+        max_connections_per_ip: int = 32,
+        connect_rate_limit: int = 30,
+        connect_rate_window_seconds: float = 60.0,
+        governance: SSEGovernanceBackend | None = None,
+        worker_id: str | None = None,
+        sse_lease_ttl_seconds: float = 30.0,
+        sse_governance_fail_open: bool = False,
     ) -> None:
         self.history_size = history_size
         self.subscriber_queue_size = subscriber_queue_size
+        self.max_connections_per_session = max_connections_per_session
+        self.max_connections_per_ip = max_connections_per_ip
+        self.connect_rate_limit = connect_rate_limit
+        self.connect_rate_window_seconds = connect_rate_window_seconds
+        self.worker_id = worker_id or f"worker-{uuid.uuid4().hex[:8]}"
         self.backend: EventBackend = backend if backend is not None else InMemoryEventBackend(history_size=history_size)
+        if governance is not None:
+            self.governance: SSEGovernanceBackend = governance
+        elif isinstance(self.backend, RedisEventBackend) and (not self.backend.allow_fallback or self.backend._client is not None):
+            self.governance = RedisSSEGovernance(
+                backend=self.backend,
+                worker_id=self.worker_id,
+                lease_ttl_seconds=sse_lease_ttl_seconds,
+                fail_open=sse_governance_fail_open,
+            )
+        else:
+            self.governance = InMemorySSEGovernance(worker_id=self.worker_id)
         self._lock = threading.RLock()
         self._subscribers: dict[str, set[tuple[asyncio.AbstractEventLoop, asyncio.Queue[EventRecord]]]] = defaultdict(set)
+        self._rejected_connections: int = 0
+        self._connection_limit_violations: int = 0
+        self._rate_limit_violations: int = 0
+        self._disconnects: int = 0
+        self._queue_overflows: int = 0
+        self._reconnection_attempts: int = 0
+        self._events_published: int = 0
+        self._events_delivered: int = 0
+        self._replay_gaps: int = 0
+        self._resets_sent: int = 0
+        self._backend_errors: int = 0
+
+    def try_acquire_connection(
+        self,
+        session_id: str,
+        client_ip: str | None = None,
+        *,
+        is_reconnect: bool = False,
+        connection_id: str | None = None,
+    ) -> tuple[bool, str | None, int]:
+        """Atomically enforce rate limits and per-session/per-IP connection caps."""
+        admitted, reason, status_code, detail_code = self.governance.try_acquire(
+            session_id,
+            client_ip,
+            connection_id=connection_id,
+            max_per_session=self.max_connections_per_session,
+            max_per_ip=self.max_connections_per_ip,
+            rate_limit=self.connect_rate_limit,
+            rate_window_seconds=self.connect_rate_window_seconds,
+        )
+        with self._lock:
+            if not admitted:
+                self._rejected_connections += 1
+                if detail_code == "rate_limit":
+                    self._rate_limit_violations += 1
+                elif detail_code in {"session_limit", "ip_limit"}:
+                    self._connection_limit_violations += 1
+                elif detail_code == "backend_unavailable":
+                    self._backend_errors += 1
+                return False, reason, status_code
+            if is_reconnect:
+                self._reconnection_attempts += 1
+            return True, None, 200
+
+    def release_connection(
+        self,
+        session_id: str,
+        client_ip: str | None = None,
+        *,
+        connection_id: str | None = None,
+    ) -> None:
+        """Release a previously acquired SSE connection slot."""
+        self.governance.release(session_id, client_ip, connection_id=connection_id)
+        with self._lock:
+            self._disconnects += 1
+
+    def record_rejection(self) -> None:
+        """Increment rejected connections counter (e.g. auth/origin failures)."""
+        with self._lock:
+            self._rejected_connections += 1
+
+    async def run_governance_renewal_loop(self, interval: float = 10.0) -> None:
+        """Periodically renew distributed SSE connection leases until cancelled."""
+        sleep_s = max(0.5, float(interval))
+        while True:
+            await asyncio.sleep(sleep_s)
+            try:
+                await asyncio.to_thread(self.governance.renew_leases)
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                with self._lock:
+                    self._backend_errors += 1
+
+    def metrics(self) -> dict[str, int]:
+        """Return process-local SSE transport metrics without sensitive identifiers."""
+        with self._lock:
+            gov_errors = int(getattr(self.governance, "backend_errors", 0))
+            return {
+                "active_connections": self.governance.active_count(),
+                "active_subscribers": sum(len(subs) for subs in self._subscribers.values()),
+                "rejected_connections": self._rejected_connections,
+                "connection_limit_violations": self._connection_limit_violations,
+                "rate_limit_violations": self._rate_limit_violations,
+                "disconnects": self._disconnects,
+                "queue_overflows": self._queue_overflows,
+                "reconnection_attempts": self._reconnection_attempts,
+                "events_published": self._events_published,
+                "events_delivered": self._events_delivered,
+                "backend_errors": self._backend_errors + gov_errors,
+            }
+
+    def governance_metrics(self) -> dict[str, Any]:
+        """Return SSE governance metrics for local or distributed governance."""
+        with self._lock:
+            return {
+                "worker_id": self.worker_id,
+                "mode": "redis" if isinstance(self.governance, RedisSSEGovernance) else "memory",
+                "active_connections": self.governance.active_count(),
+                "leases_renewed": int(getattr(self.governance, "leases_renewed", 0)),
+                "backend_errors": int(getattr(self.governance, "backend_errors", 0)),
+                "fail_open": bool(getattr(self.governance, "fail_open", False)),
+            }
+
+    def observability_snapshot(self) -> dict[str, Any]:
+        """Return structured event + SSE governance observability snapshot."""
+        backend_snap = (
+            self.backend.observability_snapshot()
+            if hasattr(self.backend, "observability_snapshot")
+            else {
+                "connected": True,
+                "operations": {
+                    "published": self._events_published,
+                    "replayed": 0,
+                    "replay_calls": 0,
+                    "pubsub_delivered": 0,
+                    "backend_errors": self._backend_errors,
+                },
+                "latencies": {},
+            }
+        )
+        ops = dict(backend_snap.get("operations", {}))
+        with self._lock:
+            ops["replay_gaps"] = self._replay_gaps
+            ops["resets_sent"] = self._resets_sent
+            ops["queue_overflows"] = self._queue_overflows
+            ops["events_delivered"] = self._events_delivered
+        events_snap = {
+            "connected": backend_snap.get("connected", True),
+            "operations": ops,
+            "latencies": backend_snap.get("latencies", {}),
+        }
+        sse_snap = (
+            self.governance.observability_snapshot()
+            if hasattr(self.governance, "observability_snapshot")
+            else self.governance_metrics()
+        )
+        return {"events": events_snap, "sse": sse_snap}
 
     def current_sequence(self, session_id: str) -> int:
         return self.backend.current_sequence(session_id)
@@ -577,6 +897,8 @@ class EventBroker:
         if not session_id:
             raise ValueError("session_id is required")
         ev = self.backend.append_sync(session_id, data, event_type=event)
+        with self._lock:
+            self._events_published += 1
         record = EventRecord(
             sequence=ev.sequence,
             event=ev.event_type,
@@ -590,6 +912,8 @@ class EventBroker:
             for loop, queue in tuple(self._subscribers.get(session_id, ())):
                 def enqueue(target: asyncio.Queue[EventRecord] = queue, rec: EventRecord = record) -> None:
                     if target.full():
+                        with self._lock:
+                            self._queue_overflows += 1
                         while not target.empty():
                             try:
                                 target.get_nowait()
@@ -606,6 +930,29 @@ class EventBroker:
                 except RuntimeError:
                     self._subscribers[session_id].discard((loop, queue))
         return record
+
+    def close_all(self) -> None:
+        """Terminate all active SSE subscriber streams for graceful shutdown."""
+        with self._lock:
+            all_sessions = list(self._subscribers.items())
+            for session_id, subs in all_sessions:
+                for loop, queue in tuple(subs):
+                    def terminate(target: asyncio.Queue[EventRecord] = queue) -> None:
+                        while not target.empty():
+                            try:
+                                target.get_nowait()
+                            except asyncio.QueueEmpty:
+                                break
+                        try:
+                            target.put_nowait(EventRecord(0, "reset", {}))
+                        except asyncio.QueueFull:
+                            pass
+                    try:
+                        loop.call_soon_threadsafe(terminate)
+                    except RuntimeError:
+                        subs.discard((loop, queue))
+            self._subscribers.clear()
+        self.governance.release_all()
 
     def forget_session(self, session_id: str) -> None:
         """Forget retained event history for a session."""
@@ -645,6 +992,45 @@ class EventBroker:
         with self._lock:
             self._subscribers[session_id].add(subscriber)
 
+        remote_unsub = None
+        if hasattr(self.backend, "subscribe_remote"):
+            def _on_remote(ev: Event) -> None:
+                rec = EventRecord(
+                    sequence=ev.sequence,
+                    event=ev.event_type,
+                    data=ev.payload,
+                    event_id=ev.event_id,
+                    session_id=ev.session_id,
+                    created_at=ev.created_at,
+                )
+
+                def _enqueue_remote() -> None:
+                    if queue.full():
+                        with self._lock:
+                            self._queue_overflows += 1
+                        while not queue.empty():
+                            try:
+                                queue.get_nowait()
+                            except asyncio.QueueEmpty:
+                                break
+                        try:
+                            queue.put_nowait(EventRecord(rec.sequence, "reset", {}))
+                        except asyncio.QueueFull:
+                            pass
+                    else:
+                        queue.put_nowait(rec)
+
+                try:
+                    loop.call_soon_threadsafe(_enqueue_remote)
+                except RuntimeError:
+                    pass
+
+            try:
+                remote_unsub = self.backend.subscribe_remote(session_id, _on_remote)
+            except Exception:
+                with self._lock:
+                    self._backend_errors += 1
+
         # 2. Capture durable high-watermark (HWM) from authoritative storage
         high_watermark = self.backend.current_sequence(session_id)
         delivered_sequence = last_event_id if last_event_id is not None else high_watermark
@@ -653,6 +1039,8 @@ class EventBroker:
             # 3. Replay historical events from (last_event_id ... high_watermark]
             if last_event_id is not None:
                 if last_event_id > high_watermark:
+                    with self._lock:
+                        self._resets_sent += 1
                     yield _encode_sse(EventRecord(high_watermark, "reset", {}))
                     return
 
@@ -661,10 +1049,16 @@ class EventBroker:
                     replayed_events = await self.backend.replay_after(session_id, fetch_cursor, limit=self.history_size)
                     if not replayed_events:
                         if high_watermark > fetch_cursor:
+                            with self._lock:
+                                self._replay_gaps += 1
+                                self._resets_sent += 1
                             yield _encode_sse(EventRecord(high_watermark, "reset", {}))
                             return
                         break
                     if fetch_cursor == last_event_id and replayed_events[0].sequence > last_event_id + 1:
+                        with self._lock:
+                            self._replay_gaps += 1
+                            self._resets_sent += 1
                         yield _encode_sse(EventRecord(high_watermark, "reset", {}))
                         return
 
@@ -700,10 +1094,17 @@ class EventBroker:
                     continue
 
                 delivered_sequence = max(delivered_sequence, record.sequence)
+                with self._lock:
+                    self._events_delivered += 1
                 yield _encode_sse(record)
                 if record.event == "reset":
                     return
         finally:
+            if remote_unsub is not None:
+                try:
+                    remote_unsub()
+                except Exception:
+                    pass
             with self._lock:
                 subscribers = self._subscribers.get(session_id)
                 if subscribers is not None:

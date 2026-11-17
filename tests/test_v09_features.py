@@ -12,7 +12,7 @@ from radui.cli import cmd_audit, cmd_export
 def test_v09_component_registry_count():
     reg = gx.ComponentRegistry.builtins()
     assert len(reg._definitions) >= 60
-    assert len(reg._definitions) == 68
+    assert len(reg._definitions) == 72
 
 
 def test_v09_new_components_rendering():
@@ -210,7 +210,7 @@ def test_theme_rtl_direction():
 
 def test_distributed_redis_and_postgres_backends():
     # Production mode without Redis server must raise StateBackendUnavailableError (split-brain prevention)
-    strict_backend = gx.RedisStateBackend("redis://localhost:6379/15", allow_fallback=False)
+    strict_backend = gx.RedisStateBackend("redis://127.0.0.1:6399/15", allow_fallback=False)
     with pytest.raises(gx.StateBackendUnavailableError):
         strict_backend.set("session", "u1", "k", "v")
 
@@ -364,7 +364,7 @@ def test_global_gx_notify():
 
 def test_documentation_and_registry_consistency():
     reg = gx.ComponentRegistry.builtins()
-    assert len(reg._definitions) == 68
+    assert len(reg._definitions) == 72
     readme = Path("README.md").read_text(encoding="utf-8")
     for comp_name in reg._definitions.keys():
         assert f"`ui.{comp_name}`" in readme or f"`gx.{comp_name}`" in readme, f"Component {comp_name} missing from README"
@@ -375,7 +375,7 @@ def test_cli_commands_documentation_consistency():
     cli_path = Path("radui/cli.py") if Path("radui/cli.py").exists() else Path("RADUI/cli.py")
     cli_text = cli_path.read_text(encoding="utf-8")
     cli_commands = re.findall(r'add_parser\(["\']([a-zA-Z0-9_-]+)["\']', cli_text)
-    assert len(cli_commands) == 45
+    assert len(cli_commands) == 46
     readme = Path("README.md").read_text(encoding="utf-8")
     for cmd in cli_commands:
         assert f"`radui {cmd}" in readme or f"`RADUI {cmd}" in readme, f"CLI command {cmd} missing from README"
@@ -489,7 +489,7 @@ def test_durable_idempotency_engine(tmp_path: Path):
         assert row[0] == 100
 
     # 3. RedisIdempotencyBackend in fail-closed mode
-    redis_strict = gx.RedisIdempotencyBackend("redis://localhost:6379/15", allow_fallback=False)
+    redis_strict = gx.RedisIdempotencyBackend("redis://127.0.0.1:6399/15", allow_fallback=False)
     with pytest.raises(gx.IdempotencyBackendUnavailableError):
         redis_strict.begin("act-redis", fp1)
 

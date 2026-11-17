@@ -1,0 +1,6 @@
+# ADR-013: Declarative Client-Side Interaction Engine
+
+- **Status:** Accepted & Hardened (M1.8 / M1.8.1)
+- **Context:** RadUI applications previously required server round trips (`@app.command`) for simple local UI state (counters, visibility toggles, peer updates) and relied on ad-hoc per-widget listeners in `CLIENT_JS`.
+- **Decision:** Introduce typed, Pydantic-validated `InteractionAction` and `InteractionBinding` descriptors plus `local_state` and `bind_local` on the base `Component` AST (`radui/interactions.py`, `radui/components/nodes.py`), rendered to `data-gx-*` attributes and executed by an `O(1)` delegated runtime (`WeakMap` state, zero `eval`, allowlisted ops/attrs) inside `CLIENT_JS`. M1.8.1 hardened all 71 component builders, prototype-pollution key rejection (`__proto__`, `constructor`, `prototype`), idempotent listener/observer bootstrap, synchronous `syncTree` on SSE patches and Hybrid Islands, wrapper-aware `act.focus`, and modal `aria-hidden` state.
+- **Consequences:** Local UI interactions execute at `p50=0.200 ms` / `p95=0.400 ms` in headless Chrome without HTTP round trips while keeping `CLIENT_JS` at `69,187 B` raw (`16,189 B` gzip) and preserving strict separation between browser-local transient state and authoritative Python `StateRuntime` mutations.

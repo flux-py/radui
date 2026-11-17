@@ -87,6 +87,8 @@ from radui.components import (
     button,
     callout,
     canvas_stream,
+    custom_element,
+    suspense,
     card,
     chat_input,
     chat_message,
@@ -231,6 +233,31 @@ from radui.transport import (
     PostgreSQLEventBackend,
     RedisEventBackend,
     SQLiteEventBackend,
+)
+from radui.core.islands import (
+    ActivationTrigger,
+    HydrationStrategy,
+    Island,
+    island,
+)
+from radui.core.config import (
+    ConfigurationError,
+    EnvironmentMode,
+    RadUIConfig,
+    redact_secrets,
+)
+from radui.core.logging import configure_logging
+from radui.interactions import (
+    InteractionAction,
+    InteractionBinding,
+    act,
+    on,
+)
+from radui.core.ssg import (
+    RedirectRule,
+    SSGBuildResult,
+    SSGConfig,
+    build_static_site,
 )
 from radui.core.idempotency import (
     IdempotencyBackend,
@@ -414,6 +441,8 @@ __all__ = [
     "button",
     "callout",
     "canvas_stream",
+    "custom_element",
+    "suspense",
     "card",
     "chat_input",
     "chat_message",
@@ -586,4 +615,29 @@ __all__ = [
     "TransactionContext",
     "computed",
     "state",
+
+    # Hybrid Islands
+    "ActivationTrigger",
+    "HydrationStrategy",
+    "Island",
+    "island",
+
+    # Deterministic SSG
+    "RedirectRule",
+    "SSGBuildResult",
+    "SSGConfig",
+    "build_static_site",
+
+    # Production Configuration & Logging
+    "ConfigurationError",
+    "EnvironmentMode",
+    "RadUIConfig",
+    "configure_logging",
+    "redact_secrets",
+
+    # Declarative Client-Side Interactions (M1.8)
+    "InteractionAction",
+    "InteractionBinding",
+    "act",
+    "on",
 ]

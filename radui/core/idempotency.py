@@ -580,7 +580,7 @@ class RedisIdempotencyBackend:
     local current_owner = redis.call('HGET', KEYS[1], 'owner_id') or ''
     local required_fence = tonumber(ARGV[1])
     local required_owner = ARGV[2]
-    if required_fence > 0 and current_fence > required_fence then
+    if required_fence >= 0 and current_fence > required_fence then
         return -1 -- stale fence token
     end
     if required_owner ~= '' and current_owner ~= '' and current_owner ~= required_owner then
@@ -595,7 +595,7 @@ class RedisIdempotencyBackend:
     local current_owner = redis.call('HGET', KEYS[1], 'owner_id') or ''
     local required_fence = tonumber(ARGV[1])
     local required_owner = ARGV[2]
-    if required_fence > 0 and current_fence > required_fence then
+    if required_fence >= 0 and current_fence > required_fence then
         return -1
     end
     if required_owner ~= '' and current_owner ~= '' and current_owner ~= required_owner then
@@ -616,7 +616,7 @@ class RedisIdempotencyBackend:
     if current_status ~= 'PENDING' then
         return 0
     end
-    if required_fence > 0 and current_fence > required_fence then
+    if required_fence >= 0 and current_fence > required_fence then
         return -1
     end
     if required_owner ~= '' and current_owner ~= '' and current_owner ~= required_owner then
@@ -831,7 +831,7 @@ class RedisIdempotencyBackend:
                 self.LUA_COMPLETE,
                 1,
                 redis_key,
-                fence_token or 0,
+                fence_token if fence_token is not None else -1,
                 owner_id or "",
                 json.dumps(result),
             )
@@ -866,7 +866,7 @@ class RedisIdempotencyBackend:
                 self.LUA_FAIL,
                 1,
                 redis_key,
-                fence_token or 0,
+                fence_token if fence_token is not None else -1,
                 owner_id or "",
                 json.dumps({"error": error}),
             )

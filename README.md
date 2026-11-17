@@ -219,6 +219,11 @@ s_query = ui.state("search", default="", scope="view")
 s_theme = ui.state("theme", default="dark", scope="session")
 s_profile = ui.state("user_prefs", default={}, scope="user")
 
+# Or create fine-grained signals with nested path tracking & subscriptions
+s_count = ui.state.signal(0)  # auto-keyed ("signal.<n>"), supports .peek(), .set(), .update(), .subscribe()
+s_user = ui.state.signal({"name": "Ada", "prefs": {"theme": "dark"}}, value_type=dict)
+# Note: auto-generated signal keys are process-local; pass key="..." for persistent/multi-worker backends.
+
 # Lazy, memoized computed state with DAG cycle detection
 @ui.computed
 def s_filtered_results():
@@ -231,6 +236,105 @@ def checkout(ctx: ui.CommandContext):
         ctx.write(s_stock, ctx.read(s_stock) - 1)
         ctx.write(s_status, "RESERVED")
 ```
+
+</details>
+
+<details>
+<summary><b>Hybrid Islands Architecture (Hydration &amp; Activation) (Click to Expand)</b></summary>
+<br>
+
+RadUI separates **hydration strategy** (`fetch`, `sse`, `none`) from **activation trigger** (`eager`, `visible`, `interaction`) so static content stays zero-JS while interactive islands hydrate independently:
+
+| Hydration \ Trigger | `eager` | `visible` | `interaction` |
+|---|---|---|---|
+| **`fetch`** | Valid (`GET /_gx/islands/{id}` immediately) | Valid (`IntersectionObserver`) | Valid (`pointerdown` / `keydown` / `focusin`) |
+| **`sse`** | Valid (SSE invalidation immediately) | Valid (`IntersectionObserver` + SSE) | Valid (interaction + SSE) |
+| **`none`** | Valid (static SSR, zero hydration) | **Invalid** (`ValueError`) | **Invalid** (`ValueError`) |
+
+```python
+@app.island("live_kpi", hydration="fetch", trigger="visible", allowed_state_keys=("metrics.cpu",))
+def live_kpi(label: str = "CPU"):
+    return ui.card(ui.text(f"{label}: {s_cpu.value}%"))
+```
+
+- **Rendered HTML:** `<div class="gx-island" id="island-live_kpi" data-gx-island="live_kpi" data-gx-hydration="fetch" data-gx-trigger="visible" ...>...</div>`
+- **Security & Limitations:** Client payloads are validated via `sanitize_island_state()` (rejecting non-JSON types and secret/dunder keys); `GET /_gx/islands/{id}` enforces signed session cookies, `Origin`/`Sec-Fetch-Site` checks, and `require_auth`/`require_role`/`require_permission`. Browser-level FCP/LCP timing is not measured by `benchmarks/run.py`.
+
+</details>
+
+<details>
+<summary><b>Declarative Client-Side Interactions (M1.8 / M1.8.1) (Click to Expand)</b></summary>
+<br>
+
+Eliminate unnecessary server round trips for local UI state using typed Python descriptors (`gx.on`, `gx.act`, `local_state`, `bind_local`) with zero `eval`, `O(1)` delegated listeners, and `WeakMap`-backed state:
+
+```python
+ui.column(
+    ui.text("0", id="cnt", bind_local={"text": "count"}),
+    ui.button("+", id="inc", interactions=(ui.on("click", ui.act.increment("count", by=1)),)),
+    id="counter-scope",
+    local_state={"count": 0},
+)
+```
+
+- **Coverage & Budget:** All `71` component builders support `local_state`, `interactions`, and `bind_local`; `16` delegated events, `19` allowlisted actions, and `7` `bind_local` properties; `CLIENT_JS` is `79,995 B` raw (`18,607 B` gzip) including both `RadUIInteractions` and `RadUINavigator`.
+- **Docs & ADR:** See [docs/interactions.md](file:///C:/Users/arman/Videos/ui/docs/interactions.md) and [ADR-013](file:///C:/Users/arman/Videos/ui/docs/adr/ADR-013-declarative-client-interactions.md).
+
+</details>
+
+<details>
+<summary><b>Native SPA Navigation Engine (M1.9 / M1.9.1) (Click to Expand)</b></summary>
+<br>
+
+Zero-reload client navigation backed by Python server routing (`/_gx/navigate`), `@app.layout(...)`, `require_auth`/`guard`, `loading`/`error_boundary`, prefetching, `history.pushState`/`popstate` scroll restoration, and automatic server fallback:
+
+```python
+ui.link("Profile", "/users/42", prefetch="viewport")
+```
+
+- **Performance & Budget:** Chrome uncached `p50=6.300 ms` / `p95=10.700 ms`; prefetched `p50=0.800 ms` / `p95=1.200 ms`; 1,050-nav leak check: `listeners 62->59`, `heap 0.79MB->0.71MB`.
+- **Docs & ADR:** See [docs/navigation.md](file:///C:/Users/arman/Videos/ui/docs/navigation.md) and [ADR-014](file:///C:/Users/arman/Videos/ui/docs/adr/ADR-014-native-spa-navigation.md).
+
+</details>
+
+<details>
+<summary><b>M2.0–M2.3: Resumability, Compiler, Web Components & Streaming SSR (Click to Expand)</b></summary>
+<br>
+
+- **M2.0 Resumability (`resumable=True`):** Versioned state & descriptor snapshots (`#gx-resumable-state`) with zero eager hydration on load and lazy boundary activation via `RadUIResumability`. See [docs/resumability.md](file:///C:/Users/arman/Videos/ui/docs/resumability.md) and [ADR-015](file:///C:/Users/arman/Videos/ui/docs/adr/ADR-015-resumable-runtime.md).
+- **M2.1 Compiler (`radui compile`, `radui build --optimize`):** Python AST + Component AST dependency indexing and pure-static fragment reuse. See [docs/compiler.md](file:///C:/Users/arman/Videos/ui/docs/compiler.md) and [ADR-016](file:///C:/Users/arman/Videos/ui/docs/adr/ADR-016-compiler-assisted-optimization.md).
+- **M2.2 Web Components (`@app.web_component`, `ui.custom_element`):** Open/closed Shadow DOM, `<slot>` projection, and CSRF-protected custom event command dispatch. See [docs/web-components.md](file:///C:/Users/arman/Videos/ui/docs/web-components.md) and [ADR-017](file:///C:/Users/arman/Videos/ui/docs/adr/ADR-017-web-components.md).
+- **M2.3 Streaming SSR (`ui.suspense`, `@app.page(..., stream=True)`):** Immediate shell flush, out-of-order async boundaries, timeouts/cancellation, and nonce-verified `<template>` swaps (`CLIENT_JS`: `90,552 B` raw / `20,790 B` gzip / `18,037 B` Brotli). See [docs/streaming-ssr.md](file:///C:/Users/arman/Videos/ui/docs/streaming-ssr.md) and [ADR-018](file:///C:/Users/arman/Videos/ui/docs/adr/ADR-018-progressive-streaming-ssr.md).
+
+</details>
+
+<details>
+<summary><b>Deterministic Static Site Generation (SSG) (Click to Expand)</b></summary>
+<br>
+
+Build reproducible static sites via `radui build` or `app.build_static()` with isolated build-time state, content-hashed assets, SEO metadata, `sitemap.xml`, `robots.txt`, `redirects.json`, `islands_manifest.json`, and `build_manifest.json`:
+
+```python
+@app.page(
+    "/posts/{slug}",
+    title="Blog Post",
+    ssg=True,
+    ssg_paths=[{"slug": "hello"}, {"slug": "release"}],
+    description="RadUI engineering blog",
+    og_metadata={"type": "article"},
+)
+def post(slug: str):
+    return ui.heading(f"Post: {slug}")
+```
+
+```bash
+radui build app.py --output ./dist --base-url https://example.com
+```
+
+- **Fail-Closed Guarantees:** Dynamic routes without explicit `ssg_paths`, path-traversal parameters, and unseeded `user`/`tenant` state reads fail the build cleanly without leaving partial output.
+- **Static vs. Runtime Islands:** Pages with `hydration="none"` islands emit zero `/_gx/client.js` dependency; pages with `fetch`/`sse` islands are flagged with `requires_runtime_server: true` in `islands_manifest.json`.
+- **Note:** `radui build` performs clean atomic builds; incremental builds are future work.
+- **Production Guide:** See [docs/production.md](docs/production.md) for environment variables, Docker, Uvicorn/Gunicorn, Nginx/TLS, health/readiness, and multi-worker boundaries.
 
 </details>
 
@@ -510,6 +614,8 @@ sequenceDiagram
 | **`ui.step_timeline`** | `ui.step_timeline(steps)` | Multi-step execution audit timeline displaying tool invocations, progress state, and latency. |
 | **`ui.generative_slot`** | `ui.generative_slot(id, component=None)` | Dynamic DOM container allowing backend AI agents to swap or generate UI trees on the fly. |
 | **`ui.job_panel`** | `ui.job_panel(job_id)` | Real-time background job monitor with progress bar, state badge, and cancellation trigger. |
+| **`ui.presence_bar`** | `ui.presence_bar(room, max_avatars=5, show_status=True)` | Real-time multiplayer presence avatar stack for collaborative rooms. |
+| **`ui.canvas_stream`** | `ui.canvas_stream(stream_topic, height=300, mode="line")` | High-frequency HTML5 Canvas telemetry stream with LTTB downsampling. |
 
 </details>
 

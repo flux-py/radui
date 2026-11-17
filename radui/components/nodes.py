@@ -5,7 +5,14 @@ from typing import Annotated, Any, Literal, TypeAlias
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, field_validator, model_validator
+from radui.interactions import (
+    InteractionBinding,
+    LocalScalar,
+    validate_bind_local,
+    validate_local_state,
+)
 from radui.state.refs import StateRef
+from radui.web_components.spec import validate_custom_element_tag
 
 
 _COMMAND_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
@@ -22,6 +29,21 @@ class Component(BaseModel):
     hover: Any = Field(default=None)
     tap: Any = Field(default=None)
     motion_id: str | None = Field(default=None)
+    local_state: dict[str, LocalScalar] | None = Field(default=None)
+    interactions: tuple[InteractionBinding, ...] = Field(default=())
+    bind_local: dict[str, str] | None = Field(default=None)
+    resumable: bool = Field(default=False)
+    resumable_activation: Literal["lazy", "visible", "eager", "interaction"] = Field(default="lazy")
+
+    @field_validator("local_state")
+    @classmethod
+    def _check_local_state(cls, value: dict[str, LocalScalar] | None) -> dict[str, LocalScalar] | None:
+        return validate_local_state(value)
+
+    @field_validator("bind_local")
+    @classmethod
+    def _check_bind_local(cls, value: dict[str, str] | None) -> dict[str, str] | None:
+        return validate_bind_local(value)
 
     @field_validator("id")
     @classmethod
@@ -62,6 +84,10 @@ class Link(Component):
     kind: Literal["link"] = "link"
     label: str
     href: str
+    prefetch: Literal["hover", "viewport", "none", "auto"] = "hover"
+    spa: bool = True
+    replace: bool = False
+    scroll: bool = True
 
     @field_validator("href")
     @classmethod
@@ -836,6 +862,21 @@ def _generated_id(prefix: str, key: str) -> str:
     return f"{prefix}-{key}"
 
 
+def _ix(kwargs: dict[str, Any]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    if "local_state" in kwargs:
+        out["local_state"] = kwargs["local_state"]
+    if "interactions" in kwargs:
+        out["interactions"] = tuple(kwargs["interactions"])
+    if "bind_local" in kwargs:
+        out["bind_local"] = kwargs["bind_local"]
+    if "resumable" in kwargs:
+        out["resumable"] = bool(kwargs["resumable"])
+    if "resumable_activation" in kwargs:
+        out["resumable_activation"] = kwargs["resumable_activation"]
+    return out
+
+
 # --- Public Factory Functions ---
 
 
@@ -853,7 +894,7 @@ def text(
             raise TypeError("provide either a text value or bind=, not both")
         value = bind
     if isinstance(value, str):
-        return Text(value=value, id=id)
+        return Text(value=value, id=id, **_ix(kwargs))
     if value is None:
         raise TypeError("text requires a string value or bind=StateRef")
     key, scope = _binding_parts(value)
@@ -864,23 +905,44 @@ def text(
         display_format=format,
         state_ref=value,
         id=id or _generated_id("gx-text", key),
+        **_ix(kwargs),
     )
 
 
-def heading(value: str, *, level: int = 1, id: str | None = None) -> Heading:
-    return Heading(value=value, level=level, id=id)
+def heading(value: str, *, level: int = 1, id: str | None = None, **kwargs: Any) -> Heading:
+    return Heading(value=value, level=level, id=id, **_ix(kwargs))
 
 
-def link(label: str, href: str = "", *, url: str = "", id: str | None = None, **kwargs: Any) -> Link:
-    return Link(label=label, href=url or href, id=id)
+def link(
+    label: str,
+    href: str = "",
+    *,
+    url: str = "",
+    prefetch: Literal["hover", "viewport", "none", "auto"] = "hover",
+    spa: bool = True,
+    replace: bool = False,
+    scroll: bool = True,
+    id: str | None = None,
+    **kwargs: Any,
+) -> Link:
+    return Link(
+        label=label,
+        href=url or href,
+        prefetch=prefetch,
+        spa=spa,
+        replace=replace,
+        scroll=scroll,
+        id=id,
+        **_ix(kwargs),
+    )
 
 
-def divider(*, id: str | None = None) -> Divider:
-    return Divider(id=id)
+def divider(*, id: str | None = None, **kwargs: Any) -> Divider:
+    return Divider(id=id, **_ix(kwargs))
 
 
-def spacer(size: int = 16, *, id: str | None = None) -> Spacer:
-    return Spacer(size=size, id=id)
+def spacer(size: int = 16, *, id: str | None = None, **kwargs: Any) -> Spacer:
+    return Spacer(size=size, id=id, **_ix(kwargs))
 
 
 def badge(
@@ -888,8 +950,9 @@ def badge(
     *,
     variant: Literal["neutral", "primary", "success", "warning", "danger", "info"] = "neutral",
     id: str | None = None,
+    **kwargs: Any,
 ) -> Badge:
-    return Badge(label=label, variant=variant, id=id)
+    return Badge(label=label, variant=variant, id=id, **_ix(kwargs))
 
 
 def callout(
@@ -899,6 +962,7 @@ def callout(
     title: str = "",
     variant: Literal["info", "success", "warning", "danger"] = "info",
     id: str | None = None,
+    **kwargs: Any,
 ) -> Callout:
     ref = bind if bind is not None else (message if not isinstance(message, str) else None)
     if ref is not None:
@@ -911,8 +975,9 @@ def callout(
             binding_key=key,
             binding_scope=scope,
             id=id or _generated_id("gx-callout", key),
+            **_ix(kwargs),
         )
-    return Callout(message=str(message), title=title, variant=variant, id=id)
+    return Callout(message=str(message), title=title, variant=variant, id=id, **_ix(kwargs))
 
 
 def column(*children: Element, gap: int = 16, id: str | None = None, **kwargs: Any) -> Column:
@@ -925,6 +990,7 @@ def column(*children: Element, gap: int = 16, id: str | None = None, **kwargs: A
         tap=kwargs.get("tap"),
         motion_id=kwargs.get("motion_id"),
         stagger_children=kwargs.get("stagger_children", 0.0),
+        **_ix(kwargs),
     )
 
 
@@ -940,6 +1006,7 @@ def row(*children: Element, gap: int = 12, id: str | None = None, **kwargs: Any)
         hover=kwargs.get("hover"),
         tap=kwargs.get("tap"),
         motion_id=kwargs.get("motion_id"),
+        **_ix(kwargs),
     )
 
 
@@ -953,6 +1020,7 @@ def card(*children: Element, id: str | None = None, flippable: bool = False, cod
         hover=kwargs.get("hover"),
         tap=kwargs.get("tap"),
         motion_id=kwargs.get("motion_id"),
+        **_ix(kwargs),
     )
 
 
@@ -967,14 +1035,15 @@ def grid(*children: Element, columns: int = 2, gap: int = 16, id: str | None = N
         tap=kwargs.get("tap"),
         motion_id=kwargs.get("motion_id"),
         stagger_children=kwargs.get("stagger_children", 0.0),
+        **_ix(kwargs),
     )
 
 
-def tab_item(label: str, *children: Element, id: str | None = None, tab_id: str | None = None) -> TabItem:
-    return TabItem(label=label, children=tuple(children), id=tab_id or id)
+def tab_item(label: str, *children: Element, id: str | None = None, tab_id: str | None = None, **kwargs: Any) -> TabItem:
+    return TabItem(label=label, children=tuple(children), id=tab_id or id, **_ix(kwargs))
 
 
-def tabs(*items: Any, active_index: int = 0, id: str | None = None) -> Tabs:
+def tabs(*items: Any, active_index: int = 0, id: str | None = None, **kwargs: Any) -> Tabs:
     flat: list[TabItem] = []
     for it in items:
         if isinstance(it, (list, tuple)):
@@ -983,11 +1052,11 @@ def tabs(*items: Any, active_index: int = 0, id: str | None = None) -> Tabs:
                     flat.append(sub)
         elif isinstance(it, TabItem):
             flat.append(it)
-    return Tabs(children=tuple(flat), active_index=active_index, id=id)
+    return Tabs(children=tuple(flat), active_index=active_index, id=id, **_ix(kwargs))
 
 
-def modal(title: str, *children: Element, trigger_label: str = "Open", id: str | None = None) -> Modal:
-    return Modal(title=title, trigger_label=trigger_label, children=tuple(children), id=id)
+def modal(title: str, *children: Element, trigger_label: str = "Open", id: str | None = None, **kwargs: Any) -> Modal:
+    return Modal(title=title, trigger_label=trigger_label, children=tuple(children), id=id, **_ix(kwargs))
 
 
 def _resolve_binding(name_or_label: str, bind: Any, state_ref: Any, default_val: Any = "") -> tuple[str, str, str, Any]:
@@ -1014,6 +1083,7 @@ def input(
     input_type: Literal["text", "email", "number", "search", "password"] = "text",
     placeholder: str = "",
     id: str | None = None,
+    **kwargs: Any,
 ) -> Input:
     raw_name = name or (name_or_label if label else None)
     raw_label = label or (name_or_label if not name else name) or ""
@@ -1029,6 +1099,7 @@ def input(
         binding_scope=scope,
         state_ref=ref,
         id=id or _generated_id("gx-input", key),
+        **_ix(kwargs),
     )
 
 
@@ -1042,6 +1113,7 @@ def textarea(
     rows: int = 4,
     placeholder: str = "",
     id: str | None = None,
+    **kwargs: Any,
 ) -> Textarea:
     raw_name = name or (name_or_label if label else None)
     raw_label = label or (name_or_label if not name else name) or ""
@@ -1057,6 +1129,7 @@ def textarea(
         binding_scope=scope,
         state_ref=ref,
         id=id or _generated_id("gx-textarea", key),
+        **_ix(kwargs),
     )
 
 
@@ -1069,6 +1142,7 @@ def select(
     state_ref: Any = None,
     options: list[tuple[str, str]] | tuple[tuple[str, str], ...] | list[str] | tuple[str, ...] = (),
     id: str | None = None,
+    **kwargs: Any,
 ) -> Select:
     raw_name = name or (name_or_label if label else None)
     raw_label = label or (name_or_label if not name else name) or ""
@@ -1089,6 +1163,7 @@ def select(
         binding_scope=scope,
         state_ref=ref,
         id=id or _generated_id("gx-select", key),
+        **_ix(kwargs),
     )
 
 
@@ -1100,6 +1175,7 @@ def switch(
     state_ref: Any = None,
     default: bool = False,
     id: str | None = None,
+    **kwargs: Any,
 ) -> Switch:
     disp_label, key, scope, ref = _resolve_binding(label or name_or_label, bind, state_ref, default_val=default)
     return Switch(
@@ -1109,6 +1185,7 @@ def switch(
         binding_scope=scope,
         state_ref=ref,
         id=id or _generated_id("gx-switch", key),
+        **_ix(kwargs),
     )
 
 
@@ -1121,6 +1198,7 @@ def radio_group(
     options: list[tuple[str, str]] | tuple[tuple[str, str], ...] | list[str] | tuple[str, ...],
     default: str = "",
     id: str | None = None,
+    **kwargs: Any,
 ) -> RadioGroup:
     disp_label, key, scope, ref = _resolve_binding(label or name_or_label, bind, state_ref, default_val=default)
     normalized_options: list[tuple[str, str]] = []
@@ -1137,10 +1215,11 @@ def radio_group(
         binding_scope=scope,
         state_ref=ref,
         id=id or _generated_id("gx-radiogroup", key),
+        **_ix(kwargs),
     )
 
 
-def checkbox(label: str, *, bind: Any, id: str | None = None) -> Checkbox:
+def checkbox(label: str, *, bind: Any, id: str | None = None, **kwargs: Any) -> Checkbox:
     key, scope = _binding_parts(bind)
     return Checkbox(
         label=label,
@@ -1149,6 +1228,7 @@ def checkbox(label: str, *, bind: Any, id: str | None = None) -> Checkbox:
         binding_scope=scope,
         state_ref=bind,
         id=id or _generated_id("gx-checkbox", key),
+        **_ix(kwargs),
     )
 
 
@@ -1175,6 +1255,7 @@ def button(
         hover=kwargs.get("hover"),
         tap=kwargs.get("tap"),
         motion_id=kwargs.get("motion_id"),
+        **_ix(kwargs),
     )
 
 
@@ -1200,10 +1281,11 @@ def form(
         hover=kwargs.get("hover"),
         tap=kwargs.get("tap"),
         motion_id=kwargs.get("motion_id"),
+        **_ix(kwargs),
     )
 
 
-def job_panel(job: Any, *, label: str = "Background task", id: str | None = None) -> JobPanel:
+def job_panel(job: Any, *, label: str = "Background task", id: str | None = None, **kwargs: Any) -> JobPanel:
     name = getattr(job, "name", None)
     if not isinstance(name, str) or not callable(getattr(job, "latest_snapshot", None)):
         raise TypeError("job_panel requires a registered RADUI JobDefinition")
@@ -1212,6 +1294,7 @@ def job_panel(job: Any, *, label: str = "Background task", id: str | None = None
         label=label,
         job_handle=job,
         id=id or _generated_id("gx-job", name),
+        **_ix(kwargs),
     )
 
 
@@ -1265,6 +1348,7 @@ def metric_card(
         hover=kwargs.get("hover"),
         tap=kwargs.get("tap"),
         motion_id=kwargs.get("motion_id"),
+        **_ix(kwargs),
     )
 
 
@@ -1276,6 +1360,7 @@ def table(
     caption: str = "",
     striped: bool = True,
     id: str | None = None,
+    **kwargs: Any,
 ) -> Table:
     cols = headers if headers is not None else (columns or ())
     return Table(
@@ -1284,6 +1369,7 @@ def table(
         caption=caption,
         striped=striped,
         id=id,
+        **_ix(kwargs),
     )
 
 
@@ -1298,10 +1384,11 @@ def plot(
     color: str = "#2563eb",
     height: int = 240,
     id: str | None = None,
+    **kwargs: Any,
 ) -> Plot:
     actual_type = type if type is not None else chart_type
     plot_data = data if isinstance(data, dict) else {"items": data, "x_key": x_key, "y_key": y_key, "color": color}
-    return Plot(chart_type=actual_type, title=title, data=plot_data, height=height, id=id)
+    return Plot(chart_type=actual_type, title=title, data=plot_data, height=height, id=id, **_ix(kwargs))
 
 
 def chat_message(
@@ -1312,6 +1399,7 @@ def chat_message(
     citations: list[str] | tuple[str, ...] = (),
     steps: list[str] | tuple[str, ...] = (),
     id: str | None = None,
+    **kwargs: Any,
 ) -> ChatMessage:
     return ChatMessage(
         content=content,
@@ -1320,6 +1408,7 @@ def chat_message(
         citations=tuple(citations),
         steps=tuple(steps),
         id=id,
+        **_ix(kwargs),
     )
 
 
@@ -1327,6 +1416,7 @@ def chat_view(
     *messages: Any,
     title: str = "AI Assistant",
     id: str | None = None,
+    **kwargs: Any,
 ) -> ChatView:
     flat_messages: list[ChatMessage] = []
     for m in messages:
@@ -1336,7 +1426,7 @@ def chat_view(
                     flat_messages.append(sub_m)
         elif isinstance(m, ChatMessage):
             flat_messages.append(m)
-    return ChatView(title=title, children=tuple(flat_messages), id=id)
+    return ChatView(title=title, children=tuple(flat_messages), id=id, **_ix(kwargs))
 
 
 def chat_input(
@@ -1347,9 +1437,10 @@ def chat_input(
     label: str = "Send",
     submit_label: str = "",
     id: str | None = None,
+    **kwargs: Any,
 ) -> ChatInput:
     final_label = submit_label or label
-    return ChatInput(placeholder=placeholder, command=command, label=final_label, id=id)
+    return ChatInput(placeholder=placeholder, command=command, label=final_label, id=id, **_ix(kwargs))
 
 
 def streaming_text(
@@ -1359,6 +1450,7 @@ def streaming_text(
     cursor: bool = True,
     is_streaming: bool | None = None,
     id: str | None = None,
+    **kwargs: Any,
 ) -> StreamingText:
     actual_cursor = is_streaming if is_streaming is not None else cursor
     if bind is not None:
@@ -1366,7 +1458,7 @@ def streaming_text(
             raise TypeError("provide either a text value or bind=, not both")
         value = bind
     if isinstance(value, str):
-        return StreamingText(value=value, cursor=actual_cursor, id=id)
+        return StreamingText(value=value, cursor=actual_cursor, id=id, **_ix(kwargs))
     if value is None:
         raise TypeError("streaming_text requires a string value or bind=StateRef")
     key, scope = _binding_parts(value)
@@ -1377,6 +1469,7 @@ def streaming_text(
         cursor=actual_cursor,
         state_ref=value,
         id=id or _generated_id("gx-stream", key),
+        **_ix(kwargs),
     )
 
 
@@ -1409,6 +1502,7 @@ def action_card(
         hover=kwargs.get("hover"),
         tap=kwargs.get("tap"),
         motion_id=kwargs.get("motion_id"),
+        **_ix(kwargs),
     )
 
 
@@ -1417,6 +1511,7 @@ def step_timeline(
     *,
     title: str = "Execution Steps",
     id: str | None = None,
+    **kwargs: Any,
 ) -> StepTimeline:
     normalized_steps: list[tuple[str, str, str]] = []
     for s in steps:
@@ -1428,7 +1523,7 @@ def step_timeline(
             ))
         elif isinstance(s, (tuple, list)) and len(s) == 3:
             normalized_steps.append((str(s[0]), str(s[1]), str(s[2])))
-    return StepTimeline(title=title, steps=tuple(normalized_steps), id=id)
+    return StepTimeline(title=title, steps=tuple(normalized_steps), id=id, **_ix(kwargs))
 
 
 def dynamic_card(
@@ -1438,11 +1533,12 @@ def dynamic_card(
     payload: dict[str, Any] | None = None,
     title: str = "",
     id: str | None = None,
+    **kwargs: Any,
 ) -> DynamicCard:
     if isinstance(spec_or_title, dict):
-        return DynamicCard(title=title, spec=spec_or_title, id=id)
+        return DynamicCard(title=title, spec=spec_or_title, id=id, **_ix(kwargs))
     spec = payload or {"block_type": block_type, "title": str(spec_or_title)}
-    return DynamicCard(title=str(spec_or_title), spec=spec, id=id)
+    return DynamicCard(title=str(spec_or_title), spec=spec, id=id, **_ix(kwargs))
 
 
 def diagram_node(
@@ -1516,6 +1612,7 @@ def diagram(
         selected_id=selected_id,
         layout=layout,
         id=id,
+        **_ix(kwargs),
     )
 
 
@@ -1536,6 +1633,7 @@ def code_block(
         copyable=copyable,
         title=title,
         id=id,
+        **_ix(kwargs),
     )
 
 
@@ -1573,6 +1671,7 @@ def tree_view(
         root_nodes=tuple(effective_nodes),
         on_select_command=on_select_command,
         id=id,
+        **_ix(kwargs),
     )
 
 
@@ -1596,6 +1695,7 @@ def data_grid(
         page_size=page_size,
         empty_message=empty_message,
         id=id,
+        **_ix(kwargs),
     )
 
 
@@ -1619,6 +1719,7 @@ def generative_slot(
         hover=kwargs.get("hover"),
         tap=kwargs.get("tap"),
         motion_id=kwargs.get("motion_id"),
+        **_ix(kwargs),
     )
 
 
@@ -2110,4 +2211,79 @@ def canvas_stream(
         stroke_width=stroke_width,
         id=id,
         **kwargs,
+    )
+
+
+class CustomElement(Component):
+    """Standards-compliant Custom Element / Shadow DOM host node (M2.2)."""
+
+    kind: Literal["custom_element"] = "custom_element"
+    tag_name: str
+    props: dict[str, LocalScalar] = Field(default_factory=dict)
+    shadow_mode: Literal["open", "closed", "none"] = "open"
+    shadow_styles: str = ""
+    event_commands: dict[str, str] = Field(default_factory=dict)
+    children: tuple[Component, ...] = ()
+
+    @field_validator("tag_name")
+    @classmethod
+    def _check_tag(cls, value: str) -> str:
+        return validate_custom_element_tag(value)
+
+
+def custom_element(
+    tag_name: str,
+    *children: Component,
+    props: dict[str, LocalScalar] | None = None,
+    shadow_mode: Literal["open", "closed", "none"] = "open",
+    shadow_styles: str = "",
+    event_commands: dict[str, str] | None = None,
+    id: str | None = None,
+    **kwargs: Any,
+) -> CustomElement:
+    """Embed or host a standards-based Custom Element with optional Shadow DOM and event bridge."""
+    return CustomElement(
+        tag_name=tag_name,
+        children=children,
+        props=dict(props or {}),
+        shadow_mode=shadow_mode,
+        shadow_styles=shadow_styles,
+        event_commands=dict(event_commands or {}),
+        id=id,
+        **_ix(kwargs),
+    )
+
+
+class Suspense(Component):
+    """Progressive / streaming SSR boundary with synchronous fallback (M2.3)."""
+
+    kind: Literal["suspense"] = "suspense"
+    boundary_id: str
+    fallback: Component
+    resolver: Any = Field(default=None, exclude=True, repr=False)
+    timeout_s: float = 5.0
+    error_fallback: Component | None = None
+
+
+def suspense(
+    resolver: Any,
+    *,
+    fallback: Component | None = None,
+    error_fallback: Component | None = None,
+    timeout_s: float = 5.0,
+    id: str | None = None,
+    **kwargs: Any,
+) -> Suspense:
+    """Declare an asynchronous streaming SSR boundary with fallback and timeout."""
+    raw_name = str(getattr(resolver, "__name__", "boundary") or "boundary").strip("<>") or "boundary"
+    bid = id or _generated_id("gx-suspense", raw_name)
+    fb = fallback if fallback is not None else text("Loading...", id=f"{bid}-fallback")
+    return Suspense(
+        boundary_id=bid,
+        fallback=fb,
+        resolver=resolver,
+        timeout_s=timeout_s,
+        error_fallback=error_fallback,
+        id=bid,
+        **_ix(kwargs),
     )

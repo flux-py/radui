@@ -10,6 +10,11 @@ from docs_site.data import COMPONENTS
 def on_apply_props(ctx: ui.CommandContext):
     ui.notify("Applied inspector parameters to live component!", variant="success")
 
+
+@app.command("comp.filter")
+def on_comp_filter(ctx: ui.CommandContext):
+    return None
+
 @app.command("calc.update")
 def on_calc_update(ctx: ui.CommandContext):
     ui.notify("Derived computed state updated!", variant="info")

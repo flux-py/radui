@@ -44,6 +44,16 @@ class _Collector:
     dependencies: set[Hashable]
 
 
+@dataclass
+class RenderContext:
+    """ContextVar-bound render/effect tracking scope layered over StateContext."""
+
+    state_context: StateContext
+    component_id: str | None = None
+    tracked_keys: set[Hashable] = field(default_factory=set)
+    parent: RenderContext | None = None
+
+
 class BatchContext:
     """Context object representing an active batched mutation session."""
 
@@ -52,6 +62,7 @@ class BatchContext:
         self.changes: list[StateChange] = []
         self.affected: dict[ContextIdentity, set[str]] = defaultdict(set)
         self.consolidated_invalidations: tuple[Invalidation, ...] = ()
+        self.pending_signal_updates: dict[tuple[int, ContextIdentity], tuple[Any, ContextIdentity, Any, Any]] = {}
 
 
 class TransactionContext:
@@ -61,6 +72,7 @@ class TransactionContext:
         self.context = context
         self.snapshots: dict[Hashable, tuple[bool, Any, int]] = {}
         self.changes: list[StateChange] = []
+        self.pending_signal_updates: dict[tuple[int, ContextIdentity], tuple[Any, ContextIdentity, Any, Any]] = {}
 
 
 _ACTIVE_CONTEXT: ContextVar[StateContext | None] = ContextVar(
@@ -80,6 +92,9 @@ _ACTIVE_BATCH: ContextVar[BatchContext | None] = ContextVar(
 )
 _ACTIVE_TRANSACTIONS: ContextVar[tuple[TransactionContext, ...]] = ContextVar(
     "RADUI_active_transactions", default=()
+)
+_ACTIVE_RENDER_CONTEXT: ContextVar[Any | None] = ContextVar(
+    "RADUI_active_render_context", default=None
 )
 
 
@@ -104,6 +119,7 @@ class StateRuntime:
             raise ValueError("app_id cannot be empty")
         self.app_id = app_id
         self.backend = backend if backend is not None else InMemoryStateBackend()
+        self._shared_backend = not isinstance(self.backend, InMemoryStateBackend)
         self.dependencies = DependencyTracker()
         self._lock = RLock()
         self._values: dict[Hashable, Any] = {}
@@ -153,6 +169,29 @@ class StateRuntime:
                     f"conflicting declarations for state {ref.scope}:{ref.key}; "
                     "all references to the same state key must use the same type and default"
                 )
+
+    def _peek(self, ref: StateRef[Any], context: StateContext) -> Any:
+        """Read a StateRef or Signal without registering reactive dependencies."""
+        if hasattr(ref, "_fn") and callable(getattr(ref, "_fn")):
+            return self._read(ref, context)
+        self._register(ref)
+        state_key = ref._state_key(context)
+        owner = state_key[1]
+        owner_str = owner if isinstance(owner, str) else f"{owner[0]}:{owner[1]}"
+        with self._lock:
+            if self._shared_backend or state_key not in self._values:
+                stored = self.backend.get(ref.scope, owner_str, ref.key)
+                if stored is not None:
+                    try:
+                        self._values[state_key] = ref.validate(stored)
+                        self._revisions.setdefault(state_key, 1)
+                    except Exception:
+                        self._values[state_key] = ref.default
+                        self._revisions.setdefault(state_key, 0)
+                elif state_key not in self._values:
+                    self._values[state_key] = ref.default
+                    self._revisions[state_key] = 0
+            return copy.deepcopy(self._values[state_key])
 
     def _read(self, ref: StateRef[Any], context: StateContext) -> Any:
         from radui.state.refs import CyclicDependencyError
@@ -229,16 +268,16 @@ class StateRuntime:
         owner = state_key[1]
         owner_str = owner if isinstance(owner, str) else f"{owner[0]}:{owner[1]}"
         with self._lock:
-            if state_key not in self._values:
+            if self._shared_backend or state_key not in self._values:
                 stored = self.backend.get(ref.scope, owner_str, ref.key)
                 if stored is not None:
                     try:
                         self._values[state_key] = ref.validate(stored)
-                        self._revisions[state_key] = 1
+                        self._revisions.setdefault(state_key, 1)
                     except Exception:
                         self._values[state_key] = ref.default
-                        self._revisions[state_key] = 0
-                else:
+                        self._revisions.setdefault(state_key, 0)
+                elif state_key not in self._values:
                     self._values[state_key] = ref.default
                     self._revisions[state_key] = 0
             value = copy.deepcopy(self._values[state_key])
@@ -247,11 +286,47 @@ class StateRuntime:
         if collectors and collectors[-1].context == context.identity:
             collectors[-1].dependencies.add(state_key)
 
+        rctx = _ACTIVE_RENDER_CONTEXT.get()
+        if rctx is not None and rctx.state_context.identity == context.identity:
+            rctx.tracked_keys.add(state_key)
+
         for mw in reversed(self._middleware):
             value = mw.after_read(ref, context, value)
         return value
 
+    def _update_with(
+        self,
+        ref: StateRef[Any],
+        context: StateContext,
+        updater: Any,
+    ) -> StateChange:
+        """Atomically read, transform, and write under lock, then notify outside lock."""
+        with self._lock:
+            current = self._peek(ref, context)
+            updated = updater(current)
+            change, notifications = self._write_internal(ref, context, updated, defer_notify=True)
+        if change.changed:
+            collectors = _ACTIVE_CHANGE_COLLECTORS.get()
+            if collectors and collectors[-1][0] == context.identity:
+                collectors[-1][1].append(change)
+        for notify_fn in notifications:
+            notify_fn()
+        return change
+
     def _write(self, ref: StateRef[Any], context: StateContext, value: Any) -> StateChange:
+        change, notifications = self._write_internal(ref, context, value, defer_notify=False)
+        for notify_fn in notifications:
+            notify_fn()
+        return change
+
+    def _write_internal(
+        self,
+        ref: StateRef[Any],
+        context: StateContext,
+        value: Any,
+        *,
+        defer_notify: bool = False,
+    ) -> tuple[StateChange, list[Any]]:
         if hasattr(ref, "_fn") and callable(getattr(ref, "_fn")):
             raise TypeError(f"Computed state {ref.key!r} is read-only and cannot be written to")
 
@@ -261,10 +336,13 @@ class StateRuntime:
         owner_str = owner if isinstance(owner, str) else f"{owner[0]}:{owner[1]}"
 
         with self._lock:
-            if state_key not in self._values:
+            if self._shared_backend or state_key not in self._values:
                 stored = self.backend.get(ref.scope, owner_str, ref.key)
-                self._values[state_key] = ref.validate(stored) if stored is not None else ref.default
-                self._revisions[state_key] = 0
+                if stored is not None:
+                    self._values[state_key] = ref.validate(stored)
+                elif state_key not in self._values:
+                    self._values[state_key] = ref.default
+                self._revisions.setdefault(state_key, 0)
             previous = copy.deepcopy(self._values[state_key])
 
         for mw in self._middleware:
@@ -296,7 +374,7 @@ class StateRuntime:
                 )
                 for mw in reversed(self._middleware):
                     mw.after_write(ref, context, change)
-                return change
+                return change, []
 
             self._values[state_key] = copy.deepcopy(validated)
             revision = self._revisions.get(state_key, 0) + 1
@@ -309,6 +387,18 @@ class StateRuntime:
                 self._computed_cache.pop(comp_key, None)
 
             affected = self.dependencies.dependents(state_key)
+            path_keys = self.dependencies.path_keys_for(state_key)
+            if path_keys:
+                from radui.state.signals import _MISSING, resolve_path
+                for pkey in path_keys:
+                    _, path_tuple = pkey
+                    prev_sub = resolve_path(previous, path_tuple, default=_MISSING)
+                    curr_sub = resolve_path(validated, path_tuple, default=_MISSING)
+                    if not _safe_equal(prev_sub, curr_sub):
+                        for p_ctx, p_cids in self.dependencies.dependents(pkey).items():
+                            existing_cids = set(affected.get(p_ctx, ()))
+                            existing_cids.update(p_cids)
+                            affected[p_ctx] = tuple(sorted(existing_cids))
 
         invalidations = tuple(
             Invalidation(context=identity, component_ids=component_ids)
@@ -345,7 +435,28 @@ class StateRuntime:
         for mw in reversed(self._middleware):
             mw.after_write(ref, context, change)
 
-        return change
+        notifications: list[Any] = []
+        if hasattr(ref, "_collect_notifications"):
+            if active_txs:
+                _record_coalesced_signal_update(
+                    active_txs[-1].pending_signal_updates,
+                    ref,
+                    context.identity,
+                    previous,
+                    validated,
+                )
+            elif active_batch is not None and active_batch.context.identity == context.identity:
+                _record_coalesced_signal_update(
+                    active_batch.pending_signal_updates,
+                    ref,
+                    context.identity,
+                    previous,
+                    validated,
+                )
+            else:
+                notifications = ref._collect_notifications(context.identity, previous, validated)
+
+        return change, notifications
 
     def drop_view(self, session_id: str, view_id: str) -> None:
         """Remove view-scoped values and dependency registrations for a view."""
@@ -496,6 +607,9 @@ class StateContext:
                 )
             )
             batch_ctx.consolidated_invalidations = consolidated
+            pending_updates = dict(batch_ctx.pending_signal_updates)
+            batch_ctx.pending_signal_updates.clear()
+            _flush_coalesced_signal_updates(pending_updates)
 
     @contextmanager
     def transaction(self) -> Iterator[TransactionContext]:
@@ -529,6 +643,7 @@ class StateContext:
                         for ch in tx_ctx.changes:
                             if ch in change_list:
                                 change_list.remove(ch)
+            tx_ctx.pending_signal_updates.clear()
             raise
         else:
             new_stack = _ACTIVE_TRANSACTIONS.get()[:-1]
@@ -538,6 +653,19 @@ class StateContext:
                     if k not in parent_tx.snapshots:
                         parent_tx.snapshots[k] = v
                 parent_tx.changes.extend(tx_ctx.changes)
+                for sig_key, (sig_ref, ctx_id, prev_v, curr_v) in tx_ctx.pending_signal_updates.items():
+                    _record_coalesced_signal_update(
+                        parent_tx.pending_signal_updates, sig_ref, ctx_id, prev_v, curr_v
+                    )
+            else:
+                active_batch = _ACTIVE_BATCH.get()
+                if active_batch is not None and active_batch.context.identity == self.identity:
+                    for sig_key, (sig_ref, ctx_id, prev_v, curr_v) in tx_ctx.pending_signal_updates.items():
+                        _record_coalesced_signal_update(
+                            active_batch.pending_signal_updates, sig_ref, ctx_id, prev_v, curr_v
+                        )
+                else:
+                    _flush_coalesced_signal_updates(tx_ctx.pending_signal_updates)
         finally:
             _ACTIVE_TRANSACTIONS.reset(token)
 
@@ -572,6 +700,8 @@ class StateContext:
         context_token = _ACTIVE_CONTEXT.set(self)
         stack = _ACTIVE_COLLECTORS.get()
         collector_token = _ACTIVE_COLLECTORS.set(stack + (collector,))
+        rctx = RenderContext(state_context=self, component_id=component_id, parent=_ACTIVE_RENDER_CONTEXT.get())
+        render_token = _ACTIVE_RENDER_CONTEXT.set(rctx)
         try:
             yield
         except Exception:
@@ -581,11 +711,37 @@ class StateContext:
                 self.identity, component_id, collector.dependencies
             )
         finally:
+            _ACTIVE_RENDER_CONTEXT.reset(render_token)
             _ACTIVE_COLLECTORS.reset(collector_token)
             _ACTIVE_CONTEXT.reset(context_token)
 
     def unregister_component(self, component_id: str) -> None:
         self.runtime.dependencies.remove_component(self.identity, component_id)
+
+
+def _record_coalesced_signal_update(
+    bucket: dict[tuple[int, ContextIdentity], tuple[Any, ContextIdentity, Any, Any]],
+    ref: Any,
+    context_identity: ContextIdentity,
+    previous: Any,
+    current: Any,
+) -> None:
+    key = (id(ref), context_identity)
+    existing = bucket.get(key)
+    if existing is None:
+        bucket[key] = (ref, context_identity, previous, current)
+    else:
+        bucket[key] = (ref, context_identity, existing[2], current)
+
+
+def _flush_coalesced_signal_updates(
+    bucket: dict[tuple[int, ContextIdentity], tuple[Any, ContextIdentity, Any, Any]],
+) -> None:
+    for ref, ctx_id, first_prev, last_curr in bucket.values():
+        if _safe_equal(first_prev, last_curr):
+            continue
+        for notify_fn in ref._collect_notifications(ctx_id, first_prev, last_curr):
+            notify_fn()
 
 
 def _safe_equal(left: Any, right: Any) -> bool:

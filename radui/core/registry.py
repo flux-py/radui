@@ -24,6 +24,8 @@ from radui.components.nodes import (
     Column,
     Component,
     Container,
+    CustomElement,
+    Suspense,
     DataGrid,
     DatePicker,
     Diagram,
@@ -130,6 +132,15 @@ class ComponentRegistry:
     def validate(self, component: Component) -> None:
         if not isinstance(component, Component):
             raise TypeError(f"expected Component instance, got {type(component).__name__}")
+        if component.kind == "island":
+            from radui.core.islands import Island
+            if not isinstance(component, Island):
+                raise TypeError("component kind 'island' must use Island")
+            for child in component.children:
+                self.validate(child)
+            if component.fallback is not None:
+                self.validate(component.fallback)
+            return
         definition = self.get(component.kind)
         if not isinstance(component, definition.model):
             raise TypeError(
@@ -172,6 +183,9 @@ class ComponentRegistry:
         state_context: object | None = None,
         csrf_token: str | None = None,
     ) -> str:
+        if component.kind == "island":
+            from radui.core.islands import render_island
+            return render_island(component, self, state_context, csrf_token)  # type: ignore[arg-type]
         definition = self.get(component.kind)
         if state_context is not None and component.id is not None:
             with state_context.track_component(component.id):
@@ -200,6 +214,8 @@ class ComponentRegistry:
             render_code_block,
             render_column,
             render_container,
+            render_custom_element,
+            render_suspense,
             render_data_grid,
             render_date_picker,
             render_diagram,
@@ -324,4 +340,6 @@ class ComponentRegistry:
         registry.register("tag", Tag, render_tag)
         registry.register("presence_bar", PresenceBar, render_presence_bar)
         registry.register("canvas_stream", CanvasStream, render_canvas_stream)
+        registry.register("custom_element", CustomElement, render_custom_element)
+        registry.register("suspense", Suspense, render_suspense)
         return registry

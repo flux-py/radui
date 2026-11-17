@@ -634,10 +634,77 @@ def cmd_doctor(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 def cmd_build(args: argparse.Namespace) -> int:
-    print(f"Building production application artifacts for '{getattr(args, 'target', 'app.py')}'...")
-    setattr(args, "output", getattr(args, "output", "./dist"))
-    setattr(args, "format", "json")
-    return cmd_export(args)
+    target = getattr(args, "target", "app.py")
+    output = getattr(args, "output", "./dist")
+    if getattr(args, "ir_only", False):
+        print(f"Building production IR artifact for '{target}'...")
+        setattr(args, "output", output)
+        setattr(args, "format", "json")
+        return cmd_export(args)
+
+    from radui.core.ssg import SSGConfig, build_static_site
+
+    try:
+        app_instance, _ = _load_app(target)
+    except Exception as exc:
+        print(f"Error loading app from '{target}': {exc}", file=sys.stderr)
+        return 1
+
+    target_path = Path(target)
+    assets_arg = getattr(args, "assets_dir", None)
+    assets_dir: Path | None = Path(assets_arg) if assets_arg else (target_path.parent / "assets")
+    if not assets_dir.is_dir():
+        assets_dir = Path("assets") if Path("assets").is_dir() else None
+
+    config = SSGConfig(
+        output_dir=Path(output),
+        base_url=getattr(args, "base_url", "") or "",
+        environment=getattr(args, "env", "production") or "production",
+        clean=not getattr(args, "no_clean", False),
+        fingerprint_assets=not getattr(args, "no_fingerprint", False),
+        inline_css=getattr(args, "inline_css", False),
+        inline_js=getattr(args, "inline_js", False),
+        build_timestamp=getattr(args, "build_timestamp", None),
+        assets_dir=assets_dir,
+    )
+    try:
+        if getattr(args, "optimize", False):
+            from radui.compiler import compile_app
+
+            plan = compile_app(app_instance, cache_dir=Path(output) / ".radui-cache")
+            print(f"[OPT] Compiled {len(plan.routes)} route(s) in {plan.compile_time_ms:.2f}ms (hash={plan.content_hash})")
+        result = build_static_site(app_instance, config)
+    except Exception as exc:
+        print(f"SSG build failed: {exc}", file=sys.stderr)
+        return 1
+
+    print(
+        f"[OK] Built {len(result.routes)} static route(s), {len(result.assets)} asset(s), "
+        f"{len(result.islands)} island(s) in {result.build_time_ms:.2f}ms -> {result.output_dir}"
+    )
+    for w in result.warnings:
+        print(f"[WARN] {w}")
+    return 0
+
+
+def cmd_compile(args: argparse.Namespace) -> int:
+    """Compile and optimize a RadUI application into static dependency & fragment plans."""
+    from radui.compiler import compile_app
+
+    target = getattr(args, "target", "app.py")
+    cache_dir = getattr(args, "out_dir", ".radui-cache")
+    try:
+        app_instance, _ = _load_app(target)
+    except Exception as exc:
+        print(f"Error loading app from '{target}': {exc}", file=sys.stderr)
+        return 1
+    plan = compile_app(app_instance, cache_dir=cache_dir)
+    total_frags = sum(len(r.static_fragments) for r in plan.routes.values())
+    print(
+        f"[OK] Compiled '{plan.app_name}' ({len(plan.routes)} routes, {total_frags} static fragments, "
+        f"cache_hits={plan.cache_hits}) in {plan.compile_time_ms:.2f}ms -> {cache_dir}"
+    )
+    return 0
 
 
 def cmd_audit(args: argparse.Namespace) -> int:
@@ -1159,10 +1226,25 @@ def main(argv: list[str] | None = None) -> int:
     doc_p.set_defaults(func=cmd_doctor)
 
     # 5. Build & Assets
-    build_p = subparsers.add_parser("build", help="Build production application artifacts")
+    build_p = subparsers.add_parser("build", help="Build deterministic static site and production artifacts")
     build_p.add_argument("target", nargs="?", default="app.py", help="App target")
     build_p.add_argument("--output", "-o", default="./dist", help="Output directory")
+    build_p.add_argument("--base-url", default="", help="Base URL for canonical links and sitemap")
+    build_p.add_argument("--env", default="production", help="Target build environment")
+    build_p.add_argument("--no-clean", action="store_true", help="Preserve existing files in output directory")
+    build_p.add_argument("--no-fingerprint", action="store_true", help="Disable content-hash asset fingerprinting")
+    build_p.add_argument("--inline-css", action="store_true", help="Inline BASE_CSS into each HTML page instead of shared CSS")
+    build_p.add_argument("--inline-js", action="store_true", help="Inline STATIC_JS into each HTML page instead of shared JS")
+    build_p.add_argument("--build-timestamp", default=None, help="Explicit ISO build timestamp for manifest")
+    build_p.add_argument("--assets-dir", default=None, help="Static assets directory")
+    build_p.add_argument("--ir-only", action="store_true", help="Export only Application IR JSON")
+    build_p.add_argument("--optimize", action="store_true", help="Run M2.1 static dependency & fragment compiler")
     build_p.set_defaults(func=cmd_build)
+
+    compile_p = subparsers.add_parser("compile", help="Run M2.1 compiler-assisted reactive optimization")
+    compile_p.add_argument("target", nargs="?", default="app.py", help="App target")
+    compile_p.add_argument("--out-dir", "-o", default=".radui-cache", help="Compiler cache output directory")
+    compile_p.set_defaults(func=cmd_compile)
 
     export_p = subparsers.add_parser("export", help="Export application IR or snapshots")
     export_p.add_argument("target", nargs="?", default="app.py", help="App target")

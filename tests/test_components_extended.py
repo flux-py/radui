@@ -23,7 +23,7 @@ def test_layout_components_rendering():
     grid = gx.grid(gx.text("Left"), gx.text("Right"), columns=2, gap=16, id="g1")
     html = registry.render(grid)
     assert "gx-grid" in html
-    assert "grid-template-columns:repeat(2, 1fr)" in html
+    assert "grid-template-columns:repeat(2, minmax(0, 1fr))" in html
     assert "gap:16px" in html
 
     tabs = gx.tabs(
