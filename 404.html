@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>RADUI Documentation</title>
+  <script>
+    var path = window.location.pathname;
+    var repo = '/radui';
+    var clean = path.startsWith(repo) ? path.slice(repo.length) : path;
+    clean = clean.replace(/^\/+|\/+$/g, '');
+    if (!clean) {
+      window.location.replace(repo + '/');
+    } else {
+      var target = clean.endsWith('.html') ? clean : clean + '.html';
+      window.location.replace(repo + '/' + target);
+    }
+  </script>
+</head>
+<body style="font-family:sans-serif;padding:40px;text-align:center;">
+  <h2>Redirecting to RADUI Documentation...</h2>
+</body>
+</html>
