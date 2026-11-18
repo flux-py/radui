@@ -732,9 +732,32 @@ COMPONENTS: list[dict[str, Any]] = [
         ],
         "example": 'ui.canvas_stream(stream_topic="telemetry.ticks", mode="line", buffer_size=10000)',
     },
+    {
+        "name": "custom_element",
+        "domain": "Layout & Disclosure",
+        "description": "Standards-compliant Custom Element host with open/closed Shadow DOM, slot projection, and CSRF-protected event commands (M2.2).",
+        "params": [
+            {"name": "tag_name", "type": "str", "default": "acme-widget", "description": "Valid custom element tag name containing a hyphen."},
+            {"name": "shadow_mode", "type": "str", "default": "open", "options": ["open", "closed", "none"], "description": "Shadow DOM encapsulation mode."},
+            {"name": "props", "type": "dict", "default": "{}", "description": "Safe scalar attributes bound onto the host element."},
+            {"name": "event_commands", "type": "dict", "default": "{}", "description": "Mapping of allowlisted custom DOM events to @app.command IDs."},
+        ],
+        "example": 'ui.custom_element("acme-kpi", ui.text("Users"), props={"value": "1,248"}, event_commands={"refresh": "kpi.refresh"})',
+    },
+    {
+        "name": "suspense",
+        "domain": "Feedback & Overlays",
+        "description": "Progressive streaming SSR boundary with synchronous fallback, per-boundary timeout, and error recovery (M2.3).",
+        "params": [
+            {"name": "resolver", "type": "Callable", "default": "async_loader", "description": "Sync or async callable returning a Component."},
+            {"name": "fallback", "type": "Component", "default": "ui.text('Loading...')", "description": "Initial shell placeholder rendered immediately."},
+            {"name": "timeout_s", "type": "float", "default": 5.0, "description": "Maximum resolution timeout in seconds."},
+        ],
+        "example": 'ui.suspense(load_metrics, fallback=ui.skeleton(height="80px"), timeout_s=3.0)',
+    },
 ]
 
-assert len(COMPONENTS) == 70, f"Expected 70 components, got {len(COMPONENTS)}"
+assert len(COMPONENTS) == 72, f"Expected 72 components, got {len(COMPONENTS)}"
 
 
 # =========================================================================
@@ -767,8 +790,9 @@ CLI_COMMANDS: list[dict[str, str]] = [
     {"cmd": "security", "domain": "Quality & Diagnostics", "syntax": "radui security [app.py]", "description": "Audit cookie flags, CSRF tokens, and secret persistence."},
     {"cmd": "doctor", "domain": "Quality & Diagnostics", "syntax": "radui doctor", "description": "Diagnose local system health, port availability, and packages."},
 
-    # Build & Distribution (6)
-    {"cmd": "build", "domain": "Build & Distribution", "syntax": "radui build [app.py]", "description": "Compile and package production distribution artifacts into ./dist."},
+    # Build & Distribution (7)
+    {"cmd": "build", "domain": "Build & Distribution", "syntax": "radui build [app.py] [--optimize]", "description": "Compile and package production distribution artifacts into ./dist."},
+    {"cmd": "compile", "domain": "Build & Distribution", "syntax": "radui compile [app.py] [--out-dir .radui-cache]", "description": "Run M2.1 static dependency analysis and pure-static HTML fragment compiler."},
     {"cmd": "bundle", "domain": "Build & Distribution", "syntax": "radui bundle [app.py]", "description": "Bundle application code and local static assets."},
     {"cmd": "export", "domain": "Build & Distribution", "syntax": "radui export [app.py] --static", "description": "Pre-render pages into standalone zero-server HTML document bundles."},
     {"cmd": "assets", "domain": "Build & Distribution", "syntax": "radui assets", "description": "Inspect embedded static assets footprint (~37.6 KB raw / ~9.6 KB gzip)."},
@@ -802,7 +826,7 @@ CLI_COMMANDS: list[dict[str, str]] = [
     {"cmd": "tools", "domain": "AI & Protocols", "syntax": "radui tools", "description": "List all registered tool descriptors available for agent dispatch."},
 ]
 
-assert len(CLI_COMMANDS) == 45, f"Expected 45 CLI commands, got {len(CLI_COMMANDS)}"
+assert len(CLI_COMMANDS) == 46, f"Expected 46 CLI commands, got {len(CLI_COMMANDS)}"
 
 
 # =========================================================================
@@ -894,6 +918,65 @@ ADRS: list[dict[str, str]] = [
         "invariant": "Schema evolution rules for Application IR, A2UI, and SSE stream contracts.",
         "path": "docs/adr/ADR-012-protocol-compatibility-versioning.md",
     },
+    {
+        "id": "ADR-013",
+        "title": "Declarative Client-Side Interaction Engine",
+        "scope": "Client Interactions (M1.8/M1.8.1)",
+        "invariant": "O(1) delegated listeners, WeakMap state, zero eval, and allowlisted DOM actions.",
+        "path": "docs/adr/ADR-013-declarative-client-interactions.md",
+    },
+    {
+        "id": "ADR-014",
+        "title": "Native SPA Navigation Engine",
+        "scope": "SPA Routing (M1.9/M1.9.1/M1.9.2)",
+        "invariant": "AbortController concurrency, auth_key cache invalidation, and automatic server fallback.",
+        "path": "docs/adr/ADR-014-native-spa-navigation.md",
+    },
+    {
+        "id": "ADR-015",
+        "title": "Resumable Application Runtime",
+        "scope": "Resumability (M2.0)",
+        "invariant": "Versioned boundary snapshots, zero eager hydration, and auth_scope validation.",
+        "path": "docs/adr/ADR-015-resumable-runtime.md",
+    },
+    {
+        "id": "ADR-016",
+        "title": "Compiler-Assisted Reactive Optimization",
+        "scope": "Python AST Compiler (M2.1)",
+        "invariant": "Static dependency indexing and pure-static fragment reuse preserving dynamic tracking.",
+        "path": "docs/adr/ADR-016-compiler-assisted-optimization.md",
+    },
+    {
+        "id": "ADR-017",
+        "title": "Native Web Components Interoperability",
+        "scope": "Custom Elements & Shadow DOM (M2.2)",
+        "invariant": "Standards-compliant Custom Elements with CSRF-protected event command bridging.",
+        "path": "docs/adr/ADR-017-web-components.md",
+    },
+    {
+        "id": "ADR-018",
+        "title": "Progressive and Streaming Server-Side Rendering",
+        "scope": "Streaming SSR (M2.3)",
+        "invariant": "Immediate shell flush, out-of-order async resolution, and nonce-verified <template> swaps.",
+        "path": "docs/adr/ADR-018-progressive-streaming-ssr.md",
+    },
 ]
 
-assert len(ADRS) == 12, f"Expected 12 ADRs, got {len(ADRS)}"
+assert len(ADRS) == 18, f"Expected 18 ADRs, got {len(ADRS)}"
+
+DOC_PAGES: list[dict[str, str]] = [
+    {"title": "Overview", "href": "index.html", "category": "Start here", "summary": "Framework introduction, live counter, and design philosophy."},
+    {"title": "Install & Quickstart", "href": "getting-started.html", "category": "Start here", "summary": "Installation, first app, and dev server setup."},
+    {"title": "Python API Reference", "href": "api-reference.html", "category": "Start here", "summary": "App, state, commands, interactions, resumability, and streaming APIs."},
+    {"title": "System Architecture", "href": "architecture.html", "category": "Start here", "summary": "Full M0-M2.3 architecture, AST, IR, compiler, and runtime layers."},
+    {"title": "Component Explorer (72)", "href": "components.html", "category": "Components", "summary": "Interactive catalog of all 72 built-in RadUI components."},
+    {"title": "Declarative Interactions (M1.8)", "href": "interactions.html", "category": "Core concepts", "summary": "Zero-eval local_state, on(), act.*, and bind_local runtime."},
+    {"title": "SPA Navigation (M1.9)", "href": "navigation.html", "category": "Core concepts", "summary": "Zero-reload RadUINavigator, prefetching, guards, and scroll restoration."},
+    {"title": "Resumable Runtime (M2.0)", "href": "resumability.html", "category": "Core concepts", "summary": "Lazy boundary restoration, ExecutionDescriptor, and /_gx/resume."},
+    {"title": "Compiler & Optimizer (M2.1)", "href": "compiler.html", "category": "Core concepts", "summary": "Python AST static analysis, pure-static fragment cache, and radui compile."},
+    {"title": "Web Components (M2.2)", "href": "web-components.html", "category": "Core concepts", "summary": "Custom Elements, open/closed Shadow DOM, slots, and event bridges."},
+    {"title": "Streaming SSR (M2.3)", "href": "streaming-ssr.html", "category": "Core concepts", "summary": "ui.suspense, out-of-order async streaming, backpressure, and nonces."},
+    {"title": "Integration Guide", "href": "integrations.html", "category": "Integrations", "summary": "Flask, Django, FastAPI, Spring Boot, React, Next.js, SQLite, PostgreSQL, MongoDB, CouchDB, Redis."},
+    {"title": "CLI Reference (46)", "href": "cli.html", "category": "CLI & Toolchain", "summary": "All 46 radui CLI subcommands including compile and build --optimize."},
+    {"title": "Architecture Decisions (18)", "href": "adrs.html", "category": "Core concepts", "summary": "All 18 Architecture Decision Records (ADR-001 to ADR-018)."},
+]

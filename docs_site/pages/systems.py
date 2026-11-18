@@ -50,6 +50,15 @@ def architecture_page():
                 ui.text("Every distributed background job and state lease carries an incremented fencing token, guaranteeing split-brain prevention under network partitions."),
                 open=True,
             ),
+            ui.accordion_item(
+                "M1.8-M2.3 Next-Generation Runtime",
+                ui.text(
+                    "Combines declarative client interactions (M1.8 WeakMap + O(1) delegation), native SPA navigation (M1.9 RadUINavigator), "
+                    "lazy resumability (M2.0), Python AST compiler optimization (M2.1), Shadow DOM Web Components (M2.2), and progressive streaming SSR (M2.3) "
+                    "into one zero-Node.js Python-first runtime (90,552 B raw / 20,790 B gzip / 18,037 B Brotli)."
+                ),
+                open=True,
+            ),
         ),
         gap=16,
         stagger_children=0.05,
@@ -130,26 +139,26 @@ def components_page():
     ]
 
     return ui.column(
-        ui.heading("Interactive Component Explorer (70 Built-in Primitives)", level=1),
-        ui.text("Instant real-time discovery, interactive live previews, property inspection, and 3D flippable implementation code for all 70 RadUI primitives."),
+        ui.heading("Interactive Component Explorer (72 Built-in Primitives)", level=1),
+        ui.text("Instant real-time discovery, interactive live previews, property inspection, and 3D flippable implementation code for all 72 RadUI primitives."),
         
         # Real-time search bar & Domain filter toolbar
         ui.card(
             ui.form(
                 ui.row(
-                    ui.input("Search 70 primitives (e.g. slider, presence, canvas, chat, modal, grid)...", id="comp-search-bar"),
-                    ui.badge("Showing 70 of 70 primitives", variant="primary", id="comp-results-count"),
+                    ui.input("Search 72 primitives (e.g. custom_element, suspense, slider, presence, canvas, modal)...", id="comp-search-bar"),
+                    ui.badge("Showing 72 of 72 primitives", variant="primary", id="comp-results-count"),
                     justify="between",
                     align="center",
                 ),
                 ui.spacer(size=8),
                 ui.row(
-                    ui.button("All (70)", variant="primary", id="domain-filter-all"),
-                    ui.button("Layout (12)", variant="outline", id="domain-filter-layout"),
+                    ui.button("All (72)", variant="primary", id="domain-filter-all"),
+                    ui.button("Layout (13)", variant="outline", id="domain-filter-layout"),
                     ui.button("Forms (11)", variant="outline", id="domain-filter-forms"),
                     ui.button("Action (5)", variant="outline", id="domain-filter-action"),
                     ui.button("Data (6)", variant="outline", id="domain-filter-data"),
-                    ui.button("Feedback (7)", variant="outline", id="domain-filter-feedback"),
+                    ui.button("Feedback (8)", variant="outline", id="domain-filter-feedback"),
                     ui.button("Navigation (5)", variant="outline", id="domain-filter-nav"),
                     ui.button("Indicators (8)", variant="outline", id="domain-filter-indicators"),
                     ui.button("AI & Agent (9)", variant="outline", id="domain-filter-ai"),
@@ -184,7 +193,7 @@ def components_page():
                 ),
                 ui.spacer(size=12),
                 ui.text(meta["description"], id="component-description-text"),
-                title="Primitive Catalog (68 Total)",
+                title="Primitive Catalog (72 Total)",
                 hover=ui.motion.hover(scale=1.01, translate_y=-1.0),
             ),
             # Right Column: Property Inspector
@@ -230,7 +239,7 @@ def components_page():
         # Synchronized Python Implementation Code
         ui.heading("Synchronized Python Implementation", level=3),
         ui.code_block(gen_code, language="python", copyable=True, id="comp-code-block"),
-        ui.heading("Complete component reference (70 Primitives)", level=2),
+        ui.heading("Complete component reference (72 Primitives)", level=2),
         ui.data_grid(
             headers=["Component", "Category", "Description", "Parameters", "Example"],
             rows=component_rows,

@@ -22,7 +22,7 @@ def _render_sidebar() -> ui.Component:
                 open=True,
             ),
             ui.accordion_item(
-                "Component Library (70)",
+                "Component Library (72)",
                 ui.column(
                     ui.link("Component Explorer", "components.html"),
                     ui.link("Layout & Grids", "components-layout.html"),
@@ -35,9 +35,9 @@ def _render_sidebar() -> ui.Component:
                 open=True,
             ),
             ui.accordion_item(
-                "CLI & Toolchain (45)",
+                "CLI & Toolchain (46)",
                 ui.column(
-                    ui.link("CLI Reference (45)", "cli.html"),
+                    ui.link("CLI Reference (46)", "cli.html"),
                     ui.link("Developer Workflows", "cli-workflows.html"),
                     gap=4,
                 ),
@@ -47,13 +47,31 @@ def _render_sidebar() -> ui.Component:
                 "Core concepts",
                 ui.column(
                     ui.link("State & reactivity", "state.html"),
+                    ui.link("Declarative Interactions", "interactions.html"),
+                    ui.link("SPA Navigation", "navigation.html"),
+                    ui.link("Resumable Runtime (M2.0)", "resumability.html"),
+                    ui.link("Compiler & Optimizer (M2.1)", "compiler.html"),
+                    ui.link("Web Components (M2.2)", "web-components.html"),
+                    ui.link("Streaming SSR (M2.3)", "streaming-ssr.html"),
                     ui.link("Events & streaming", "transport.html"),
                     ui.link("Background jobs", "jobs.html"),
                     ui.link("AI & approvals", "ai.html"),
-                    ui.link("Architecture decisions", "adrs.html"),
+                    ui.link("Architecture decisions (18)", "adrs.html"),
                     gap=4,
                 ),
-                open=False,
+                open=True,
+            ),
+            ui.accordion_item(
+                "Integrations & Stacks",
+                ui.column(
+                    ui.link("Integration Overview", "integrations.html"),
+                    ui.link("Backend Frameworks", "integrations.html#backends"),
+                    ui.link("Frontend Frameworks", "integrations.html#frontends"),
+                    ui.link("Databases & Storage", "integrations.html#databases"),
+                    ui.link("Security & Deployment", "integrations.html#production"),
+                    gap=4,
+                ),
+                open=True,
             ),
             ui.accordion_item(
                 "Enterprise & Infrastructure",
@@ -88,6 +106,7 @@ def _render_header() -> ui.Component:
             ui.link("Why RADUI?", "index.html#why-radui"),
             ui.link("Quickstart", "getting-started.html"),
             ui.link("Components", "components.html"),
+            ui.link("Integrations", "integrations.html"),
             ui.link("Architecture", "architecture.html"),
             ui.link("GitHub >", "https://github.com/flux-py/radui", external=True),
             gap=12,

@@ -12,10 +12,10 @@ from docs_site.data import CLI_COMMANDS
 def cli_page():
     return ui.column(
         ui.badge("Developer Toolchain", variant="primary"),
-        ui.heading("RADUI CLI Command Directory (All 45 Commands)", level=1),
+        ui.heading("RADUI CLI Command Directory (All 46 Commands)", level=1),
         ui.text(
-            "The RADUI CLI provides 45 production-grade subcommands for project initialization, live development, "
-            "code generation, static compilation, bundle packaging, security auditing, and cluster telemetry.",
+            "The RADUI CLI provides 46 production-grade subcommands for project initialization, live development, "
+            "AST compilation, static site builds, bundle packaging, security auditing, and cluster telemetry.",
             variant="lead",
         ),
         ui.spacer(size=14),
@@ -32,7 +32,7 @@ def cli_page():
         # Searchable CLI Command Table
         ui.card(
             ui.heading("Complete Command Reference", level=3),
-            ui.text("Search across all 45 registered subcommands by keyword, syntax, or architectural domain:"),
+            ui.text("Search across all 46 registered subcommands by keyword, syntax, or architectural domain:"),
             ui.data_grid(
                 headers=["Command", "Domain", "Syntax & Usage", "Description"],
                 rows=[[c["cmd"], c["domain"], f"`{c['syntax']}`", c["description"]] for c in CLI_COMMANDS],
@@ -129,7 +129,7 @@ def cli_workflows_page():
             ui.code_block(
                 "[*] Checking Python environment... Python 3.12.3 [OK]\n"
                 "[*] Checking ASGI backend... uvicorn 0.30.1 [OK]\n"
-                "[*] Verifying 70 built-in component AST schemas... [OK]\n"
+                "[*] Verifying 72 built-in component AST schemas... [OK]\n"
                 "[*] Auditing tenant fencing rules (ADR-002)... 0 leaks detected [PASS]\n"
                 "[*] Monotonic lease check (ADR-001)... [PASS]\n"
                 "All 7 diagnostic gates verified successfully.",

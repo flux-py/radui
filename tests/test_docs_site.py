@@ -21,14 +21,14 @@ def client():
 
 
 def test_docs_site_metadata_integrity():
-    """Verify data catalog contains all 70 components, 45 CLI commands, and 12 ADRs."""
-    assert len(COMPONENTS) == 70
-    assert len(CLI_COMMANDS) == 45
-    assert len(ADRS) == 12
+    """Verify data catalog contains all 72 components, 46 CLI commands, and 18 ADRs."""
+    assert len(COMPONENTS) == 72
+    assert len(CLI_COMMANDS) == 46
+    assert len(ADRS) == 18
 
 
 def test_docs_site_all_routes_render_200(client):
-    """Verify all 17 documentation routes render with HTTP 200 OK."""
+    """Verify all 24 documentation routes render with HTTP 200 OK."""
     routes = [
         "/",
         "/getting-started",
@@ -47,6 +47,13 @@ def test_docs_site_all_routes_render_200(client):
         "/jobs",
         "/ai",
         "/adrs",
+        "/interactions",
+        "/navigation",
+        "/resumability",
+        "/compiler",
+        "/web-components",
+        "/streaming-ssr",
+        "/integrations",
     ]
 
     for route in routes:
@@ -69,7 +76,7 @@ def test_docs_site_component_explorer_page(client):
     """Verify component explorer renders catalog index and property inspector."""
     res = client.get("/components")
     assert res.status_code == 200
-    assert "Interactive Component Explorer (70 Built-in Primitives)" in res.text
+    assert "Interactive Component Explorer (72 Built-in Primitives)" in res.text
     assert "Property Inspector" in res.text
     assert "Synchronized Python Implementation" in res.text
 
